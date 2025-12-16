@@ -1,0 +1,448 @@
+from functools import lru_cache
+from re import Pattern
+from typing import Any, Literal
+
+from pydantic import model_validator
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+from backend.core.path_conf import BASE_PATH
+
+
+class Settings(BaseSettings):
+    """全局配置"""
+
+    model_config = SettingsConfigDict(
+        env_file=f'{BASE_PATH}/.env',
+        env_file_encoding='utf-8',
+        extra='ignore',
+        case_sensitive=True,
+    )
+
+    # .env 当前环境
+    ENVIRONMENT: Literal['dev', 'prod']
+
+    # FastAPI
+    FASTAPI_API_V1_PATH: str = '/api/v1'
+    FASTAPI_TITLE: str = 'FastAPI'
+    FASTAPI_DESCRIPTION: str = 'FastAPI Best Architecture'
+    FASTAPI_DOCS_URL: str = '/docs'
+    FASTAPI_REDOC_URL: str = '/redoc'
+    FASTAPI_OPENAPI_URL: str | None = '/openapi'
+    FASTAPI_STATIC_FILES: bool = True
+
+    # .env 数据库
+    DATABASE_TYPE: Literal['mysql', 'postgresql']
+    DATABASE_HOST: str
+    DATABASE_PORT: int
+    DATABASE_USER: str
+    DATABASE_PASSWORD: str
+
+    # 数据库
+    DATABASE_ECHO: bool | Literal['debug'] = False
+    DATABASE_POOL_ECHO: bool | Literal['debug'] = False
+    DATABASE_SCHEMA: str = 'fba'
+    DATABASE_CHARSET: str = 'utf8mb4'
+    DATABASE_PK_MODE: Literal['autoincrement', 'snowflake'] = 'autoincrement'
+
+    # .env Redis
+    REDIS_HOST: str
+    REDIS_PORT: int
+    REDIS_PASSWORD: str
+    REDIS_DATABASE: int
+
+    # Redis
+    REDIS_TIMEOUT: int = 5
+
+    # .env Snowflake
+    SNOWFLAKE_DATACENTER_ID: int | None = None
+    SNOWFLAKE_WORKER_ID: int | None = None
+
+    # Snowflake
+    SNOWFLAKE_REDIS_PREFIX: str = 'fba:snowflake'
+    SNOWFLAKE_HEARTBEAT_INTERVAL_SECONDS: int = 30
+    SNOWFLAKE_NODE_TTL_SECONDS: int = 60
+
+    # .env Token
+    TOKEN_SECRET_KEY: str  # 密钥 secrets.token_urlsafe(32)
+
+    # Token
+    TOKEN_ALGORITHM: str = 'HS256'
+    TOKEN_EXPIRE_SECONDS: int = 60 * 60 * 24  # 1 天
+    TOKEN_REFRESH_EXPIRE_SECONDS: int = 60 * 60 * 24 * 7  # 7 天
+    TOKEN_REDIS_PREFIX: str = 'fba:token'
+    TOKEN_EXTRA_INFO_REDIS_PREFIX: str = 'fba:token_extra_info'
+    TOKEN_ONLINE_REDIS_PREFIX: str = 'fba:token_online'
+    TOKEN_REFRESH_REDIS_PREFIX: str = 'fba:refresh_token'
+    TOKEN_REQUEST_PATH_EXCLUDE: list[str] = [  # JWT / RBAC 路由白名单
+        f'{FASTAPI_API_V1_PATH}/auth/login',
+    ]
+    TOKEN_REQUEST_PATH_EXCLUDE_PATTERN: list[Pattern[str]] = [  # JWT / RBAC 路由白名单（正则）
+        rf'^{FASTAPI_API_V1_PATH}/monitors/(redis|server)$',
+    ]
+
+    # 用户安全
+    USER_LOCK_REDIS_PREFIX: str = 'fba:user:lock'
+    USER_LOCK_THRESHOLD: int = 5  # 用户密码错误锁定阈值，0 表示禁用锁定
+    USER_LOCK_SECONDS: int = 60 * 5  # 5 分钟
+    USER_PASSWORD_EXPIRY_DAYS: int = 365  # 用户密码有效期，0 表示永不过期
+    USER_PASSWORD_REMINDER_DAYS: int = 7  # 用户密码到期提醒，0 表示不提醒
+    USER_PASSWORD_HISTORY_CHECK_COUNT: int = 3
+    USER_PASSWORD_MIN_LENGTH: int = 6
+    USER_PASSWORD_MAX_LENGTH: int = 32
+    USER_PASSWORD_REQUIRE_SPECIAL_CHAR: bool = False
+
+    # 登录
+    LOGIN_CAPTCHA_ENABLED: bool = True
+    LOGIN_CAPTCHA_REDIS_PREFIX: str = 'fba:login:captcha'
+    LOGIN_CAPTCHA_EXPIRE_SECONDS: int = 60 * 5  # 5 分钟
+    LOGIN_FAILURE_PREFIX: str = 'fba:login:failure'
+
+    # JWT
+    JWT_USER_REDIS_PREFIX: str = 'fba:user'
+
+    # RBAC
+    RBAC_ROLE_MENU_MODE: bool = True
+    RBAC_ROLE_MENU_EXCLUDE: list[str] = [
+        'sys:monitor:redis',
+        'sys:monitor:server',
+    ]
+
+    # Cookie
+    COOKIE_REFRESH_TOKEN_KEY: str = 'fba_refresh_token'
+    COOKIE_REFRESH_TOKEN_EXPIRE_SECONDS: int = 60 * 60 * 24 * 7  # 7 天
+
+    # 数据权限
+    DATA_PERMISSION_COLUMN_EXCLUDE: list[str] = [  # 排除允许进行数据过滤的 SQLA 模型列
+        'id',
+        'sort',
+        'del_flag',
+        'created_time',
+        'updated_time',
+    ]
+
+    # Socket.IO
+    WS_NO_AUTH_MARKER: str = 'internal'
+
+    # CORS
+    CORS_ALLOWED_ORIGINS: list[str] = [  # 末尾不带斜杠
+        'http://127.0.0.1:8000',
+        'http://localhost:5173',
+    ]
+    CORS_EXPOSE_HEADERS: list[str] = [
+        'X-Request-ID',
+    ]
+
+    # 中间件配置
+    MIDDLEWARE_CORS: bool = True
+
+    # 请求限制配置
+    REQUEST_LIMITER_REDIS_PREFIX: str = 'fba:limiter'
+
+    # 时间配置
+    DATETIME_TIMEZONE: str = 'Asia/Shanghai'
+    DATETIME_FORMAT: str = '%Y-%m-%d %H:%M:%S'
+
+    # 文件上传
+    UPLOAD_READ_SIZE: int = 1024
+    UPLOAD_IMAGE_EXT_INCLUDE: list[str] = ['jpg', 'jpeg', 'png', 'gif', 'webp']
+    UPLOAD_IMAGE_SIZE_MAX: int = 5 * 1024 * 1024  # 5 MB
+    UPLOAD_VIDEO_EXT_INCLUDE: list[str] = ['mp4', 'mov', 'avi', 'flv']
+    UPLOAD_VIDEO_SIZE_MAX: int = 20 * 1024 * 1024  # 20 MB
+
+    # 演示模式配置
+    DEMO_MODE: bool = False
+    DEMO_MODE_EXCLUDE: set[tuple[str, str]] = {
+        ('POST', f'{FASTAPI_API_V1_PATH}/auth/login'),
+        ('POST', f'{FASTAPI_API_V1_PATH}/auth/logout'),
+        ('GET', f'{FASTAPI_API_V1_PATH}/auth/captcha'),
+        ('POST', f'{FASTAPI_API_V1_PATH}/auth/refresh'),
+    }
+
+    # IP 定位配置
+    IP_LOCATION_PARSE: Literal['online', 'offline', 'false'] = 'offline'
+    IP_LOCATION_REDIS_PREFIX: str = 'fba:ip:location'
+    IP_LOCATION_EXPIRE_SECONDS: int = 60 * 60 * 24  # 1 天
+
+    # Trace ID
+    TRACE_ID_REQUEST_HEADER_KEY: str = 'X-Request-ID'
+    TRACE_ID_LOG_LENGTH: int = 32  # UUID 长度，必须小于等于 32
+    TRACE_ID_LOG_DEFAULT_VALUE: str = '-'
+
+    # 日志
+    LOG_FORMAT: str = (
+        '<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</> | <lvl>{level: <8}</> | <cyan>{request_id}</> | <lvl>{message}</>'
+    )
+
+    # 日志（控制台）
+    LOG_STD_LEVEL: str = 'INFO'
+
+    # 日志（文件）
+    LOG_FILE_ACCESS_LEVEL: str = 'INFO'
+    LOG_FILE_ERROR_LEVEL: str = 'ERROR'
+    LOG_ACCESS_FILENAME: str = 'fba_access.log'
+    LOG_ERROR_FILENAME: str = 'fba_error.log'
+
+    # .env 操作日志
+    OPERA_LOG_ENCRYPT_SECRET_KEY: str  # 密钥 os.urandom(32), 需使用 bytes.hex() 方法转换为 str
+
+    # 操作日志
+    OPERA_LOG_PATH_EXCLUDE: list[str] = [
+        '/favicon.ico',
+        '/docs',
+        '/redoc',
+        '/openapi',
+        f'{FASTAPI_API_V1_PATH}/auth/login/swagger',
+        f'{FASTAPI_API_V1_PATH}/oauth2/github/callback',
+        f'{FASTAPI_API_V1_PATH}/oauth2/google/callback',
+        f'{FASTAPI_API_V1_PATH}/oauth2/linux-do/callback',
+    ]
+    OPERA_LOG_ENCRYPT_TYPE: int = 1  # 0: AES (性能损耗); 1: md5; 2: ItsDangerous; 3: 不加密, others: 替换为 ******
+    OPERA_LOG_ENCRYPT_KEY_INCLUDE: list[str] = [  # 将加密接口入参参数对应的值
+        'password',
+        'old_password',
+        'new_password',
+        'confirm_password',
+    ]
+    OPERA_LOG_QUEUE_BATCH_CONSUME_SIZE: int = 100
+    OPERA_LOG_QUEUE_TIMEOUT: int = 60  # 1 分钟
+
+    # Plugin 配置
+    PLUGIN_PIP_CHINA: bool = True
+    PLUGIN_PIP_INDEX_URL: str = 'https://mirrors.aliyun.com/pypi/simple/'
+    PLUGIN_PIP_MAX_RETRY: int = 3
+    PLUGIN_REDIS_PREFIX: str = 'fba:plugin'
+
+    # I18n 配置
+    I18N_DEFAULT_LANGUAGE: str = 'zh-CN'
+
+    ##################################################
+    # [ App ] task
+    ##################################################
+    # .env Redis
+    CELERY_BROKER_REDIS_DATABASE: int
+
+    # .env RabbitMQ
+    # docker run -d --hostname fba-mq --name fba-mq  -p 5672:5672 -p 15672:15672 rabbitmq:latest
+    CELERY_RABBITMQ_HOST: str
+    CELERY_RABBITMQ_PORT: int
+    CELERY_RABBITMQ_USERNAME: str
+    CELERY_RABBITMQ_PASSWORD: str
+
+    # 基础配置
+    CELERY_BROKER: Literal['rabbitmq', 'redis'] = 'redis'
+    CELERY_RABBITMQ_VHOST: str = ''
+    CELERY_REDIS_PREFIX: str = 'fba:celery'
+    CELERY_TASK_MAX_RETRIES: int = 5
+
+    ##################################################
+    # [ Plugin ] code_generator
+    ##################################################
+    CODE_GENERATOR_DOWNLOAD_ZIP_FILENAME: str = 'fba_generator'
+
+    ##################################################
+    # [ Plugin ] oauth2
+    ##################################################
+    # .env
+    OAUTH2_GITHUB_CLIENT_ID: str
+    OAUTH2_GITHUB_CLIENT_SECRET: str
+    OAUTH2_GOOGLE_CLIENT_ID: str
+    OAUTH2_GOOGLE_CLIENT_SECRET: str
+    OAUTH2_LINUX_DO_CLIENT_ID: str
+    OAUTH2_LINUX_DO_CLIENT_SECRET: str
+
+    # 基础配置
+    OAUTH2_STATE_REDIS_PREFIX: str = 'fba:oauth2:state'
+    OAUTH2_STATE_EXPIRE_SECONDS: int = 60 * 3  # 3 分钟
+    OAUTH2_GITHUB_REDIRECT_URI: str = 'http://127.0.0.1:8000/api/v1/oauth2/github/callback'
+    OAUTH2_GOOGLE_REDIRECT_URI: str = 'http://127.0.0.1:8000/api/v1/oauth2/google/callback'
+    OAUTH2_LINUX_DO_REDIRECT_URI: str = 'http://127.0.0.1:8000/api/v1/oauth2/linux-do/callback'
+    OAUTH2_FRONTEND_LOGIN_REDIRECT_URI: str = 'http://localhost:5173/oauth2/callback'
+    OAUTH2_FRONTEND_BINDING_REDIRECT_URI: str = 'http://localhost:5173/profile'
+
+    ##################################################
+    # [ Plugin ] email
+    ##################################################
+    # .env
+    EMAIL_USERNAME: str
+    EMAIL_PASSWORD: str
+
+    # 基础配置
+    EMAIL_HOST: str = 'smtp.qq.com'
+    EMAIL_PORT: int = 465
+    EMAIL_SSL: bool = True
+    EMAIL_CAPTCHA_REDIS_PREFIX: str = 'fba:email:captcha'
+    EMAIL_CAPTCHA_EXPIRE_SECONDS: int = 60 * 3  # 3 分钟
+
+    ##################################################
+    # [ Module ] Agent - LangChain/LangGraph AI Agents
+    ##################################################
+    # .env LLM API Keys
+    OPENAI_API_KEY: str = ''
+    OPENAI_API_BASE: str = ''
+    ANTHROPIC_API_KEY: str = ''
+    AZURE_OPENAI_API_KEY: str = ''
+    AZURE_OPENAI_ENDPOINT: str = ''
+    AZURE_OPENAI_API_VERSION: str = '2024-02-15-preview'
+    GOOGLE_API_KEY: str = ''
+    TOGETHER_API_KEY: str = ''
+    DEEPSEEK_API_KEY: str = ''
+    DASHSCOPE_API_KEY: str = ''  # Alibaba Cloud
+
+    # Agent Workflow Configuration
+    AGENT_RECURSION_LIMIT: int = 25
+    AGENT_MAX_PLAN_ITERATIONS: int = 1
+    AGENT_MAX_STEP_NUM: int = 3
+    AGENT_MAX_SEARCH_RESULTS: int = 3
+    AGENT_ENABLE_DEEP_THINKING: bool = False
+    AGENT_ENABLE_CLARIFICATION: bool = False
+    AGENT_MAX_CLARIFICATION_ROUNDS: int = 3
+    AGENT_ENFORCE_WEB_SEARCH: bool = False
+    AGENT_ENFORCE_RESEARCHER_SEARCH: bool = True
+    
+    # --------------------------------------------------------------------------
+    # [Robust Model Configuration]
+    # Basic Model (for general chat and planning)
+    BASIC_MODEL_BASE_URL: str = ''
+    BASIC_MODEL_NAME: str = ''
+    BASIC_MODEL_API_KEY: str = ''
+    BASIC_MODEL_MAX_RETRIES: int = 3
+    BASIC_MODEL_TOKEN_LIMIT: int = 200000
+    BASIC_MODEL_VERIFY_SSL: bool = True
+
+    # Reasoning Model (Optional, for complex planning)
+    REASONING_MODEL_BASE_URL: str = ''
+    REASONING_MODEL_NAME: str = ''
+    REASONING_MODEL_API_KEY: str = ''
+    REASONING_MODEL_MAX_RETRIES: int = 3
+    REASONING_MODEL_TOKEN_LIMIT: int = 150000
+
+    # Python REPL (Sandbox Execution)
+    ENABLE_PYTHON_REPL: bool = False
+
+    # Tool Interrupts (Human-in-the-loop)
+    TOOL_INTERRUPTS_BEFORE: list[str] = []
+
+    # --------------------------------------------------------------------------
+    # [Robust Search & Crawler Configuration]
+    # Crawler Engine
+    CRAWLER_ENGINE: str = 'jina'  # 'jina', 'infoquest'
+    CRAWLER_FETCH_TIME: int = 10
+    CRAWLER_TIMEOUT: int = 30
+    CRAWLER_NAVI_TIMEOUT: int = 15
+
+    # Detailed Search Configuration
+    SEARCH_ENGINE_INCLUDE_DOMAINS: list[str] = []
+    SEARCH_ENGINE_EXCLUDE_DOMAINS: list[str] = []
+    SEARCH_ENGINE_INCLUDE_ANSWER: bool = False
+    SEARCH_ENGINE_SEARCH_DEPTH: Literal['basic', 'advanced'] = 'advanced'
+    SEARCH_ENGINE_INCLUDE_RAW_CONTENT: bool = True
+    SEARCH_ENGINE_INCLUDE_IMAGES: bool = True
+    SEARCH_ENGINE_INCLUDE_IMAGE_DESCRIPTIONS: bool = True
+    SEARCH_ENGINE_MIN_SCORE_THRESHOLD: float = 0.0
+    SEARCH_ENGINE_MAX_CONTENT_LENGTH: int = 4000
+    # InfoQuest specific
+    SEARCH_ENGINE_TIME_RANGE: int = 30  # Days
+    SEARCH_ENGINE_SITE: str = ''
+    
+    # Production Hardening
+    AGENT_SKIP_DB_SETUP: bool = False  # Skip auto-creation of tables (use Alembic in prod)
+
+    # LangGraph Checkpointer (conversation state persistence)
+    LANGGRAPH_CHECKPOINT_ENABLED: bool = False
+    LANGGRAPH_CHECKPOINT_DB_URL: str = ''  # e.g., postgresql://user:pass@localhost/db or mongodb://localhost
+
+    # MCP (Model Context Protocol) Configuration
+    AGENT_MCP_ENABLED: bool = False
+    AGENT_MCP_TIMEOUT_SECONDS: int = 300
+
+    # RAG (Retrieval Augmented Generation) Configuration
+    AGENT_RAG_PROVIDER: str = ''  # 'milvus', 'qdrant', or empty
+
+    # Milvus Vector DB
+    MILVUS_HOST: str = 'localhost'
+    MILVUS_PORT: int = 19530
+    MILVUS_COLLECTION: str = 'agent_documents'
+
+    # Qdrant Vector DB
+    QDRANT_HOST: str = 'localhost'
+    QDRANT_PORT: int = 6333
+    QDRANT_COLLECTION: str = 'agent_documents'
+    QDRANT_API_KEY: str = ''
+
+    # Web Search Configuration
+    AGENT_SEARCH_ENGINE: str = 'tavily'  # 'tavily', 'duckduckgo', 'brave', 'bing', 'infoquest', 'searx', 'arxiv'
+    TAVILY_API_KEY: str = ''
+    INFOQUEST_API_KEY: str = ''
+    BRAVE_SEARCH_API_KEY: str = ''
+    BING_SEARCH_API_KEY: str = ''
+    SEARX_HOST: str = ''
+    JINA_API_KEY: str = ''
+
+    # --------------------------------------------------------------------------
+    # [Expanded RAG Configuration]
+    # Providers: 'milvus', 'qdrant', 'vikingdb', 'ragflow', 'dify', 'moi'
+    
+    # VikingDB
+    VIKINGDB_KNOWLEDGE_BASE_API_URL: str = ''
+    VIKINGDB_KNOWLEDGE_BASE_API_AK: str = ''
+    VIKINGDB_KNOWLEDGE_BASE_API_SK: str = ''
+    VIKINGDB_KNOWLEDGE_BASE_RETRIEVAL_SIZE: int = 15
+
+    # RagFlow
+    RAGFLOW_API_URL: str = 'http://localhost:9388'
+    RAGFLOW_API_KEY: str = ''
+    RAGFLOW_RETRIEVAL_SIZE: int = 10
+    RAGFLOW_CROSS_LANGUAGES: list[str] = []
+
+    # Dify
+    DIFY_API_URL: str = 'https://api.dify.ai/v1'
+    DIFY_API_KEY: str = ''
+
+    # MOI (MatrixOne)
+    MOI_API_URL: str = ''
+    MOI_API_KEY: str = ''
+    MOI_RETRIEVAL_SIZE: int = 10
+    MOI_LIST_LIMIT: int = 10
+    
+    # Vector DB Embeddings (Common)
+    EMBEDDING_PROVIDER: str = 'openai'  # openai, dashscope
+    EMBEDDING_BASE_URL: str = ''
+    EMBEDDING_MODEL: str = 'text-embedding-ada-002'
+    EMBEDDING_API_KEY: str = ''
+    AUTO_LOAD_EXAMPLES: bool = True
+
+    # TTS (Text-to-Speech) Configuration
+    VOLCENGINE_TTS_APPID: str = ''
+    VOLCENGINE_TTS_ACCESS_TOKEN: str = ''
+    VOLCENGINE_TTS_CLUSTER: str = 'volcano_tts'
+    VOLCENGINE_TTS_VOICE_TYPE: str = 'BV700_V2_streaming'
+
+    # Agent API CORS (additional origins for agent frontend)
+    AGENT_ALLOWED_ORIGINS: str = 'http://localhost:3000'
+
+    # Agent Report Styles
+    AGENT_DEFAULT_REPORT_STYLE: str = 'ACADEMIC'  # ACADEMIC, POPULAR_SCIENCE, NEWS, SOCIAL_MEDIA, STRATEGIC_INVESTMENT
+
+    @model_validator(mode='before')
+    @classmethod
+    def check_env(cls, values: Any) -> Any:
+        """检查环境变量"""
+        if values.get('ENVIRONMENT') == 'prod':
+            # FastAPI
+            values['FASTAPI_OPENAPI_URL'] = None
+            values['FASTAPI_STATIC_FILES'] = False
+
+            # task
+            values['CELERY_BROKER'] = 'rabbitmq'
+
+        return values
+
+
+@lru_cache
+def get_settings() -> Settings:
+    """获取全局配置单例"""
+    return Settings()
+
+
+# 创建全局配置实例
+settings = get_settings()
