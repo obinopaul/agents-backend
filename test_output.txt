@@ -1,0 +1,16 @@
+Traceback (most recent call last):
+  File "C:\Users\pault\Documents\3. AI and Machine Learning\2. Deep Learning\1c. App\Projects\agents-backend\backend\tests\integration\test_sandbox_service.py", line 4, in <module>
+    from backend.src.services.sandbox_service import SandboxService
+  File "c:\Users\pault\Documents\3. AI and Machine Learning\2. Deep Learning\1c. App\Projects\agents-backend\backend\src\services\sandbox_service.py", line 3, in <module>
+    from backend.src.sandbox_server.lifecycle.sandbox_controller import SandboxController
+  File "c:\Users\pault\Documents\3. AI and Machine Learning\2. Deep Learning\1c. App\Projects\agents-backend\backend\src\sandbox_server\lifecycle\__init__.py", line 1, in <module>
+    from .sandbox_controller import SandboxController
+  File "c:\Users\pault\Documents\3. AI and Machine Learning\2. Deep Learning\1c. App\Projects\agents-backend\backend\src\sandbox_server\lifecycle\sandbox_controller.py", line 14, in <module>
+    from backend.src.sandbox_server.sandboxes import (
+    ...<2 lines>...
+    )
+  File "c:\Users\pault\Documents\3. AI and Machine Learning\2. Deep Learning\1c. App\Projects\agents-backend\backend\src\sandbox_server\sandboxes\__init__.py", line 4, in <module>
+    from .e2b import E2BSandbox
+  File "c:\Users\pault\Documents\3. AI and Machine Learning\2. Deep Learning\1c. App\Projects\agents-backend\backend\src\sandbox_server\sandboxes\e2b.py", line 8, in <module>
+    from e2b.sandbox_async.sandbox_api import SandboxListQuery
+ImportError: cannot import name 'SandboxListQuery' from 'e2b.sandbox_async.sandbox_api' (C:\Users\pault\AppData\Roaming\Python\Python313\site-packages\e2b\sandbox_async\sandbox_api.py). Did you mean: 'SandboxQuery'?

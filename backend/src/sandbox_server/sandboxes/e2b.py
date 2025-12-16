@@ -5,7 +5,7 @@ from typing import IO, AsyncIterator, Literal, Optional, TYPE_CHECKING
 
 from e2b import CommandResult
 from e2b_code_interpreter import AsyncSandbox
-from e2b.sandbox_async.sandbox_api import SandboxListQuery
+from e2b.sandbox_async.sandbox_api import SandboxQuery
 from backend.src.sandbox_server.config import SandboxConfig
 from backend.src.sandbox_server.sandboxes.base import BaseSandbox
 from backend.src.sandbox_server.models.exceptions import (
@@ -386,7 +386,7 @@ class E2BSandbox(BaseSandbox):
     async def is_paused(cls, config: SandboxConfig, sandbox_id: str) -> bool:
         paginator = AsyncSandbox.list(
             api_key=config.e2b_api_key,
-            query=SandboxListQuery(
+            query=SandboxQuery(
                 state=["paused"],
                 # Bad pattern as this use controlled sandbox id
                 metadata={

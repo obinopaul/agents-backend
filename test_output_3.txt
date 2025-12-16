@@ -1,0 +1,48 @@
+2025-12-15 19:24:22,418 - backend.src.sandbox_server.lifecycle.sandbox_controller - INFO - Sandbox manager started
+2025-12-15 19:24:22.418 | INFO     | backend.src.services.sandbox_service:initialize:29 - SandboxService initialized successfully
+2025-12-15 19:24:22,422 - backend.src.sandbox_server.sandboxes.e2b - INFO - Scheduled timeout for sandbox 98980bc3-8fba-4977-9b92-cb1117986c39 in <MagicMock name='SandboxConfig().timeout_seconds.__floordiv__()' id='2485065142624'> minutes
+2025-12-15 19:24:22,423 - backend.src.sandbox_server.lifecycle.sandbox_controller - INFO - Created sandbox 98980bc3-8fba-4977-9b92-cb1117986c39 for user test_user
+2025-12-15 19:24:22,423 - backend.src.sandbox_server.sandboxes.e2b - INFO - Scheduled timeout for sandbox 98980bc3-8fba-4977-9b92-cb1117986c39 in <MagicMock name='SandboxConfig().timeout_seconds.__floordiv__()' id='2485065142624'> minutes
+
+[Test] Initializing Sandbox Service...
+[Test] Service Initialized.
+[Test] Creating Sandbox...
+[Test] Sandbox Created: 98980bc3-8fba-4977-9b92-cb1117986c39
+[Test] Running Command...
+Traceback (most recent call last):
+  File "c:\Users\pault\Documents\3. AI and Machine Learning\2. Deep Learning\1c. App\Projects\agents-backend\backend\src\sandbox_server\sandboxes\e2b.py", line 33, in wrapper
+    return await func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\pault\Documents\3. AI and Machine Learning\2. Deep Learning\1c. App\Projects\agents-backend\backend\src\sandbox_server\sandboxes\e2b.py", line 355, in run_cmd
+    raise Exception(f"Command {command} failed: {result.error}")
+Exception: Command echo 'Hello Sandbox' failed: <MagicMock name='mock.error' id='2485065145312'>
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\pault\Documents\3. AI and Machine Learning\2. Deep Learning\1c. App\Projects\agents-backend\backend\tests\integration\test_sandbox_service.py", line 101, in <module>
+    asyncio.run(test_sandbox_service_lifecycle())
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Python313\Lib\asyncio\runners.py", line 195, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "C:\Python313\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "C:\Python313\Lib\asyncio\base_events.py", line 725, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "C:\Users\pault\Documents\3. AI and Machine Learning\2. Deep Learning\1c. App\Projects\agents-backend\backend\tests\integration\test_sandbox_service.py", line 87, in test_sandbox_service_lifecycle
+    output = await service.run_cmd(sandbox_wrapper.sandbox_id, "echo 'Hello Sandbox'")
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\pault\Documents\3. AI and Machine Learning\2. Deep Learning\1c. App\Projects\agents-backend\backend\src\services\sandbox_service.py", line 49, in run_cmd
+    return await self.controller.run_cmd(sandbox_id, command, background)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\pault\Documents\3. AI and Machine Learning\2. Deep Learning\1c. App\Projects\agents-backend\backend\src\sandbox_server\lifecycle\sandbox_controller.py", line 266, in run_cmd
+    return await sandbox.run_cmd(command, background)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\pault\Documents\3. AI and Machine Learning\2. Deep Learning\1c. App\Projects\agents-backend\backend\src\sandbox_server\sandboxes\e2b.py", line 41, in wrapper
+    raise SandboxGeneralException(
+        f"Failed to {func.__name__} for sandbox {args[0]}: {e}"
+    )
+backend.src.sandbox_server.models.exceptions.SandboxGeneralException: Failed to run_cmd for sandbox <backend.src.sandbox_server.sandboxes.e2b.E2BSandbox object at 0x00000242995DF250>: Command echo 'Hello Sandbox' failed: <MagicMock name='mock.error' id='2485065145312'>

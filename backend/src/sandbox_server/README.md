@@ -1,80 +1,38 @@
-# II Sandbox Server
+# Sandbox Server (Embedded Library)
 
-A standalone FastAPI server that manages sandbox lifecycle operations for the II Agent system.
+**NOTE:** This module has been integrated into the main Agent Backend (`fba_server`) as an embedded service.
 
-## Architecture
+## 🏗️ Architecture
 
-The sandbox server handles all sandbox-related operations including:
+The Sandbox Server logic (`SandboxController`, `E2BProvider`, etc.) is now consumed directly by the main application via `SandboxService`.
 
-- Creating and managing sandboxes
-- Scheduling timeouts and lifecycle management
-- File operations (upload, download, read, write)
-- MCP (Model Context Protocol) setup
-- Redis-based message queuing for delayed operations
+- **API Endpoints**: Exposed at `/api/v1/agent/sandboxes` (see [Main API Docs](/docs#/Agent%20Sandbox)).
+- **Service Layer**: `backend/src/services/sandbox_service.py`
+- **Configuration**: Managed via `backend/core/conf.py` (settings).
 
-## Components
+## 🧩 Components
 
-- **Main Server** (`main.py`) - FastAPI application with REST API endpoints
-- **Sandbox Manager** (`sandbox_manager.py`) - Core business logic for sandbox operations
-- **Database Layer** (`database.py`) - SQLAlchemy models and operations
-- **Providers** (`providers/`) - Sandbox provider implementations (E2B, etc.)
-- **Queue System** (`queue.py`) - Redis-based message scheduling
-- **Client** (`client.py`) - HTTP client for communicating with the server
+This directory contains the core logic for the sandbox capabilities:
 
-## Configuration
+- **Lifecycle**: `lifecycle/sandbox_controller.py` - Manages creation, timeouts, and state.
+- **Providers**: `sandboxes/` - E2B provider implementation.
+- **Queue**: `lifecycle/queue.py` - Redis-based timeout scheduling.
+- **Database**: `db/` - Sandbox persistence models (Postgres).
 
-Environment variables:
+## 🛠️ Usage
 
-- `SANDBOX_SERVER_HOST` - Server host (default: 0.0.0.0)
-- `SANDBOX_SERVER_PORT` - Server port (default: 8100)
-- `SANDBOX_PROVIDER` - Provider type (default: e2b)
-- `E2B_API_KEY` - E2B API key (required for E2B provider)
-- `E2B_TEMPLATE` - E2B template (default: base)
-- `REDIS_URL` - Redis URL (default: redis://localhost:6379)
-- `MCP_PORT` - MCP port in sandboxes (default: 5173)
+To use the sandbox in the main application:
 
-## Running the Server
+```python
+from backend.src.services.sandbox_service import sandbox_service
 
-1. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
+# Get or create
+sandbox = await sandbox_service.get_or_create_sandbox(user_id="user_123")
 
-2. Set environment variables:
-   ```bash
-   export E2B_API_KEY=your_e2b_api_key
-   export REDIS_URL=redis://localhost:6379
-   ```
+# Run Command
+output = await sandbox_controller.run_cmd(sandbox.id, "python script.py")
+```
 
-3. Start the server:
-   ```bash
-   ./start_sandbox_server.sh
-   ```
+## ⚠️ Legacy Note
 
-   Or run directly:
-   ```bash
-   uvicorn ii_sandbox_server.main:app --host 0.0.0.0 --port 8100
-   ```
-
-## API Endpoints
-
-- `POST /sandboxes/create` - Create a new sandbox
-- `POST /sandboxes/connect` - Connect to or resume a sandbox
-- `POST /sandboxes/schedule-timeout` - Schedule a timeout for a sandbox
-- `GET /sandboxes/{id}/status` - Get sandbox status
-- `GET /sandboxes/{id}/info` - Get sandbox information
-- `POST /sandboxes/{id}/pause` - Pause a sandbox
-- `DELETE /sandboxes/{id}` - Delete a sandbox
-- `POST /sandboxes/expose-port` - Expose a port from a sandbox
-- `POST /sandboxes/write-file` - Write a file to a sandbox
-- `POST /sandboxes/read-file` - Read a file from a sandbox
-- `POST /sandboxes/download-file` - Download a file from a sandbox
-- `POST /sandboxes/setup-mcp` - Setup MCP for a sandbox
-
-## Integration
-
-The II Agent application uses the `SandboxServerClient` to communicate with this server via HTTP. The original `sandbox_service.py` has been replaced with a simplified version that delegates all operations to this standalone server.
-
-## Database
-
-The server uses SQLite by default for storing sandbox metadata. The database is automatically initialized on startup.
+The `main.py` in this directory is a legacy standalone entry point. Do not use it for production. Use the main `fba_server` instead.

@@ -34,7 +34,10 @@ class SandboxConfig(BaseModel):
         data.setdefault("timeout_buffer_seconds", 60 * 10)
         
         # Redis settings from main app
-        data.setdefault("redis_url", settings.REDIS_URL) 
+        # Redis URL construction
+        redis_password = f":{settings.REDIS_PASSWORD}@" if settings.REDIS_PASSWORD else ""
+        redis_url = f"redis://{redis_password}{settings.REDIS_HOST}:{settings.REDIS_PORT}/{settings.REDIS_DATABASE}"
+        data.setdefault("redis_url", redis_url) 
         data.setdefault("redis_tls_ca_path", None)
         data.setdefault("queue_name", "sandbox_lifecycle")
         data.setdefault("max_retries", 3)
