@@ -1,6 +1,3 @@
-# Copyright (c) 2025 Bytedance Ltd. and/or its affiliates
-# SPDX-License-Identifier: MIT
-
 """Util that calls InfoQuest Crawler API.
 
 In order to set this up, follow instructions at:

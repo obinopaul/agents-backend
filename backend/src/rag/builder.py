@@ -1,6 +1,3 @@
-# Copyright (c) 2025 Bytedance Ltd. and/or its affiliates
-# SPDX-License-Identifier: MIT
-
 from backend.src.config.tools import SELECTED_RAG_PROVIDER, RAGProvider
 from backend.src.rag.dify import DifyProvider
 from backend.src.rag.milvus import MilvusProvider

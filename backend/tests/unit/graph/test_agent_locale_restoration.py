@@ -1,5 +1,3 @@
-# Copyright (c) 2025 Bytedance Ltd. and/or its affiliates
-# SPDX-License-Identifier: MIT
 
 """
 Unit tests for agent locale restoration after create_react_agent execution.

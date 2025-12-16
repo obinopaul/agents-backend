@@ -1,6 +1,3 @@
-# Copyright (c) 2025 Bytedance Ltd. and/or its affiliates
-# SPDX-License-Identifier: MIT
-
 import src.crawler as crawler_module
 from src.crawler.crawler import safe_truncate
 from src.crawler.infoquest_client import InfoQuestClient

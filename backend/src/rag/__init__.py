@@ -1,6 +1,3 @@
-# Copyright (c) 2025 Bytedance Ltd. and/or its affiliates
-# SPDX-License-Identifier: MIT
-
 from .builder import build_retriever
 from .dify import DifyProvider
 from .milvus import MilvusProvider

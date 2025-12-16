@@ -1,6 +1,3 @@
-# Copyright (c) 2025 Bytedance Ltd. and/or its affiliates
-# SPDX-License-Identifier: MIT
-
 import unittest
 from unittest.mock import MagicMock
 from langchain_core.tools import Tool
