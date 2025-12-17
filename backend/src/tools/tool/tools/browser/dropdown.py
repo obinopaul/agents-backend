@@ -1,8 +1,8 @@
 import json
 
 from typing import Any
-from ii_tool.browser.browser import Browser
-from ii_tool.tools.base import BaseTool, ToolResult, ImageContent, TextContent
+from backend.src.tool_server.browser.browser import Browser
+from backend.src.tool_server.tools.base import BaseTool, ToolResult, ImageContent, TextContent
 
 
 class BrowserGetSelectOptionsTool(BaseTool):

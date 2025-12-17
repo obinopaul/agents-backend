@@ -2,8 +2,8 @@
 
 from typing import Any
 from pathlib import Path
-from ii_tool.core.workspace import WorkspaceManager, FileSystemValidationError
-from ii_tool.tools.base import BaseTool, ToolResult, ToolConfirmationDetails
+from backend.src.tool_server.core.workspace import WorkspaceManager, FileSystemValidationError
+from backend.src.tool_server.tools.base import BaseTool, ToolResult, ToolConfirmationDetails
 
 
 # Name

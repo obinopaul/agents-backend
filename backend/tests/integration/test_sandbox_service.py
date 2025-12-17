@@ -2,7 +2,7 @@ import pytest
 import asyncio
 from unittest.mock import AsyncMock, patch, MagicMock
 from backend.src.services.sandbox_service import SandboxService
-from backend.src.sandbox_server.config import SandboxConfig
+from backend.src.sandbox.sandbox_server.config import SandboxConfig
 
 @pytest.mark.asyncio
 async def test_sandbox_service_lifecycle():
@@ -20,8 +20,8 @@ async def test_sandbox_service_lifecycle():
             self.exit_code = 0
 
     # 1. Mock the E2B AsyncSandbox and CommandResult
-    with patch("backend.src.sandbox_server.sandboxes.e2b.AsyncSandbox") as MockAsyncSandbox, \
-         patch("backend.src.sandbox_server.sandboxes.e2b.CommandResult", new=MockCommandResultClass):
+    with patch("backend.src.sandbox.sandbox_server.sandboxes.e2b.AsyncSandbox") as MockAsyncSandbox, \
+         patch("backend.src.sandbox.sandbox_server.sandboxes.e2b.CommandResult", new=MockCommandResultClass):
         
         # Mock the sandbox instance interactions
         mock_sandbox_instance = AsyncMock()
@@ -58,7 +58,7 @@ async def test_sandbox_service_lifecycle():
             mock_conf.redis_url = "redis://mock"
             
             # Mock Queue Scheduler (avoid Redis connection)
-            with patch("backend.src.sandbox_server.lifecycle.sandbox_controller.SandboxQueueScheduler") as MockQueueClass:
+            with patch("backend.src.sandbox.sandbox_server.lifecycle.sandbox_controller.SandboxQueueScheduler") as MockQueueClass:
                 mock_queue_instance = MockQueueClass.return_value
                 mock_queue_instance.setup_consumer = AsyncMock()
                 mock_queue_instance.start_consuming = AsyncMock()
@@ -76,7 +76,7 @@ async def test_sandbox_service_lifecycle():
                 # We need to bypass the database call in Controller.create_sandbox since we don't have a DB here
                 # So we verify the provider call directly mocking the controller's internal calls?
                 # Better: Mock the DB Sandboxes manager
-                with patch("backend.src.sandbox_server.lifecycle.sandbox_controller.Sandboxes") as MockDB:
+                with patch("backend.src.sandbox.sandbox_server.lifecycle.sandbox_controller.Sandboxes") as MockDB:
                     MockDB.create_sandbox = AsyncMock()
                     MockDB.get_sandbox_by_id = AsyncMock()
                     MockDB.update_last_activity = AsyncMock()

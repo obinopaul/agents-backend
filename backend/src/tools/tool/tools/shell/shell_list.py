@@ -1,6 +1,6 @@
 from typing import Any
-from ii_tool.tools.shell.terminal_manager import BaseShellManager
-from ii_tool.tools.base import BaseTool, ToolResult
+from backend.src.tool_server.tools.shell.terminal_manager import BaseShellManager
+from backend.src.tool_server.tools.base import BaseTool, ToolResult
 
 # Name
 NAME = "BashList"

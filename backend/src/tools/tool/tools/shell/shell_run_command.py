@@ -1,7 +1,7 @@
 from typing import Any
-from ii_tool.tools.shell.terminal_manager import BaseShellManager, ShellCommandTimeoutError, ShellBusyError
-from ii_tool.tools.base import BaseTool, ToolResult, ToolConfirmationDetails
-from ii_tool.core.workspace import WorkspaceManager
+from backend.src.tool_server.tools.shell.terminal_manager import BaseShellManager, ShellCommandTimeoutError, ShellBusyError
+from backend.src.tool_server.tools.base import BaseTool, ToolResult, ToolConfirmationDetails
+from backend.src.tool_server.core.workspace import WorkspaceManager
 
 
 # Constants

@@ -2,10 +2,10 @@ from abc import ABC, abstractmethod
 from typing import List
 from pydantic import BaseModel
 
-from ii_tool.integrations.web_visit.config import CompressorConfig
-from ii_tool.integrations.web_visit.compressor.context_compressor import ContextCompressor
-from ii_tool.integrations.web_visit.compressor.embedding_compressor import EmbeddingCompressor
-from ii_tool.integrations.web_visit.compressor.llm_compressor import LLMCompressor
+from backend.src.tool_server.integrations.web_visit.config import CompressorConfig
+from backend.src.tool_server.integrations.web_visit.compressor.context_compressor import ContextCompressor
+from backend.src.tool_server.integrations.web_visit.compressor.embedding_compressor import EmbeddingCompressor
+from backend.src.tool_server.integrations.web_visit.compressor.llm_compressor import LLMCompressor
 
 class WebVisitError(Exception):
     """Base exception for web visit errors"""

@@ -1,6 +1,6 @@
 from typing import Dict
 from fastmcp import Client, FastMCP
-from ii_tool.tools.mcp_tool import MCPTool
+from backend.src.tool_server.tools.mcp_tool import MCPTool
 
 
 async def load_tools_from_mcp(transport: FastMCP | str | Dict, timeout: int = 60) -> list[MCPTool]:

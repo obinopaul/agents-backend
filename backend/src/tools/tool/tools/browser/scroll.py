@@ -1,9 +1,9 @@
 import asyncio
 
 from typing import Any
-from ii_tool.browser.browser import Browser
-from ii_tool.browser.utils import is_pdf_url
-from ii_tool.tools.base import BaseTool, ToolResult, ImageContent, TextContent
+from backend.src.tool_server.browser.browser import Browser
+from backend.src.tool_server.browser.utils import is_pdf_url
+from backend.src.tool_server.tools.base import BaseTool, ToolResult, ImageContent, TextContent
 
 
 class BrowserScrollDownTool(BaseTool):

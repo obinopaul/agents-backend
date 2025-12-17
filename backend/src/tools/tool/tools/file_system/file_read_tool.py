@@ -6,9 +6,9 @@ import imghdr
 
 from pathlib import Path
 from typing import Optional, Any
-from ii_tool.core.workspace import WorkspaceManager, FileSystemValidationError
-from ii_tool.tools.base import BaseTool, ToolResult, ImageContent
-from ii_tool.tools.file_system.utils import encode_image
+from backend.src.tool_server.core.workspace import WorkspaceManager, FileSystemValidationError
+from backend.src.tool_server.tools.base import BaseTool, ToolResult, ImageContent
+from backend.src.tool_server.tools.file_system.utils import encode_image
 
 
 # Constants

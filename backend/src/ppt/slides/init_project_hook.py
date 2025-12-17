@@ -9,7 +9,7 @@ from typing import Any, Dict, List, Optional
 from ii_agent.core.event import EventType, RealtimeEvent
 from ii_agent.core.event_hooks import EventHook
 from ii_agent.db.manager import Projects
-from ii_tool.tools.dev import FullStackInitTool
+from backend.src.tool_server.tools.dev import FullStackInitTool
 
 
 logger = logging.getLogger(__name__)

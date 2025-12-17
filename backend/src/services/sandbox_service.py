@@ -1,7 +1,7 @@
 from typing import Optional
-from backend.src.sandbox_server.config import SandboxConfig
-from backend.src.sandbox_server.lifecycle.sandbox_controller import SandboxController
-from backend.src.sandbox_server.sandboxes.base import BaseSandbox
+from backend.src.sandbox.sandbox_server.config import SandboxConfig
+from backend.src.sandbox.sandbox_server.lifecycle.sandbox_controller import SandboxController
+from backend.src.sandbox.sandbox_server.sandboxes.base import BaseSandbox
 from backend.common.log import log
 
 class SandboxService:

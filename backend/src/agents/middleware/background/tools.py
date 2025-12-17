@@ -13,8 +13,8 @@ import structlog
 from langchain_core.tools import StructuredTool
 
 if TYPE_CHECKING:
-    from ptc_agent.agent.middleware.background.middleware import BackgroundSubagentMiddleware
-    from ptc_agent.agent.middleware.background.registry import BackgroundTask, BackgroundTaskRegistry
+    from backend.src.agents.middleware.background.middleware import BackgroundSubagentMiddleware
+    from backend.src.agents.middleware.background.registry import BackgroundTask, BackgroundTaskRegistry
 
 logger = structlog.get_logger(__name__)
 

@@ -1,6 +1,6 @@
 from . import utils
 from .base import BaseImageSearchClient, ImageSearchResult
-from ii_tool.integrations.storage import BaseStorage
+from backend.src.tool_server.integrations.storage import BaseStorage
 
 
 

@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from backend.common.model import MappedBase
 # Import Sandbox model to register it with metadata
-from backend.src.sandbox_server.db.model import Sandbox
+from backend.src.sandbox.sandbox_server.db.model import Sandbox
 from backend.core import path_conf
 from backend.database.db import SQLALCHEMY_DATABASE_URL
 

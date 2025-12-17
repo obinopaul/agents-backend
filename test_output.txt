@@ -2,11 +2,11 @@ Traceback (most recent call last):
   File "C:\Users\pault\Documents\3. AI and Machine Learning\2. Deep Learning\1c. App\Projects\agents-backend\backend\tests\integration\test_sandbox_service.py", line 4, in <module>
     from backend.src.services.sandbox_service import SandboxService
   File "c:\Users\pault\Documents\3. AI and Machine Learning\2. Deep Learning\1c. App\Projects\agents-backend\backend\src\services\sandbox_service.py", line 3, in <module>
-    from backend.src.sandbox_server.lifecycle.sandbox_controller import SandboxController
-  File "c:\Users\pault\Documents\3. AI and Machine Learning\2. Deep Learning\1c. App\Projects\agents-backend\backend\src\sandbox_server\lifecycle\__init__.py", line 1, in <module>
+    from backend.src.sandbox.sandbox_server.lifecycle.sandbox_controller import SandboxController
+  File "c:\Users\pault\Documents\3. AI and Machine Learning\2. Deep Learning\1c. App\Projects\agents-backend\backend\src\sandbox\sandbox_server\lifecycle\__init__.py", line 1, in <module>
     from .sandbox_controller import SandboxController
-  File "c:\Users\pault\Documents\3. AI and Machine Learning\2. Deep Learning\1c. App\Projects\agents-backend\backend\src\sandbox_server\lifecycle\sandbox_controller.py", line 14, in <module>
-    from backend.src.sandbox_server.sandboxes import (
+  File "c:\Users\pault\Documents\3. AI and Machine Learning\2. Deep Learning\1c. App\Projects\agents-backend\backend\src\sandbox\sandbox_server\lifecycle\sandbox_controller.py", line 14, in <module>
+    from backend.src.sandbox.sandbox_server.sandboxes import (
     ...<2 lines>...
     )
   File "c:\Users\pault\Documents\3. AI and Machine Learning\2. Deep Learning\1c. App\Projects\agents-backend\backend\src\sandbox_server\sandboxes\__init__.py", line 4, in <module>

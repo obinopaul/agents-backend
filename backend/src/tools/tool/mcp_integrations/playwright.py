@@ -1,4 +1,4 @@
-from ii_tool.mcp_integrations.base import BaseMCPIntegration
+from backend.src.tool_server.mcp_integrations.base import BaseMCPIntegration
 
 
 SELECTED_TOOLS = [

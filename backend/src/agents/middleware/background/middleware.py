@@ -16,8 +16,8 @@ from langchain_core.messages import ToolMessage
 from langgraph.prebuilt.tool_node import ToolCallRequest
 from langgraph.types import Command
 
-from ptc_agent.agent.middleware.background.registry import BackgroundTaskRegistry
-from ptc_agent.agent.middleware.background.tools import (
+from backend.src.agents.middleware.background.registry import BackgroundTaskRegistry
+from backend.src.agents.middleware.background.tools import (
     create_task_progress_tool,
     create_wait_tool,
 )

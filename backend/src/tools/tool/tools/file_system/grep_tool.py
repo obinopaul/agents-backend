@@ -5,8 +5,8 @@ import re
 
 from pathlib import Path
 from typing import Dict, List, Optional, Any
-from ii_tool.core.workspace import WorkspaceManager, FileSystemValidationError
-from ii_tool.tools.base import BaseTool, ToolResult
+from backend.src.tool_server.core.workspace import WorkspaceManager, FileSystemValidationError
+from backend.src.tool_server.tools.base import BaseTool, ToolResult
 
 
 # Constants

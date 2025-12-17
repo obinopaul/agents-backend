@@ -2,8 +2,8 @@
 
 from typing import Any, Dict, List, Optional, Tuple
 from pathlib import Path
-from ii_tool.core.workspace import WorkspaceManager, FileSystemValidationError
-from ii_tool.tools.base import BaseTool, ToolResult
+from backend.src.tool_server.core.workspace import WorkspaceManager, FileSystemValidationError
+from backend.src.tool_server.tools.base import BaseTool, ToolResult
 
 # Name
 NAME = "str_replace_based_edit_tool"

@@ -3,7 +3,7 @@ import base64
 import json
 import magic
 from typing import Any
-from ii_tool.tools.base import BaseTool, ToolResult, ImageContent, FileURLContent
+from backend.src.tool_server.tools.base import BaseTool, ToolResult, ImageContent, FileURLContent
 
 NAME = "read_remote_image"
 DISPLAY_NAME = "Read Remote Image"

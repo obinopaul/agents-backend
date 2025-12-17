@@ -4,8 +4,8 @@ from typing import Dict, Optional
 from datetime import datetime, timezone
 from pydantic import BaseModel, Field, model_validator, ConfigDict
 
-from ii_tool.tools.media.image_generate import ImageGenerateTool
-from ii_tool.tools.media.video_generate import VideoGenerateTool
+from backend.src.tool_server.tools.media.image_generate import ImageGenerateTool
+from backend.src.tool_server.tools.media.video_generate import VideoGenerateTool
 
 
 class TokenUsage(BaseModel):

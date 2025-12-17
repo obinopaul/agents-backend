@@ -1,10 +1,10 @@
 from typing import Dict
-from ii_tool.interfaces.sandbox import SandboxInterface
-from ii_tool.core.workspace import WorkspaceManager
-from ii_tool.tools.agent.message_user import MessageUserTool
-from ii_tool.tools.dev.database import GetDatabaseConnection
+from backend.src.tool_server.interfaces.sandbox import SandboxInterface
+from backend.src.tool_server.core.workspace import WorkspaceManager
+from backend.src.tool_server.tools.agent.message_user import MessageUserTool
+from backend.src.tool_server.tools.dev.database import GetDatabaseConnection
 
-from ii_tool.tools.shell import (
+from backend.src.tool_server.tools.shell import (
     ShellInit,
     ShellRunCommand,
     ShellView,
@@ -14,8 +14,7 @@ from ii_tool.tools.shell import (
     ShellWriteToProcessTool,
 )
 
-# from ii_tool.tools.codex import CodexExecuteTool  # Now using MCP stdio versions
-from ii_tool.tools.file_system import (
+from backend.src.tool_server.tools.file_system import (
     ASTGrepTool,
     GrepTool,
     FileReadTool,
@@ -24,13 +23,13 @@ from ii_tool.tools.file_system import (
     ApplyPatchTool,
     StrReplaceEditorTool,
 )
-from ii_tool.tools.productivity import TodoReadTool, TodoWriteTool
-from ii_tool.tools.media import (
+from backend.src.tool_server.tools.productivity import TodoReadTool, TodoWriteTool
+from backend.src.tool_server.tools.media import (
     VideoGenerateTool,
     ImageGenerateTool,
 )
-from ii_tool.tools.dev import FullStackInitTool, RegisterPort, SaveCheckpointTool
-from ii_tool.tools.web import (
+from backend.src.tool_server.tools.dev import FullStackInitTool, RegisterPort, SaveCheckpointTool
+from backend.src.tool_server.tools.web import (
     WebSearchTool,
     WebVisitTool,
     ImageSearchTool,
@@ -38,12 +37,11 @@ from ii_tool.tools.web import (
     ReadRemoteImageTool,
     WebBatchSearchTool,
 )
-from ii_tool.tools.slide_system.slide_edit_tool import SlideEditTool
-from ii_tool.tools.slide_system.slide_write_tool import SlideWriteTool
-from ii_tool.tools.slide_system.slide_patch import SlideApplyPatchTool
+from backend.src.tool_server.tools.slide_system.slide_edit_tool import SlideEditTool
+from backend.src.tool_server.tools.slide_system.slide_write_tool import SlideWriteTool
+from backend.src.tool_server.tools.slide_system.slide_patch import SlideApplyPatchTool
 
-# from ii_tool.tools.codex import CodexExecuteTool  # Now using MCP stdio versions
-from ii_tool.tools.browser import (
+from backend.src.tool_server.tools.browser import (
     BrowserClickTool,
     BrowserWaitTool,
     BrowserViewTool,
@@ -60,7 +58,7 @@ from ii_tool.tools.browser import (
     BrowserDragTool,
     BrowserEnterMultipleTextsTool,
 )
-from ii_tool.browser.browser import Browser
+from backend.src.tool_server.browser.browser import Browser
 
 
 def get_common_tools(

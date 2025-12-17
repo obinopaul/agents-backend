@@ -6,7 +6,7 @@ from fastapi.responses import StreamingResponse, Response
 from backend.common.response.response_schema import ResponseModel
 from backend.core.security.jwt import DependsJwtAuth
 from backend.src.services.sandbox_service import sandbox_service
-from backend.src.sandbox_server.models import (
+from backend.src.sandbox.sandbox_server.models import (
     CreateSandboxRequest,
     CreateSandboxResponse,
     ConnectSandboxRequest,
@@ -23,7 +23,7 @@ from backend.src.sandbox_server.models import (
     UploadFileFromUrlRequest,
     DownloadToPresignedUrlRequest,
 )
-from backend.src.sandbox_server.models.exceptions import (
+from backend.src.sandbox.sandbox_server.models.exceptions import (
     SandboxAuthenticationError,
     SandboxNotFoundException,
     SandboxTimeoutException,
