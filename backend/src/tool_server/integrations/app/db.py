@@ -1,105 +1,101 @@
-from contextlib import asynccontextmanager
-from typing import AsyncGenerator, Optional, List
-import uuid
-import ssl
-from urllib.parse import urlparse, parse_qs
-from sqlalchemy import asc, select, desc, func
-from sqlalchemy.orm import selectinload
-from sqlalchemy.ext.asyncio import create_async_engine
-from sqlalchemy.ext.asyncio import async_sessionmaker
-from sqlalchemy.ext.asyncio import AsyncSession as DBSession
-from backend.src.tool_server.integrations.app.config import config
+"""Database integration for tool_server.
 
-# Use the same db schema without duplication code
-from ii_agent.db.models import User, APIKey
-from ii_agent.metrics.service import accumulate_session_metrics
-from ii_agent.server.credits.service import deduct_user_credits
+This module provides database access for the tool server, using the
+real implementations from the backend agent services.
+"""
 
+import logging
+from typing import Optional
+from datetime import datetime, timezone
 
-# Parse the database URL to handle SSL parameters for asyncpg
-database_url = config.database_url
-connect_args = {}
+from sqlalchemy.ext.asyncio import AsyncSession
 
-if "+asyncpg" in database_url:
-    # Parse the URL to extract SSL parameters
-    parsed = urlparse(database_url)
-    if parsed.query:
-        query_params = parse_qs(parsed.query)
+# Import real implementations from backend services
+from backend.app.admin.model.user import User
+from backend.app.agent.service.api_key_service import get_user_by_api_key as _get_user_by_api_key
+from backend.app.agent.service.credit_service import deduct_user_credits as _deduct_user_credits
+from backend.app.agent.service.metrics_service import accumulate_session_metrics as _accumulate_session_metrics
 
-        # Remove SSL-related parameters from the URL
-        clean_params = []
-        for key, values in query_params.items():
-            if key not in ["sslmode", "channel_binding", "ssl"]:
-                for value in values:
-                    clean_params.append(f"{key}={value}")
-
-        # Reconstruct the URL without SSL parameters
-        clean_query = "&".join(clean_params) if clean_params else ""
-        database_url = database_url.split("?")[0]
-        if clean_query:
-            database_url += "?" + clean_query
-
-        # Configure SSL for asyncpg based on sslmode parameter
-        if "sslmode" in query_params:
-            sslmode = query_params["sslmode"][0]
-            if sslmode in ["require", "verify-ca", "verify-full"]:
-                # Create SSL context
-                ssl_context = ssl.create_default_context()
-                ssl_context.check_hostname = False
-                ssl_context.verify_mode = ssl.CERT_NONE
-                connect_args["ssl"] = ssl_context
-
-engine = create_async_engine(
-    database_url, echo=False, future=True, connect_args=connect_args
-)
-SessionLocal = async_sessionmaker(bind=engine, expire_on_commit=False)
+logger = logging.getLogger(__name__)
 
 
-@asynccontextmanager
-async def get_db() -> AsyncGenerator[DBSession, None]:
-    """Get a database session as a context manager.
+# Re-export User for compatibility with main.py
+__all__ = ['User', 'get_user_by_api_key', 'apply_tool_usage']
 
-    Yields:
-        A database session that will be automatically committed or rolled back
+
+async def get_user_by_api_key(api_key: str) -> Optional[User]:
+    """Resolve a user from their API key.
+    
+    This is a wrapper that creates a database session and calls the real service.
+    
+    Args:
+        api_key: The API key to validate
+        
+    Returns:
+        User object if valid, None if invalid or expired
     """
-    async with SessionLocal() as db:
-        try:
-            yield db
-            await db.commit()
-        except Exception:
-            await db.rollback()
-            raise
-
-
-async def get_user_by_api_key(api_key: str) -> User | None:
-    """Resolve a user from their API key."""
-    async with get_db() as db:
-        result = await db.execute(
-            select(APIKey)
-            .options(selectinload(APIKey.user))
-            .where(
-                APIKey.api_key == api_key,
-                APIKey.is_active.is_(True),
-            )
-        )
-        api_key_obj = result.scalar_one_or_none()
-
-        if not api_key_obj or not api_key_obj.user or not api_key_obj.user.is_active:
-            return None
-
-        return api_key_obj.user
+    from backend.database.db_mysql import async_db_session
+    
+    if not api_key:
+        return None
+    
+    try:
+        async with async_db_session() as db:
+            user = await _get_user_by_api_key(db_session=db, api_key=api_key)
+            if user:
+                await db.commit()  # Commit the last_used_at update
+            return user
+    except Exception as e:
+        logger.error(f"Error validating API key: {e}", exc_info=True)
+        return None
 
 
 async def apply_tool_usage(user_id: str, session_id: str, amount: float) -> bool:
-    """Apply tool usage to the user and session."""
-    async with get_db() as db:
-        apply_session_success = await accumulate_session_metrics(
-            db_session=db, session_id=session_id, credits=-amount
-        )
-        apply_user_success = await deduct_user_credits(
-            db_session=db, user_id=user_id, amount=amount
-        )
-        if apply_session_success and apply_user_success:
-            return True
-        else:
-            return False
+    """Apply tool usage to the user and session.
+    
+    This is the main entry point for billing, called after each tool use.
+    
+    Args:
+        user_id: User ID (will be converted to int)
+        session_id: Session ID
+        amount: Credit amount to deduct
+        
+    Returns:
+        True if both session and user credits were applied successfully
+    """
+    from backend.database.db_mysql import async_db_session
+    
+    if amount <= 0:
+        return True
+    
+    try:
+        # Convert user_id to int if it's a string
+        uid = int(user_id) if isinstance(user_id, str) else user_id
+        
+        async with async_db_session() as db:
+            # Track session metrics
+            await _accumulate_session_metrics(
+                db_session=db,
+                session_id=session_id,
+                credits=-amount,  # Negative = consumption
+            )
+            
+            # Deduct from user's credits
+            success = await _deduct_user_credits(
+                db_session=db,
+                user_id=uid,
+                amount=amount,
+                description=f"Tool usage for session {session_id}",
+            )
+            
+            if success:
+                await db.commit()
+                logger.info(f"Applied {amount} credits for user {uid}, session {session_id}")
+            else:
+                logger.warning(f"Failed to deduct credits for user {uid}")
+            
+            return success
+            
+    except Exception as e:
+        logger.error(f"Failed to apply tool usage: {e}", exc_info=True)
+        return False

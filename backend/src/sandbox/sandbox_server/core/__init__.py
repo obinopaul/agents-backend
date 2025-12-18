@@ -15,7 +15,7 @@ For agent implementations, see the agent package.
 
 __version__ = "0.1.0"
 
-from ptc_agent.config.core import CoreConfig
+from backend.src.config.core import CoreConfig
 
 from .mcp_registry import MCPRegistry, MCPToolInfo
 from .sandbox import ChartData, ExecutionResult, PTCSandbox

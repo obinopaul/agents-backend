@@ -1,11 +1,13 @@
 [project]
-name = "fastapi_best_architecture"
+name = "agents-backend"
 description = """
-A RBAC (Role-Based Access Control) permission control system built on FastAPI, featuring a unique pseudo-three-tier
-architecture design, with built-in basic implementation of fastapi admin as a template library, free and open-source.
+The Agents Backend is a unified, production-ready platform that combines a high-performance 
+FastAPI backend with advanced Agentic AI capabilities. It is designed to be the foundational 
+"One Platform" for deploying complex AI workflows, from streaming chat agents to autonomous 
+code execution sandboxes.
 """
 authors = [
-    { name = "Wu Clan", email = "jianhengwu0407@gmail.com" },
+    { name = "Paul", email = "acobapaul@gmail.com" },
 ]
 readme = "README.md"
 license = { text = "MIT" }

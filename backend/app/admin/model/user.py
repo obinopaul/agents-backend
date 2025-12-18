@@ -2,7 +2,7 @@ from datetime import datetime
 
 import sqlalchemy as sa
 
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from backend.common.model import Base, TimeZone, id_key
 from backend.database.db import uuid4_str
@@ -35,5 +35,12 @@ class User(Base):
         TimeZone, init=False, default_factory=timezone.now, comment='上次密码变更时间'
     )
 
+    # Credit system for AI tool usage
+    credits: Mapped[float] = mapped_column(sa.Float, default=0.0, comment='User credit balance for AI tools')
+    bonus_credits: Mapped[float] = mapped_column(sa.Float, default=0.0, comment='Bonus credits (used before regular credits)')
+
     # 逻辑外键
     dept_id: Mapped[int | None] = mapped_column(sa.BigInteger, default=None, comment='部门关联ID')
+
+    # Relationships
+    api_keys = relationship("APIKey", back_populates="user", lazy="selectin", default_factory=list)

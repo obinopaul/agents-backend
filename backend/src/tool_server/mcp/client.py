@@ -1,8 +1,9 @@
 import httpx
+import logging
 from fastmcp.client import Client
 from typing import Dict, Any
 
-from ii_agent.core.logger import logger
+logger = logging.getLogger(__name__)
 
 DEFAULT_TIMEOUT = 1800
 

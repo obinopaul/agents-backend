@@ -1,4 +1,4 @@
-# II Sandbox Server Requirements
+# Sandbox Server Requirements
 fastapi
 uvicorn[standard]
 pydantic
@@ -8,4 +8,4 @@ aiosqlite
 redis[hiredis]
 httpx
 e2b-code-interpreter
-daytona-sdk
+daytona  # Was: daytona-sdk (deprecated)

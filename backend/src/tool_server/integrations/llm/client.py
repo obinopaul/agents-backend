@@ -3,7 +3,23 @@ from backend.src.tool_server.integrations.llm.config import LLMConfig
 from openai import AsyncOpenAI
 from typing import Literal
 from pydantic import BaseModel
-from ii_agent.utils.constants import is_gpt5_family
+
+
+def is_gpt5_family(model_name: str) -> bool:
+    """
+    Check if a model belongs to the GPT-5 family.
+
+    Args:
+        model_name: The model name to check
+
+    Returns:
+        True if the model is in the GPT-5 family, False otherwise
+    """
+    if not model_name:
+        return False
+
+    # Check if model name contains "gpt-5" (case-insensitive)
+    return "gpt-5" in model_name.lower()
 
 
 class LLMResult(BaseModel):

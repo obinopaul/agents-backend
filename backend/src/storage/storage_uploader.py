@@ -128,7 +128,7 @@ if STORAGE_PROVIDER == "none":
         return True
 
 elif STORAGE_PROVIDER == "s3":
-    from ptc_agent.utils.storage.s3_uploader import (
+    from backend.src.storage.s3_uploader import (
         delete_object,
         does_object_exist,
         get_public_url,
@@ -143,7 +143,7 @@ elif STORAGE_PROVIDER == "s3":
     _PROVIDER_NAME = "AWS S3"
 
 elif STORAGE_PROVIDER == "oss":
-    from ptc_agent.utils.storage.oss_uploader import (
+    from backend.src.storage.oss_uploader import (
         delete_object,
         does_object_exist,
         get_public_url,
@@ -158,7 +158,7 @@ elif STORAGE_PROVIDER == "oss":
     _PROVIDER_NAME = "Alibaba Cloud OSS"
 
 else:  # Default to R2
-    from ptc_agent.utils.storage.r2_uploader import (
+    from backend.src.storage.r2_uploader import (
         delete_object,
         does_object_exist,
         get_public_url,

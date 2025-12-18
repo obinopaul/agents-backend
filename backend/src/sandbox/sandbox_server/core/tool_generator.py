@@ -5,7 +5,7 @@ from typing import Any
 
 import structlog
 
-from ptc_agent.config.core import MCPServerConfig
+from backend.src.config.core import MCPServerConfig
 
 from .mcp_registry import MCPToolInfo
 

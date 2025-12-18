@@ -10,7 +10,7 @@ import structlog
 from langchain_core.tools import BaseTool, tool
 
 # Import storage upload functions (supports R2, S3, OSS, or none via STORAGE_PROVIDER env var)
-from ptc_agent.utils.storage.storage_uploader import get_public_url, is_storage_enabled, upload_bytes
+from backend.src.storage.storage_uploader import get_public_url, is_storage_enabled, upload_bytes
 
 logger = structlog.get_logger(__name__)
 

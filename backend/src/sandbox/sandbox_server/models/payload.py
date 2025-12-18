@@ -13,13 +13,19 @@ class CreateSandboxRequest(BaseModel):
 
 
 class CreateSandboxResponse(BaseModel):
-    """Response from creating a sandbox."""
+    """Response from creating a sandbox.
+    
+    Includes URLs for accessing sandbox services (MCP server, Code-Server).
+    """
 
     success: bool = True
     sandbox_id: str
     provider_sandbox_id: str
     status: str
     message: Optional[str] = None
+    # Service URLs (exposed after sandbox is running)
+    mcp_url: Optional[str] = None  # MCP tool server URL (port 6060)
+    vscode_url: Optional[str] = None  # Code-Server URL (port 9000)
 
 
 class ConnectSandboxRequest(BaseModel):
@@ -29,13 +35,19 @@ class ConnectSandboxRequest(BaseModel):
 
 
 class ConnectSandboxResponse(BaseModel):
-    """Response from connecting to a sandbox."""
+    """Response from connecting to a sandbox.
+    
+    Includes URLs for accessing sandbox services (MCP server, Code-Server).
+    """
 
     success: bool = True
     sandbox_id: str
     provider_sandbox_id: str
     status: str
     message: Optional[str] = None
+    # Service URLs (exposed after sandbox is running)
+    mcp_url: Optional[str] = None  # MCP tool server URL (port 6060)
+    vscode_url: Optional[str] = None  # Code-Server URL (port 9000)
 
 
 class ScheduleTimeoutRequest(BaseModel):

@@ -1,3 +1,3 @@
-from .ii_sandbox import AgentSandbox
+from .agent_sandbox import AgentSandbox
 
 __all__ = ["AgentSandbox"]

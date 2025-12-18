@@ -14,12 +14,14 @@ Endpoints include:
 - /mcp/* - MCP server management
 - /rag/* - RAG resource management
 - /config - Agent configuration
+- /credits/* - User credit balance and usage
 """
 
 from fastapi import APIRouter
 
 from backend.app.agent.api.v1.chat import router as chat_router
 from backend.app.agent.api.v1.config import router as config_router
+from backend.app.agent.api.v1.credits import router as credits_router
 from backend.app.agent.api.v1.generation import router as generation_router
 from backend.app.agent.api.v1.mcp import router as mcp_router
 from backend.app.agent.api.v1.rag import router as rag_router
@@ -32,6 +34,7 @@ v1 = APIRouter(prefix='/agent', tags=['Agent'])
 # Include sub-routers with appropriate prefixes
 v1.include_router(chat_router, prefix='/chat', tags=['Agent Chat'])
 v1.include_router(config_router, prefix='/config', tags=['Agent Configuration'])
+v1.include_router(credits_router, tags=['Agent Credits'])
 v1.include_router(generation_router, prefix='/generation', tags=['Agent Generation'])
 v1.include_router(mcp_router, prefix='/mcp', tags=['Agent MCP'])
 v1.include_router(rag_router, prefix='/rag', tags=['Agent RAG'])

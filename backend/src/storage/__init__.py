@@ -9,7 +9,7 @@ Supports multiple providers:
 Configuration via config.yaml or STORAGE_PROVIDER env var.
 """
 
-from ptc_agent.utils.storage.storage_uploader import (
+from backend.src.storage.storage_uploader import (
     delete_object,
     does_object_exist,
     get_provider_id,

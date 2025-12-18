@@ -1,4 +1,4 @@
-"""Abstract sandbox interface to decouple ii_tool from ii_agent."""
+"""Abstract sandbox interface to decouple tool_server from the main application."""
 
 from abc import ABC, abstractmethod
 

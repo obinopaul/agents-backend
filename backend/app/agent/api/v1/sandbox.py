@@ -2,9 +2,11 @@ from typing import Any, Optional, Union
 
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form
 from fastapi.responses import StreamingResponse, Response
+import logging
 
 from backend.common.response.response_schema import ResponseModel
 from backend.core.security.jwt import DependsJwtAuth
+from backend.core.conf import settings
 from backend.src.services.sandbox_service import sandbox_service
 from backend.src.sandbox.sandbox_server.models import (
     CreateSandboxRequest,
@@ -30,6 +32,12 @@ from backend.src.sandbox.sandbox_server.models.exceptions import (
     SandboxNotInitializedError,
 )
 import httpx
+
+logger = logging.getLogger(__name__)
+
+# Get sandbox service ports from settings (configurable via .env)
+MCP_SERVER_PORT = settings.SANDBOX_MCP_SERVER_PORT
+CODE_SERVER_PORT = settings.SANDBOX_CODE_SERVER_PORT
 
 router = APIRouter(prefix="/sandboxes", tags=["Sandbox"])
 
@@ -58,12 +66,28 @@ async def get_sandbox_service():
 
 @router.post("/create", response_model=ResponseModel[CreateSandboxResponse], dependencies=[Depends(DependsJwtAuth)])
 async def create_sandbox(request: CreateSandboxRequest, controller = Depends(get_sandbox_service)):
-    """Create a new sandbox."""
+    """Create a new sandbox.
+    
+    Creates a new sandbox instance and exposes MCP and VS Code ports.
+    Returns URLs for connecting to sandbox services.
+    """
     try:
         sandbox = await controller.create_sandbox(
             user_id=request.user_id,
             sandbox_template_id=request.sandbox_template_id,
         )
+        
+        # Expose service ports and get URLs
+        mcp_url = None
+        vscode_url = None
+        try:
+            mcp_url = await controller.expose_port(sandbox.sandbox_id, MCP_SERVER_PORT)
+            vscode_url = await controller.expose_port(sandbox.sandbox_id, CODE_SERVER_PORT)
+            logger.info(f"Sandbox {sandbox.sandbox_id} created with MCP URL: {mcp_url}, VS Code URL: {vscode_url}")
+        except Exception as port_error:
+            # Log but don't fail - sandbox is still usable
+            logger.warning(f"Failed to expose ports for sandbox {sandbox.sandbox_id}: {port_error}")
+        
         return ResponseModel(
             data=CreateSandboxResponse(
                 success=True,
@@ -71,17 +95,35 @@ async def create_sandbox(request: CreateSandboxRequest, controller = Depends(get
                 provider_sandbox_id=sandbox.provider_sandbox_id,
                 status="running",
                 message="Sandbox created successfully",
+                mcp_url=mcp_url,
+                vscode_url=vscode_url,
             )
         )
     except Exception as e:
+        logger.error(f"Failed to create sandbox: {e}")
         handle_sandbox_exception(e)
 
 @router.post("/connect", response_model=ResponseModel[ConnectSandboxResponse], dependencies=[Depends(DependsJwtAuth)])
 async def connect_sandbox(request: ConnectSandboxRequest, controller = Depends(get_sandbox_service)):
-    """Connect to or resume a sandbox."""
+    """Connect to or resume a sandbox.
+    
+    Connects to an existing sandbox (or resumes it if paused).
+    Returns URLs for connecting to sandbox services.
+    """
     try:
         sandbox = await controller.connect(sandbox_id=request.sandbox_id)
         status_val = await controller.get_sandbox_status(request.sandbox_id)
+        
+        # Expose service ports and get URLs
+        mcp_url = None
+        vscode_url = None
+        try:
+            mcp_url = await controller.expose_port(sandbox.sandbox_id, MCP_SERVER_PORT)
+            vscode_url = await controller.expose_port(sandbox.sandbox_id, CODE_SERVER_PORT)
+            logger.info(f"Connected to sandbox {sandbox.sandbox_id} with MCP URL: {mcp_url}, VS Code URL: {vscode_url}")
+        except Exception as port_error:
+            logger.warning(f"Failed to expose ports for sandbox {sandbox.sandbox_id}: {port_error}")
+        
         return ResponseModel(
             data=ConnectSandboxResponse(
                 success=True,
@@ -89,9 +131,12 @@ async def connect_sandbox(request: ConnectSandboxRequest, controller = Depends(g
                 provider_sandbox_id=sandbox.provider_sandbox_id,
                 status=status_val,
                 message="Successfully connected to sandbox",
+                mcp_url=mcp_url,
+                vscode_url=vscode_url,
             )
         )
     except Exception as e:
+        logger.error(f"Failed to connect to sandbox: {e}")
         handle_sandbox_exception(e)
 
 @router.post("/run-cmd", response_model=ResponseModel[RunCommandResponse], dependencies=[Depends(DependsJwtAuth)])
@@ -142,6 +187,32 @@ async def get_sandbox_info(sandbox_id: str, controller=Depends(get_sandbox_servi
         # SandboxInfo model might not have success/message fields, that's fine for the data payload
         return ResponseModel(data=info)
     except Exception as e:
+        handle_sandbox_exception(e)
+
+@router.get("/{sandbox_id}/urls", response_model=ResponseModel[dict], dependencies=[Depends(DependsJwtAuth)])
+async def get_sandbox_urls(sandbox_id: str, controller=Depends(get_sandbox_service)):
+    """Get MCP and VS Code URLs for a running sandbox.
+    
+    Returns URLs for connecting to sandbox services:
+    - mcp_url: MCP tool server URL (port 6060)
+    - vscode_url: Code-Server URL (port 9000)
+    """
+    try:
+        # Verify sandbox exists and connect
+        sandbox = await controller.connect(sandbox_id=sandbox_id)
+        
+        # Expose ports and get URLs
+        mcp_url = await controller.expose_port(sandbox.sandbox_id, MCP_SERVER_PORT)
+        vscode_url = await controller.expose_port(sandbox.sandbox_id, CODE_SERVER_PORT)
+        
+        return ResponseModel(data={
+            "success": True,
+            "sandbox_id": sandbox_id,
+            "mcp_url": mcp_url,
+            "vscode_url": vscode_url,
+        })
+    except Exception as e:
+        logger.error(f"Failed to get sandbox URLs: {e}")
         handle_sandbox_exception(e)
 
 @router.post("/schedule-timeout", response_model=ResponseModel[dict], dependencies=[Depends(DependsJwtAuth)])

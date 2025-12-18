@@ -5,7 +5,7 @@ from types import TracebackType
 
 import structlog
 
-from ptc_agent.config.core import CoreConfig
+from backend.src.config.core import CoreConfig
 
 from .mcp_registry import MCPRegistry
 from .sandbox import PTCSandbox

@@ -15,14 +15,15 @@ from typing import Any
 
 import aiofiles
 import structlog
-from daytona_sdk import Daytona, DaytonaConfig
-from daytona_sdk.common.daytona import (
-    CreateSandboxFromSnapshotParams,
-    Image,
-)
-from daytona_sdk.common.snapshot import CreateSnapshotParams
 
-from ptc_agent.config.core import CoreConfig
+# New daytona package imports (replaces deprecated daytona_sdk)
+from daytona import (
+    Daytona,
+    DaytonaConfig,
+    CreateSandboxFromSnapshotParams,
+)
+
+from backend.src.config.core import CoreConfig
 
 from .mcp_registry import MCPRegistry
 from .tool_generator import ToolFunctionGenerator
@@ -900,7 +901,7 @@ class PTCSandbox:
                             exec_env[key] = value
 
             # Use code_run() for native artifact support (captures matplotlib charts)
-            from daytona_sdk.common.process import CodeRunParams
+            from daytona import CodeRunParams
 
             result = await self._run_sync(
                 self.sandbox.process.code_run,

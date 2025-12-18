@@ -20,7 +20,7 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
   cargo build --release --bin sse-http-server && \
   cp /build/codex/codex-rs/target/release/sse-http-server /sse-http-server
 
-# Multi-stage build to obfuscate ii_tool inside Linux environment
+# Multi-stage build to obfuscate tool_server inside Linux environment
 FROM nikolaik/python-nodejs:python3.10-nodejs24-slim AS obfuscator
 
 # Optimization: Use pip cache mount
@@ -29,11 +29,11 @@ RUN --mount=type=cache,target=/root/.cache/pip \
 
 # Copy source files and obfuscation script
 WORKDIR /obfuscate
-COPY src/ii_tool /obfuscate/ii_tool
+COPY backend/src/tool_server /obfuscate/tool_server
 COPY docker_obfuscate.py /obfuscate/obfuscate.py
 
 # Remove .venv if it exists and run obfuscation in one layer
-RUN rm -rf /obfuscate/ii_tool/.venv && \
+RUN rm -rf /obfuscate/tool_server/.venv && \
   python obfuscate.py
 
 # Main application stage
@@ -63,7 +63,7 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
   libpq-dev \
   wget \
   gosu \
-&& rm -rf /var/lib/apt/lists/*
+  && rm -rf /var/lib/apt/lists/*
 
 # Optimization: Combine all curl installs and npm installs into fewer layers
 RUN curl -fsSL https://code-server.dev/install.sh | sh
@@ -87,10 +87,10 @@ RUN playwright install-deps
 ENV NODE_OPTIONS="--max-old-space-size=4096"
 
 
-RUN mkdir -p /app/ii_agent
+RUN mkdir -p /app/agents_backend
 
 # Install the project into `/app`
-WORKDIR /app/ii_agent
+WORKDIR /app/agents_backend
 
 # Enable bytecode compilation
 ENV UV_COMPILE_BYTECODE=1
@@ -99,25 +99,25 @@ ENV UV_COMPILE_BYTECODE=1
 ENV UV_LINK_MODE=copy
 
 # Copy dependency files first for better layer caching
-COPY uv.lock pyproject.toml /app/ii_agent/
+COPY uv.lock pyproject.toml /app/agents_backend/
 
 # Optimization: Remove redundant bind mounts (files already copied above)
 # Keep cache mount for uv packages
 RUN --mount=type=cache,target=/root/.cache/uv \
   uv sync --locked --prerelease=allow --no-install-project --no-dev
 
-# Copy obfuscated ii_tool and PyArmor runtime from build stage
-COPY --from=obfuscator /obfuscate/final/ii_tool /app/ii_agent/src/ii_tool
-COPY --from=obfuscator /obfuscate/final/pyarmor_runtime_000000 /app/ii_agent/src/pyarmor_runtime_000000
+# Copy obfuscated tool_server and PyArmor runtime from build stage
+COPY --from=obfuscator /obfuscate/final/tool_server /app/agents_backend/src/tool_server
+COPY --from=obfuscator /obfuscate/final/pyarmor_runtime_000000 /app/agents_backend/src/pyarmor_runtime_000000
 
 # Optimization: Copy from cached location in codex-builder
 COPY --from=codex-builder /sse-http-server /usr/local/bin/sse-http-server
 
-COPY README.md /app/ii_agent/
+COPY README.md /app/agents_backend/
 
 # Optimization: Combine mkdir and touch into one layer
-RUN mkdir -p /app/ii_agent/src/ii_agent && \
-  touch /app/ii_agent/src/ii_agent/__init__.py
+RUN mkdir -p /app/agents_backend/src/agents_backend && \
+  touch /app/agents_backend/src/agents_backend/__init__.py
 
 # Copy config files for root (build time) and pn user (runtime)
 RUN mkdir -p /root/.codex /home/pn/.codex /home/pn/.claude
@@ -126,13 +126,13 @@ COPY docker/sandbox/claude_template.json /root/.claude.json
 COPY docker/sandbox/claude_template.json /home/pn/.claude.json
 
 # COPY Template files
-COPY .templates /app/ii_agent/.templates
+COPY .templates /app/agents_backend/.templates
 
 # Optimization: Use cache mount for final uv sync
 RUN --mount=type=cache,target=/root/.cache/uv \
   uv sync --locked --prerelease=allow --no-dev
 
-  
+
 RUN mkdir /workspace
 WORKDIR /workspace
 
@@ -143,12 +143,12 @@ RUN chmod +x /app/start-services.sh /app/entrypoint.sh
 
 # Fix ownership for pn user - give pn access to everything it needs
 RUN chown -R pn:pn /home/pn /app /workspace && \
-    chmod -R 755 /app && \
-    chmod -R 755 /home/pn/.claude
+  chmod -R 755 /app && \
+  chmod -R 755 /home/pn/.claude
 
 # Set environment for pn user
 ENV HOME=/home/pn
-ENV PATH="/home/pn/.bun/bin:/app/ii_agent/.venv/bin:$PATH"
+ENV PATH="/home/pn/.bun/bin:/app/agents_backend/.venv/bin:$PATH"
 
 ENTRYPOINT ["/app/entrypoint.sh"]
 CMD ["bash", "/app/start-services.sh"]

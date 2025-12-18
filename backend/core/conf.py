@@ -423,6 +423,25 @@ class Settings(BaseSettings):
     # Agent Report Styles
     AGENT_DEFAULT_REPORT_STYLE: str = 'ACADEMIC'  # ACADEMIC, POPULAR_SCIENCE, NEWS, SOCIAL_MEDIA, STRATEGIC_INVESTMENT
 
+    # --------------------------------------------------------------------------
+    # [Sandbox Configuration]
+    # --------------------------------------------------------------------------
+    # Sandbox provider: 'e2b' or 'daytona'
+    SANDBOX_PROVIDER: str = 'e2b'
+    
+    # E2B Configuration
+    E2B_API_KEY: str = ''
+    E2B_TEMPLATE_ID: str = 'base'
+    
+    # Daytona Configuration  
+    DAYTONA_API_KEY: str = ''
+    DAYTONA_SERVER_URL: str = 'https://app.daytona.io/api'
+    DAYTONA_TARGET: str = 'us'
+    
+    # Sandbox Service Ports (inside sandbox container)
+    SANDBOX_MCP_SERVER_PORT: int = 6060  # MCP tool server port
+    SANDBOX_CODE_SERVER_PORT: int = 9000  # Code-Server (VS Code) port
+
     @model_validator(mode='before')
     @classmethod
     def check_env(cls, values: Any) -> Any:
