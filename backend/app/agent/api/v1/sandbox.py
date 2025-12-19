@@ -5,7 +5,7 @@ from fastapi.responses import StreamingResponse, Response
 import logging
 
 from backend.common.response.response_schema import ResponseModel
-from backend.core.security.jwt import DependsJwtAuth
+from backend.common.security.jwt import DependsJwtAuth
 from backend.core.conf import settings
 from backend.src.services.sandbox_service import sandbox_service
 from backend.src.sandbox.sandbox_server.models import (

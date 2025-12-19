@@ -48,6 +48,7 @@ class Settings(BaseSettings):
     REDIS_HOST: str
     REDIS_PORT: int
     REDIS_PASSWORD: str
+    REDIS_USERNAME: str = 'default'  # For Redis 6+ ACL (cloud Redis typically uses 'default')
     REDIS_DATABASE: int
 
     # Redis
