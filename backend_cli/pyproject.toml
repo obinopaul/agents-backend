@@ -1,0 +1,85 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "lgctl"
+version = "0.1.2"
+description = "LangGraph Control CLI - Unix-style tools for managing LangGraph stores, threads, and agents"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.10"
+authors = [
+    {name = "James Barney", email = "james@southendsolutions.com"}
+]
+keywords = [
+    "langgraph",
+    "langchain",
+    "memory",
+    "cli",
+    "repl",
+    "langsmith",
+    "mcp",
+    "model-context-protocol"
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: System :: Systems Administration",
+]
+
+dependencies = [
+    "langgraph-sdk>=0.2.10",
+    "python-dotenv>=1.0.0",
+    "typing_extensions>=4.0.0",
+]
+
+[project.optional-dependencies]
+mcp = [
+    "mcp>=1.0.0",
+]
+dev = [
+    "pytest>=7.0",
+    "pytest-asyncio>=0.21",
+    "ruff>=0.8.0",
+]
+all = [
+    "mcp>=1.0.0",
+]
+
+[project.scripts]
+lgctl = "lgctl.cli:main"
+lgctl-mcp = "lgctl.mcp_server:main"
+
+[project.urls]
+Homepage = "https://github.com/Barneyjm/lgctl"
+Documentation = "https://github.com/Barneyjm/lgctl#readme"
+Repository = "https://github.com/Barneyjm/lgctl"
+
+[tool.setuptools]
+packages = ["lgctl", "lgctl.commands", "lgctl.tests"]
+
+[tool.setuptools.package-data]
+lgctl = ["py.typed"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+testpaths = ["lgctl/tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W"]
+ignore = ["E501"]

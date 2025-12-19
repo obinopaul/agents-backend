@@ -91,7 +91,7 @@ class LoggingConfig(BaseModel):
     """Logging configuration with sensible defaults."""
 
     level: str = "INFO"
-    file: str = "logs/ptc.log"
+    file: str = "logs/agents-backend.log"
 
 
 class FilesystemConfig(BaseModel):
