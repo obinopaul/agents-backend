@@ -21,6 +21,8 @@ from daytona import (
     Daytona,
     DaytonaConfig,
     CreateSandboxFromSnapshotParams,
+    CreateSnapshotParams,
+    Image,
 )
 
 from backend.src.config.core import CoreConfig
@@ -278,8 +280,8 @@ class PTCSandbox:
             else:
                 snapshot_exists = False
 
-        except OSError as e:
-            logger.warning("Error listing snapshots", error=str(e))
+        except Exception as e:
+            logger.warning("Error listing snapshots, will skip snapshot feature", error=str(e))
             snapshot_exists = False
 
         # Create snapshot if it doesn't exist
@@ -490,9 +492,33 @@ class PTCSandbox:
         """Create workspace directory structure."""
         logger.info("Setting up workspace structure")
 
-        # Get the working directory
+        # Get the working directory - try multiple methods based on SDK version
         assert self.sandbox is not None
-        work_dir = await self._run_sync(self.sandbox.get_work_dir)
+        work_dir = None
+        
+        # Try get_work_dir() method first (newer SDK)
+        if hasattr(self.sandbox, 'get_work_dir'):
+            try:
+                work_dir = await self._run_sync(self.sandbox.get_work_dir)
+            except Exception as e:
+                logger.warning(f"get_work_dir() failed: {e}")
+        
+        # Fallback: try get_user_home_dir() method
+        if work_dir is None and hasattr(self.sandbox, 'get_user_home_dir'):
+            try:
+                work_dir = await self._run_sync(self.sandbox.get_user_home_dir)
+            except Exception as e:
+                logger.warning(f"get_user_home_dir() failed: {e}")
+        
+        # Fallback: construct from sandbox user attribute
+        if work_dir is None and hasattr(self.sandbox, 'user'):
+            user = self.sandbox.user
+            work_dir = f"/home/{user}" if user else "/home/daytona"
+        
+        # Final fallback: use default
+        if work_dir is None:
+            work_dir = "/home/daytona"
+        
         logger.info(f"Sandbox working directory: {work_dir}")
 
         # Store work_dir for use by other methods
@@ -513,7 +539,7 @@ class PTCSandbox:
                 assert self.sandbox is not None
                 await self._run_sync(self.sandbox.process.exec, f"mkdir -p {directory}")
                 logger.info(f"Created directory: {directory}")
-            except OSError as e:
+            except Exception as e:
                 logger.warning(f"Error creating directory {directory}: {e}")
 
         await asyncio.gather(*[create_directory(d) for d in directories])
@@ -638,7 +664,7 @@ class PTCSandbox:
         # Collect all files to upload (content generation is CPU-bound, fast)
         uploads: list[tuple[bytes, str, tuple[str, dict[str, str]] | None]] = []
 
-        # 1. MCP client module
+        # 1. MCP client module (always generate, even without MCP servers)
         mcp_client_code = self.tool_generator.generate_mcp_client_code(
             self.config.mcp.servers
         )
@@ -649,34 +675,36 @@ class PTCSandbox:
             ("MCP client module installed", {"path": mcp_client_path})
         ))
 
-        # 2. Tool modules and documentation
-        assert self.mcp_registry is not None
-        tools_by_server = self.mcp_registry.get_all_tools()
+        # 2. Tool modules and documentation (only if mcp_registry is available)
+        if self.mcp_registry is not None:
+            tools_by_server = self.mcp_registry.get_all_tools()
 
-        # Create per-server doc directories
-        assert self.sandbox is not None
-        for server_name in tools_by_server:
-            doc_dir = f"{work_dir}/tools/docs/{server_name}"
-            await self._run_sync(self.sandbox.process.exec, f"mkdir -p {doc_dir}")
+            # Create per-server doc directories
+            assert self.sandbox is not None
+            for server_name in tools_by_server:
+                doc_dir = f"{work_dir}/tools/docs/{server_name}"
+                await self._run_sync(self.sandbox.process.exec, f"mkdir -p {doc_dir}")
 
-        for server_name, tools in tools_by_server.items():
-            # Generate Python module
-            module_code = self.tool_generator.generate_tool_module(
-                server_name, tools
-            )
-            module_path = f"{work_dir}/tools/{server_name}.py"
-            uploads.append((
-                module_code.encode("utf-8"),
-                module_path,
-                ("Tool module installed", {"server": server_name, "path": module_path, "tool_count": str(len(tools))})
-            ))
+            for server_name, tools in tools_by_server.items():
+                # Generate Python module
+                module_code = self.tool_generator.generate_tool_module(
+                    server_name, tools
+                )
+                module_path = f"{work_dir}/tools/{server_name}.py"
+                uploads.append((
+                    module_code.encode("utf-8"),
+                    module_path,
+                    ("Tool module installed", {"server": server_name, "path": module_path, "tool_count": str(len(tools))})
+                ))
 
-            # Generate documentation for each tool
-            for tool in tools:
-                doc = self.tool_generator.generate_tool_documentation(tool)
-                doc_path = f"{work_dir}/tools/docs/{server_name}/{tool.name}.md"
-                upload_item: tuple[bytes, str, tuple[str, dict[str, str]] | None] = (doc.encode("utf-8"), doc_path, None)
-                uploads.append(upload_item)
+                # Generate documentation for each tool
+                for tool in tools:
+                    doc = self.tool_generator.generate_tool_documentation(tool)
+                    doc_path = f"{work_dir}/tools/docs/{server_name}/{tool.name}.md"
+                    upload_item: tuple[bytes, str, tuple[str, dict[str, str]] | None] = (doc.encode("utf-8"), doc_path, None)
+                    uploads.append(upload_item)
+        else:
+            logger.debug("Skipping MCP tool generation (no mcp_registry)")
 
         # 3. __init__.py for tools package
         init_content = '"""Auto-generated tool modules from MCP servers."""\n'

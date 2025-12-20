@@ -540,12 +540,13 @@ class DaytonaSandbox(BaseSandbox):
         """Get the host URL for the workspace."""
         self._ensure_workspace()
         try:
-            provider_metadata = json.loads(self._sandbox.instance.info.provider_metadata)
-            node_domain = provider_metadata.get('nodeDomain', '')
-            return f"{self._sandbox.id}.{node_domain}"
+            # Try new SDK approach - get preview link for port 80
+            preview = self._sandbox.get_preview_link(80)
+            return preview.url
         except Exception as e:
-            logger.warning(f"Could not extract host from workspace: {e}")
-            return self._sandbox.id
+            logger.warning(f"Could not get preview link: {e}")
+            # Fallback to sandbox ID
+            return f"{self._sandbox.id}.daytona.io"
 
     async def expose_port(self, port: int) -> str:
         """
@@ -1159,14 +1160,15 @@ except Exception:
         remaining = 0
 
         try:
-            workspaces = daytona.list()
+            result = daytona.list()
+            workspaces = result.items  # PaginatedSandboxes has .items
             for ws in workspaces:
                 try:
                     if hasattr(ws, 'created_at'):
                         if isinstance(ws.created_at, (int, float)):
                             age = current_time - ws.created_at
                             if age > max_age_seconds:
-                                daytona.remove(ws)
+                                daytona.delete(ws)  # Use delete() not remove()
                                 cleaned += 1
                             else:
                                 remaining += 1

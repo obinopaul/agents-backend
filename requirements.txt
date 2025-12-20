@@ -348,6 +348,7 @@ psycopg-pool>=3.2.0
 volcengine>=1.0.0
 beautifulsoup4>=4.12.0
 tavily-python>=0.3.0
+tavily
 pymilvus>=2.4.0
 qdrant-client>=1.9.0
 grandalf>=0.8.0
@@ -509,3 +510,5 @@ pytest-asyncio>=1.0.0
 asyncpg-stubs>=0.30.2
 mongomock>=4.3.0
 pytest-postgresql>=7.0.2
+structlog>=24.1.0
+mcp>=1.11.0

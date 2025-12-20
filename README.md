@@ -38,6 +38,7 @@
   - [LangGraph Architecture](#langgraph-architecture)
   - [Content Generators](#content-generators)
   - [RAG Pipeline](#rag-pipeline---multiple-vector-stores)
+- [PTC Module](#-ptc-module---programmatic-tool-calling)
 - [Sandbox Execution Environment](#-sandbox-execution-environment---dual-architecture)
   - [Agent Infra Sandbox (Local)](#1-agent-infra-sandbox-local-development)
   - [Sandbox Server (Production)](#2-sandbox-server-production-grade)
@@ -363,6 +364,113 @@ Production-grade Retrieval-Augmented Generation with support for **6 vector data
 
 ---
 
+## 🔧 PTC Module - Programmatic Tool Calling
+
+The **PTC (Programmatic Tool Calling)** module provides a production-ready implementation where agents write Python code to interact with tools instead of using JSON-based tool calls.
+
+### Why PTC?
+
+| Traditional Approach | PTC Approach |
+|---------------------|---------------|
+| LLM → JSON tool call → Result → LLM | LLM → Write Python → Execute in sandbox → Summary |
+| Intermediate data fills context | Data stays in sandbox |
+| Limited to single operations | Full programming power (loops, conditionals) |
+
+### Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                          PTC Module (backend/src/ptc/)                       │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│   ┌─────────────────┐   ┌─────────────────┐   ┌─────────────────┐          │
+│   │   PTCSandbox    │   │   MCPRegistry   │   │  ToolGenerator  │          │
+│   │    (76KB)       │   │    (25KB)       │   │    (30KB)       │          │
+│   │  Daytona SDK    │   │ Tool Discovery  │   │ Python codegen  │          │
+│   └─────────────────┘   └─────────────────┘   └─────────────────┘          │
+│            │                    │                    │                      │
+│            └────────────────────┼────────────────────┘                      │
+│                                 ▼                                            │
+│                    ┌─────────────────────────┐                              │
+│                    │   Session Manager       │                              │
+│                    │   (Persistent State)    │                              │
+│                    └─────────────────────────┘                              │
+│                                 │                                            │
+│                    ┌────────────┴────────────┐                              │
+│                    ▼                         ▼                              │
+│          ┌─────────────────┐       ┌─────────────────┐                     │
+│          │   Interactive   │       │   Web Preview   │                     │
+│          │      CLI        │       │     Links       │                     │
+│          └─────────────────┘       └─────────────────┘                     │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Module Structure
+
+| Component | Description | Size | Code Path |
+|-----------|-------------|------|-----------|
+| **PTCSandbox** | Daytona cloud sandbox management | **76KB** | [`ptc/sandbox.py`](backend/src/ptc/sandbox.py) |
+| **MCPRegistry** | MCP server connections, tool discovery | **25KB** | [`ptc/mcp_registry.py`](backend/src/ptc/mcp_registry.py) |
+| **ToolGenerator** | Generate Python functions from MCP tools | **30KB** | [`ptc/tool_generator.py`](backend/src/ptc/tool_generator.py) |
+| **SessionManager** | Session lifecycle, persistence | 6.7KB | [`ptc/session.py`](backend/src/ptc/session.py) |
+| **Security** | Code validation, sandboxing | 10KB | [`ptc/security.py`](backend/src/ptc/security.py) |
+
+### Interactive CLI Agent
+
+The PTC module includes a production-ready interactive CLI:
+
+```bash
+# Start the interactive agent
+cd backend
+python -m src.ptc.examples.langgraph_robust_agent
+```
+
+```
+🔧 Initializing...
+   ✓ Sandbox ID: sandbox-abc123
+   ✓ Web Preview (port 8000): https://sandbox-abc123.daytona.io
+   ✓ Tools: Bash, read_file, write_file, edit_file, glob, grep
+
+You > Create a Flask API with /hello endpoint
+🤖 Agent (5 tool calls):
+   Created app.py with Flask server
+   Server running on port 5000
+
+You > status
+📊 Sandbox Status
+   Preview (port 5000): https://sandbox-abc123.daytona.io:5000
+
+You > exit
+👋 Goodbye! Your sandbox is preserved.
+```
+
+### CLI Commands
+
+| Command | Description |
+|---------|-------------|
+| `help` | Show available commands |
+| `status` | Show sandbox ID and preview URLs |
+| `files` | List files in sandbox |
+| `clear` | Clear screen |
+| `exit` | Quit (sandbox persists) |
+
+### Available Tools
+
+| Tool | Description |
+|------|-------------|
+| `execute_code` | Run Python code with MCP tools |
+| `Bash` | Shell commands (git, npm, docker) |
+| `read_file` | Read file with line numbers |
+| `write_file` | Create/overwrite files |
+| `edit_file` | Edit existing files |
+| `glob` | Find files by pattern |
+| `grep` | Search file contents |
+
+📖 **Full Documentation:** [`backend/src/ptc/README.md`](backend/src/ptc/README.md)
+
+---
+
 ## 📦 Sandbox Execution Environment - Dual Architecture
 
 The platform includes **two sandbox systems** for different use cases.
@@ -427,47 +535,19 @@ Enterprise sandbox with session management, lifecycle control, and cloud provide
 │     │   E2B Cloud     │   │    Daytona      │   │  Local Docker   │        │
 │     │   (13.5KB)      │   │    (42.7KB)     │   │                 │        │
 │     └─────────────────┘   └─────────────────┘   └─────────────────┘        │
-│              │                     │                     │                  │
-│              └─────────────────────┼─────────────────────┘                  │
-│                                    ▼                                         │
-│                    ┌───────────────────────────────┐                        │
-│                    │      Core Components          │                        │
-│                    ├───────────────────────────────┤                        │
-│                    │ • PTCSandbox (76KB)          │                        │
-│                    │ • MCP Registry (25KB)        │                        │
-│                    │ • Tool Generator (30KB)      │                        │
-│                    │ • Session Manager (6.7KB)    │                        │
-│                    │ • Security (10KB)            │                        │
-│                    └───────────────────────────────┘                        │
-│                                    │                                         │
-│                    ┌───────────────┴───────────────┐                        │
-│                    ▼                               ▼                        │
-│            ┌──────────────┐                ┌──────────────┐                 │
-│            │  VS Code     │                │     MCP      │                 │
-│            │  Server      │                │   Server     │                 │
-│            │  (Browser)   │                │   (SSE)      │                 │
-│            └──────────────┘                └──────────────┘                 │
 │                                                                              │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
+
+> **Note:** For advanced Programmatic Tool Calling with Daytona, see the [PTC Module](#-ptc-module---programmatic-tool-calling) section.
 
 #### Sandbox Providers
 
 | Provider | Description | Features | Code Path |
 |----------|-------------|----------|-----------|
 | **E2B** | Cloud-based isolation | Persistent, secure, VS Code | [`e2b.py`](backend/src/sandbox/sandbox_server/sandboxes/e2b.py) |
-| **Daytona** | Managed dev environments | Git integration, custom images (**42KB**) | [`daytona.py`](backend/src/sandbox/sandbox_server/sandboxes/daytona.py) |
+| **Daytona** | Managed dev environments | Git integration, custom images | [`daytona.py`](backend/src/sandbox/sandbox_server/sandboxes/daytona.py) |
 | **Sandbox Factory** | Provider abstraction | Switch via `SANDBOX_PROVIDER` env | [`sandbox_factory.py`](backend/src/sandbox/sandbox_server/sandboxes/sandbox_factory.py) |
-
-#### Core Components
-
-| Component | Description | Size | Code Path |
-|-----------|-------------|------|-----------|
-| **PTCSandbox** | Programmatic Tool Calling sandbox | **76KB** | [`core/sandbox.py`](backend/src/sandbox/sandbox_server/core/sandbox.py) |
-| **MCP Registry** | Tool registration and discovery | **25KB** | [`core/mcp_registry.py`](backend/src/sandbox/sandbox_server/core/mcp_registry.py) |
-| **Tool Generator** | Generate Python functions from MCP tools | **30KB** | [`core/tool_generator.py`](backend/src/sandbox/sandbox_server/core/tool_generator.py) |
-| **Session Manager** | Sandbox session lifecycle | 6.7KB | [`core/session.py`](backend/src/sandbox/sandbox_server/core/session.py) |
-| **Security** | Auth, encryption, sandboxing | 10KB | [`core/security.py`](backend/src/sandbox/sandbox_server/core/security.py) |
 
 #### Lifecycle Management
 
