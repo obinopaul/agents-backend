@@ -1,4 +1,4 @@
-"""Interfaces for ii_tool package."""
+"""Interfaces for tool_server package."""
 
 from .sandbox import SandboxInterface
 

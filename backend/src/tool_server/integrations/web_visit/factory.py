@@ -9,7 +9,7 @@ from .tavily import TavilyWebVisitClient
 from .beautifulsoup import BeautifulSoupWebVisitClient
 from .config import WebVisitConfig, CompressorConfig
 
-logger = get_logger("ii_tool.web_visit.factory")
+logger = get_logger("tool_server.web_visit.factory")
 
 def create_web_visit_client(settings: WebVisitConfig, compressor_config: CompressorConfig, client_type: Optional[Literal["firecrawl", "gemini", "jina", "tavily", "beautifulsoup"]] = None) -> BaseWebVisitClient:
     """

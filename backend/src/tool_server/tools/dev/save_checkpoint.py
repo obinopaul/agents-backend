@@ -30,7 +30,7 @@ INPUT_SCHEMA = {
 DEFAULT_COMMIT_MESSAGE = "Checkpoint"
 GIT_USER_EMAIL = "bot@example.com"
 GIT_USER_NAME = "II Agent"
-logger = get_logger("ii_tool.dev.save_checkpoint")
+logger = get_logger("tool_server.dev.save_checkpoint")
 
 
 class SaveCheckpointTool(BaseTool):

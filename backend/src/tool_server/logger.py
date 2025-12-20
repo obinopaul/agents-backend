@@ -1,4 +1,4 @@
-"""Public logger helpers for ii_tool components."""
+"""Public logger helpers for tool_server components."""
 
 from backend.src.tool_server.integrations.logger import LOG_FILE_PATH, get_logger
 

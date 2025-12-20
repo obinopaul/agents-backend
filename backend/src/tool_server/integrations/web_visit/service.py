@@ -5,7 +5,7 @@ from . import utils
 from .base import BaseWebVisitClient, WebVisitResult, WebVisitError
 from backend.src.tool_server.integrations.llm.client import LLMClient
 
-logger = get_logger("ii_tool.web_visit.service")
+logger = get_logger("tool_server.web_visit.service")
 
 class WebVisitService:
     def __init__(self, web_visit_clients: List[BaseWebVisitClient], researcher_visit_client: BaseWebVisitClient, llm_client: LLMClient | None):

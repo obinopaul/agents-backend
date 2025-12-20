@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 
 
 class SandboxInterface(ABC):
-    """Abstract interface for sandbox operations needed by ii_tool."""
+    """Abstract interface for sandbox operations needed by tool_server."""
 
     @abstractmethod
     async def expose_port(self, port: int) -> str:

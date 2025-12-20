@@ -28,7 +28,7 @@ from backend.src.tool_server.integrations.database import create_database_client
 app = FastAPI()
 
 # Create a logger using the shared logger utility
-logger = get_logger("ii_tool.app")
+logger = get_logger("tool_server.app")
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
