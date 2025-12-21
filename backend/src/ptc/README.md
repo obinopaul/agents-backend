@@ -104,10 +104,14 @@ await sandbox.cleanup()
 Tools are created with the sandbox injected:
 
 ```python
-from backend.src.tools.bash import create_execute_bash_tool
-from backend.src.tools.file_ops import create_filesystem_tools
-from backend.src.tools.glob import create_glob_tool
-from backend.src.tools.grep import create_grep_tool
+from backend.src.ptc.tools import (
+    create_execute_bash_tool,
+    create_filesystem_tools,
+    create_glob_tool,
+    create_grep_tool,
+    create_execute_code_tool,
+    get_all_tools,  # Or use the helper function
+)
 
 # Create tools with sandbox
 bash_tool = create_execute_bash_tool(sandbox)
@@ -116,7 +120,11 @@ glob_tool = create_glob_tool(sandbox)
 grep_tool = create_grep_tool(sandbox)
 
 tools = [bash_tool, read_file, write_file, edit_file, glob_tool, grep_tool]
+
+# Or use the helper function
+tools = get_all_tools(sandbox, mcp_registry)
 ```
+
 
 ### LangGraph Integration
 

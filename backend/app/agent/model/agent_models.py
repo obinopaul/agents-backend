@@ -61,12 +61,27 @@ class SessionMetrics(Base):
 
     id: Mapped[id_key] = mapped_column(init=False)
     
+    # Link to user who owns this session
+    user_id: Mapped[int] = mapped_column(
+        sa.BigInteger, 
+        sa.ForeignKey('sys_user.id'), 
+        index=True,
+        comment='User who owns this session'
+    )
+    
     # Session identifier (from agent chat)
     session_id: Mapped[str] = mapped_column(
         sa.String(64), 
         unique=True, 
         index=True,
         comment='Agent session ID'
+    )
+    
+    # Model used for this session
+    model_name: Mapped[str | None] = mapped_column(
+        sa.String(64),
+        default=None,
+        comment='LLM model name used'
     )
     
     # Credit tracking (negative values = consumption)
@@ -95,3 +110,4 @@ class SessionMetrics(Base):
     updated_at: Mapped[datetime] = mapped_column(
         TimeZone, init=False, default_factory=timezone.now, onupdate=timezone.now
     )
+

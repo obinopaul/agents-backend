@@ -150,7 +150,10 @@ class TestSessionMetrics:
         mock_session.execute.return_value = mock_result
         
         result = await accumulate_session_metrics(
-            db_session=mock_session, session_id="test-session-123", credits=-10.0
+            db_session=mock_session, 
+            session_id="test-session-123", 
+            user_id=1,  # Required parameter
+            credits=-10.0
         )
         
         # Should add new record
@@ -168,7 +171,10 @@ class TestSessionMetrics:
         mock_session.execute.return_value = mock_result
         
         result = await accumulate_session_metrics(
-            db_session=mock_session, session_id="test-session-123", credits=-10.0
+            db_session=mock_session, 
+            session_id="test-session-123", 
+            user_id=1,  # Required parameter
+            credits=-10.0
         )
         
         # Should update existing record

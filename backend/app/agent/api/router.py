@@ -15,6 +15,7 @@ Endpoints include:
 - /rag/* - RAG resource management
 - /config - Agent configuration
 - /credits/* - User credit balance and usage
+- /sandboxes/* - Sandbox management and slides
 """
 
 from fastapi import APIRouter
@@ -27,6 +28,7 @@ from backend.app.agent.api.v1.mcp import router as mcp_router
 from backend.app.agent.api.v1.rag import router as rag_router
 from backend.app.agent.api.v1.tts import router as tts_router
 from backend.app.agent.api.v1.sandbox import router as sandbox_router
+from backend.app.agent.api.v1.slides import router as slides_router
 
 # Create the v1 agent router with the /agent prefix
 v1 = APIRouter(prefix='/agent', tags=['Agent'])
@@ -40,5 +42,7 @@ v1.include_router(mcp_router, prefix='/mcp', tags=['Agent MCP'])
 v1.include_router(rag_router, prefix='/rag', tags=['Agent RAG'])
 v1.include_router(tts_router, prefix='/tts', tags=['Agent TTS'])
 v1.include_router(sandbox_router, prefix='/sandboxes', tags=['Agent Sandbox'])
+v1.include_router(slides_router, prefix='/sandboxes', tags=['Agent Slides'])
 
 __all__ = ['v1']
+

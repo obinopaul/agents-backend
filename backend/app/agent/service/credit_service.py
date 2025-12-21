@@ -329,10 +329,46 @@ async def get_user_credit_history(
         Tuple of (list of session credit usage, total count)
     """
     try:
-        # For now, return empty history until sessions are properly linked to users
-        # This will be enhanced when session management is integrated
-        return [], 0
+        from sqlalchemy import func, desc
+        
+        # Count total sessions for this user
+        count_result = await db_session.execute(
+            select(func.count(SessionMetrics.id)).where(
+                SessionMetrics.user_id == user_id
+            )
+        )
+        total = count_result.scalar() or 0
+        
+        if total == 0:
+            return [], 0
+        
+        # Get paginated session history
+        offset = (page - 1) * per_page
+        result = await db_session.execute(
+            select(SessionMetrics)
+            .where(SessionMetrics.user_id == user_id)
+            .order_by(desc(SessionMetrics.updated_at))
+            .offset(offset)
+            .limit(per_page)
+        )
+        sessions = result.scalars().all()
+        
+        # Format results
+        session_history = [
+            {
+                "session_id": session.session_id,
+                "session_title": session.model_name or "Chat Session",
+                "credits": session.credits,
+                "prompt_tokens": session.total_prompt_tokens,
+                "completion_tokens": session.total_completion_tokens,
+                "updated_at": session.updated_at,
+            }
+            for session in sessions
+        ]
+        
+        return session_history, total
 
     except Exception as e:
         logger.error(f"Error getting credit history for {user_id}: {e}", exc_info=True)
         raise
+

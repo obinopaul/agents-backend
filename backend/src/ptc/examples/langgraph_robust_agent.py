@@ -56,11 +56,12 @@ from backend.src.config.core import (
 )
 
 # Import tool factories
-from backend.src.tools.bash import create_execute_bash_tool
-from backend.src.tools.file_ops import create_filesystem_tools
-from backend.src.tools.glob import create_glob_tool
-from backend.src.tools.grep import create_grep_tool
-from backend.src.tools.code_execution import create_execute_code_tool
+from backend.src.ptc.tools.bash import create_execute_bash_tool
+from backend.src.ptc.tools.file_ops import create_filesystem_tools
+from backend.src.ptc.tools.glob import create_glob_tool
+from backend.src.ptc.tools.grep import create_grep_tool
+from backend.src.ptc.tools.code_execution import create_execute_code_tool
+
 
 
 # =============================================================================

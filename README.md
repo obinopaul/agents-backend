@@ -216,16 +216,31 @@ Extensible architecture for additional functionality.
 | `/mcp/tools` | `GET` | List available MCP tools | [`mcp.py`](backend/app/agent/api/v1/mcp.py) |
 | `/config` | `GET/PUT` | Agent configuration management | [`config.py`](backend/app/agent/api/v1/config.py) |
 
-#### Sandbox Endpoints (`/api/v1/agent/sandbox`)
+#### Sandbox Endpoints (`/api/v1/agent/sandboxes`)
 
 | Endpoint | Method | Description | Code Path |
 |----------|--------|-------------|-----------|
-| `/` | `POST` | Create new sandbox instance | [`sandbox.py`](backend/app/agent/api/v1/sandbox.py) |
-| `/{sandbox_id}` | `GET` | Get sandbox status & metadata | [`sandbox.py`](backend/app/agent/api/v1/sandbox.py) |
+| `/create` | `POST` | Create new sandbox instance | [`sandbox.py`](backend/app/agent/api/v1/sandbox.py) |
+| `/{sandbox_id}/status` | `GET` | Get sandbox status & metadata | [`sandbox.py`](backend/app/agent/api/v1/sandbox.py) |
 | `/{sandbox_id}` | `DELETE` | Delete sandbox instance | [`sandbox.py`](backend/app/agent/api/v1/sandbox.py) |
-| `/{sandbox_id}/execute` | `POST` | Execute Python/Bash code | [`sandbox.py`](backend/app/agent/api/v1/sandbox.py) |
-| `/{sandbox_id}/files` | `GET/POST` | List/upload files | [`sandbox.py`](backend/app/agent/api/v1/sandbox.py) |
+| `/run-cmd` | `POST` | Execute shell commands | [`sandbox.py`](backend/app/agent/api/v1/sandbox.py) |
+| `/read-file` | `POST` | Read file content | [`sandbox.py`](backend/app/agent/api/v1/sandbox.py) |
+| `/write-file` | `POST` | Write file to sandbox | [`sandbox.py`](backend/app/agent/api/v1/sandbox.py) |
 | `/{sandbox_id}/urls` | `GET` | Get VS Code & MCP preview URLs | [`sandbox.py`](backend/app/agent/api/v1/sandbox.py) |
+
+#### Slides Endpoints (`/api/v1/agent/sandboxes`)
+
+Endpoints for viewing, previewing, and exporting agent-generated presentations stored in sandbox environments.
+
+| Endpoint | Method | Description | Code Path |
+|----------|--------|-------------|-----------|
+| `/{sandbox_id}/presentations` | `GET` | List all presentations in sandbox | [`slides.py`](backend/app/agent/api/v1/slides.py) |
+| `/{sandbox_id}/presentations/{name}` | `GET` | List slides in a presentation | [`slides.py`](backend/app/agent/api/v1/slides.py) |
+| `/{sandbox_id}/slides/{name}/{num}` | `GET` | Get slide HTML for preview | [`slides.py`](backend/app/agent/api/v1/slides.py) |
+| `/{sandbox_id}/slides/export` | `POST` | **Export presentation to PDF** | [`slides.py`](backend/app/agent/api/v1/slides.py) |
+| `/{sandbox_id}/slides/download/{name}` | `GET` | Download slides as ZIP archive | [`slides.py`](backend/app/agent/api/v1/slides.py) |
+
+> **Note:** PDF export uses Playwright to render HTML slides at 1280×720 resolution. Run `playwright install chromium` after installing dependencies.
 
 #### Credits & Billing (`/api/v1/agent/credits`)
 

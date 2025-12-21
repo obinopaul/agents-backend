@@ -430,6 +430,7 @@ pillow>=10.0.0
 
 # --- Document Processing ---
 pymupdf>=1.26.7
+pypdf>=4.0.0  # PDF merging for slide exports
 
 # --- File Type Detection ---
 python-magic>=0.4.27
@@ -512,3 +513,4 @@ mongomock>=4.3.0
 pytest-postgresql>=7.0.2
 structlog>=24.1.0
 mcp>=1.11.0
+alibabacloud_oss_v2>=1.2.1
