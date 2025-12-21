@@ -60,7 +60,7 @@ class AgentConfigResponse(BaseModel):
     },
     dependencies=[DependsJwtAuth],
 )
-async def get_config():
+async def get_agent_config():
     """
     Get the complete agent system configuration.
 

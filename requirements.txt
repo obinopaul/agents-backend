@@ -355,7 +355,7 @@ grandalf>=0.8.0
 python-pptx>=0.6.23
 python-docx>=1.1.0
 regex>=2024.5.15
-mnemonist>=0.15.1
+
 rank-bm25>=0.2.2
 numpy>=1.26.4
 e2b-code-interpreter>=2.4.1
@@ -412,7 +412,6 @@ numpy>=1.24.0
 
 
 # --- Google Cloud ---
-google-cloud>=1.0.0
 google-cloud-storage>=3.7.0
 gcloud-aio-storage>=9.6.1
 vertexai>=1.0.0

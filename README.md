@@ -798,7 +798,38 @@ See [`.env.example`](backend/.env.example) for complete reference.
 
 ---
 
+## 📝 Recent Changes (December 2024)
+
+### LLM Metrics & Credit System
+- **SessionMetrics model** enhanced with `user_id` and `model_name` fields
+- **Token-based pricing** for LLM usage tracking
+- **Credit deduction** integrated with metrics service
+- See: [`backend/app/agent/service/metrics_service.py`](backend/app/agent/service/metrics_service.py)
+
+### Database Setup
+- **Supabase compatible** - Set `DATABASE_SCHEMA=postgres` in `.env`
+- **Auto-table creation** on startup via `create_tables()`
+- **LangGraph checkpoints** auto-created via `checkpointer.setup()`
+- Migration fix: Corrected `down_revision` chain in Alembic
+
+### API Fixes
+- Fixed `ResponseModel` → `ResponseSchemaModel` for generic type hints
+- Fixed `DependsJwtAuth` dependency injection in sandbox/slides APIs
+- Fixed duplicate route name `get_config` → `get_agent_config`
+
+### Testing
+- **43+ unit tests** for metrics, credits, PTC tools, and slides API
+- Test documentation: [`backend/tests/README.md`](backend/tests/README.md)
+
+```bash
+# Run all tests
+cd backend && pytest tests/ -v
+```
+
+---
+
 ## 🤝 Contributing
+
 
 Contributions are welcome! Please read our [Contributing Guide](CONTRIBUTING.md) first.
 

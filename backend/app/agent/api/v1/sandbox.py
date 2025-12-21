@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File,
 from fastapi.responses import StreamingResponse, Response
 import logging
 
-from backend.common.response.response_schema import ResponseModel
+from backend.common.response.response_schema import ResponseModel, ResponseSchemaModel
 from backend.common.security.jwt import DependsJwtAuth
 from backend.core.conf import settings
 from backend.src.services.sandbox_service import sandbox_service
@@ -64,7 +64,7 @@ async def get_sandbox_service():
         await sandbox_service.initialize()
     return sandbox_service.controller
 
-@router.post("/create", response_model=ResponseModel[CreateSandboxResponse], dependencies=[Depends(DependsJwtAuth)])
+@router.post("/create", response_model=ResponseSchemaModel[CreateSandboxResponse], dependencies=[DependsJwtAuth])
 async def create_sandbox(request: CreateSandboxRequest, controller = Depends(get_sandbox_service)):
     """Create a new sandbox.
     
@@ -103,7 +103,7 @@ async def create_sandbox(request: CreateSandboxRequest, controller = Depends(get
         logger.error(f"Failed to create sandbox: {e}")
         handle_sandbox_exception(e)
 
-@router.post("/connect", response_model=ResponseModel[ConnectSandboxResponse], dependencies=[Depends(DependsJwtAuth)])
+@router.post("/connect", response_model=ResponseSchemaModel[ConnectSandboxResponse], dependencies=[DependsJwtAuth])
 async def connect_sandbox(request: ConnectSandboxRequest, controller = Depends(get_sandbox_service)):
     """Connect to or resume a sandbox.
     
@@ -139,7 +139,7 @@ async def connect_sandbox(request: ConnectSandboxRequest, controller = Depends(g
         logger.error(f"Failed to connect to sandbox: {e}")
         handle_sandbox_exception(e)
 
-@router.post("/run-cmd", response_model=ResponseModel[RunCommandResponse], dependencies=[Depends(DependsJwtAuth)])
+@router.post("/run-cmd", response_model=ResponseSchemaModel[RunCommandResponse], dependencies=[DependsJwtAuth])
 async def run_cmd(request: RunCommandRequest, controller = Depends(get_sandbox_service)):
     """Run a command in a sandbox."""
     try:
@@ -156,7 +156,7 @@ async def run_cmd(request: RunCommandRequest, controller = Depends(get_sandbox_s
     except Exception as e:
         handle_sandbox_exception(e)
 
-@router.get("/{sandbox_id}/status", response_model=ResponseModel[SandboxStatusResponse], dependencies=[Depends(DependsJwtAuth)])
+@router.get("/{sandbox_id}/status", response_model=ResponseSchemaModel[SandboxStatusResponse], dependencies=[DependsJwtAuth])
 async def get_sandbox_status(sandbox_id: str, controller = Depends(get_sandbox_service)):
     """Get the status of a sandbox."""
     try:
@@ -175,7 +175,7 @@ async def get_sandbox_status(sandbox_id: str, controller = Depends(get_sandbox_s
     except Exception as e:
         handle_sandbox_exception(e)
         
-@router.get("/{sandbox_id}/info", response_model=ResponseModel[SandboxInfo], dependencies=[Depends(DependsJwtAuth)])
+@router.get("/{sandbox_id}/info", response_model=ResponseSchemaModel[SandboxInfo], dependencies=[DependsJwtAuth])
 async def get_sandbox_info(sandbox_id: str, controller=Depends(get_sandbox_service)):
     """Get detailed information about a sandbox."""
     try:
@@ -189,7 +189,7 @@ async def get_sandbox_info(sandbox_id: str, controller=Depends(get_sandbox_servi
     except Exception as e:
         handle_sandbox_exception(e)
 
-@router.get("/{sandbox_id}/urls", response_model=ResponseModel[dict], dependencies=[Depends(DependsJwtAuth)])
+@router.get("/{sandbox_id}/urls", response_model=ResponseSchemaModel[dict], dependencies=[DependsJwtAuth])
 async def get_sandbox_urls(sandbox_id: str, controller=Depends(get_sandbox_service)):
     """Get MCP and VS Code URLs for a running sandbox.
     
@@ -215,7 +215,7 @@ async def get_sandbox_urls(sandbox_id: str, controller=Depends(get_sandbox_servi
         logger.error(f"Failed to get sandbox URLs: {e}")
         handle_sandbox_exception(e)
 
-@router.post("/schedule-timeout", response_model=ResponseModel[dict], dependencies=[Depends(DependsJwtAuth)])
+@router.post("/schedule-timeout", response_model=ResponseSchemaModel[dict], dependencies=[DependsJwtAuth])
 async def schedule_timeout(request: ScheduleTimeoutRequest, controller=Depends(get_sandbox_service)):
     """Schedule a timeout for a sandbox."""
     try:
@@ -226,7 +226,7 @@ async def schedule_timeout(request: ScheduleTimeoutRequest, controller=Depends(g
     except Exception as e:
         handle_sandbox_exception(e)
 
-@router.post("/{sandbox_id}/pause", response_model=ResponseModel[dict], dependencies=[Depends(DependsJwtAuth)])
+@router.post("/{sandbox_id}/pause", response_model=ResponseSchemaModel[dict], dependencies=[DependsJwtAuth])
 async def pause_sandbox(sandbox_id: str, reason: str = "manual", controller=Depends(get_sandbox_service)):
     """Pause a sandbox."""
     try:
@@ -235,7 +235,7 @@ async def pause_sandbox(sandbox_id: str, reason: str = "manual", controller=Depe
     except Exception as e:
         handle_sandbox_exception(e)
 
-@router.delete("/{sandbox_id}", response_model=ResponseModel[dict], dependencies=[Depends(DependsJwtAuth)])
+@router.delete("/{sandbox_id}", response_model=ResponseSchemaModel[dict], dependencies=[DependsJwtAuth])
 async def delete_sandbox(sandbox_id: str, controller=Depends(get_sandbox_service)):
     """Delete a sandbox."""
     try:
@@ -244,7 +244,7 @@ async def delete_sandbox(sandbox_id: str, controller=Depends(get_sandbox_service
     except Exception as e:
         handle_sandbox_exception(e)
 
-@router.post("/expose-port", response_model=ResponseModel[ExposePortResponse], dependencies=[Depends(DependsJwtAuth)])
+@router.post("/expose-port", response_model=ResponseSchemaModel[ExposePortResponse], dependencies=[DependsJwtAuth])
 async def expose_port(request: ExposePortRequest, controller=Depends(get_sandbox_service)):
     """Expose a port from a sandbox."""
     try:
@@ -253,7 +253,7 @@ async def expose_port(request: ExposePortRequest, controller=Depends(get_sandbox
     except Exception as e:
         handle_sandbox_exception(e)
 
-@router.post("/write-file", response_model=ResponseModel[FileOperationResponse], dependencies=[Depends(DependsJwtAuth)])
+@router.post("/write-file", response_model=ResponseSchemaModel[FileOperationResponse], dependencies=[DependsJwtAuth])
 async def write_file(request: FileOperationRequest, controller=Depends(get_sandbox_service)):
     """Write a file to a sandbox."""
     try:
@@ -264,7 +264,7 @@ async def write_file(request: FileOperationRequest, controller=Depends(get_sandb
     except Exception as e:
         handle_sandbox_exception(e)
 
-@router.post("/read-file", response_model=ResponseModel[FileOperationResponse], dependencies=[Depends(DependsJwtAuth)])
+@router.post("/read-file", response_model=ResponseSchemaModel[FileOperationResponse], dependencies=[DependsJwtAuth])
 async def read_file(request: FileOperationRequest, controller=Depends(get_sandbox_service)):
     """Read a file from a sandbox."""
     try:
@@ -273,7 +273,7 @@ async def read_file(request: FileOperationRequest, controller=Depends(get_sandbo
     except Exception as e:
         handle_sandbox_exception(e)
 
-@router.post("/upload-file", response_model=ResponseModel[FileOperationResponse], dependencies=[Depends(DependsJwtAuth)])
+@router.post("/upload-file", response_model=ResponseSchemaModel[FileOperationResponse], dependencies=[DependsJwtAuth])
 async def upload_file(
     sandbox_id: str = Form(...),
     file_path: str = Form(...),
@@ -288,7 +288,7 @@ async def upload_file(
     except Exception as e:
         handle_sandbox_exception(e)
 
-@router.post("/upload-file-from-url", response_model=ResponseModel[FileOperationResponse], dependencies=[Depends(DependsJwtAuth)])
+@router.post("/upload-file-from-url", response_model=ResponseSchemaModel[FileOperationResponse], dependencies=[DependsJwtAuth])
 async def upload_file_from_url(request: UploadFileFromUrlRequest, controller=Depends(get_sandbox_service)):
     """Upload file from URL."""
     try:
@@ -301,7 +301,7 @@ async def upload_file_from_url(request: UploadFileFromUrlRequest, controller=Dep
     except Exception as e:
         handle_sandbox_exception(e)
 
-@router.post("/download-to-presigned-url", response_model=ResponseModel[FileOperationResponse], dependencies=[Depends(DependsJwtAuth)])
+@router.post("/download-to-presigned-url", response_model=ResponseSchemaModel[FileOperationResponse], dependencies=[DependsJwtAuth])
 async def download_to_presigned_url(request: DownloadToPresignedUrlRequest, controller=Depends(get_sandbox_service)):
     """Download to presigned URL."""
     try:
@@ -315,7 +315,7 @@ async def download_to_presigned_url(request: DownloadToPresignedUrlRequest, cont
     except Exception as e:
         handle_sandbox_exception(e)
 
-@router.post("/create-directory", response_model=ResponseModel[FileOperationResponse], dependencies=[Depends(DependsJwtAuth)])
+@router.post("/create-directory", response_model=ResponseSchemaModel[FileOperationResponse], dependencies=[DependsJwtAuth])
 async def create_directory(sandbox_id: str, directory_path: str, exist_ok: bool = False, controller=Depends(get_sandbox_service)):
     """Create directory."""
     try:

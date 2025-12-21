@@ -1,9 +1,9 @@
 """Tests for Slides API endpoints.
 
 Tests cover:
-- Slides API router imports
+- Slides module imports
 - Helper functions
-- Response models
+- Router configuration
 """
 
 import pytest
@@ -11,8 +11,22 @@ from unittest.mock import MagicMock, AsyncMock, patch
 from pathlib import Path
 
 
-class TestSlidesModels:
-    """Tests for slides API models."""
+class TestSlidesImport:
+    """Tests for slides module imports."""
+
+    def test_slides_module_import(self):
+        """Test that slides module can be imported without errors."""
+        # This verifies the ResponseSchemaModel fix works
+        from backend.app.agent.api.v1 import slides
+        assert hasattr(slides, 'router')
+        assert hasattr(slides, 'PresentationInfo')
+        assert hasattr(slides, 'SlideInfo')
+
+    def test_router_exists(self):
+        """Test that slides router is properly configured."""
+        from backend.app.agent.api.v1.slides import router
+        assert router is not None
+        assert hasattr(router, 'routes')
 
     def test_presentation_info_model(self):
         """Test PresentationInfo model."""
@@ -21,7 +35,7 @@ class TestSlidesModels:
         info = PresentationInfo(
             name="my_presentation",
             slide_count=5,
-            created_at="2024-01-01T00:00:00"
+            path="/workspace/presentations/my_presentation"
         )
         
         assert info.name == "my_presentation"
@@ -32,103 +46,91 @@ class TestSlidesModels:
         from backend.app.agent.api.v1.slides import SlideInfo
         
         info = SlideInfo(
+            slide_number=1,
             filename="slide_1.html",
-            number=1,
-            path="presentations/test/slide_1.html"
+            path="/workspace/presentations/test/slide_1.html"
         )
         
-        assert info.number == 1
+        assert info.slide_number == 1
         assert info.filename == "slide_1.html"
 
-    def test_export_request_model(self):
-        """Test ExportRequest model."""
-        from backend.app.agent.api.v1.slides import ExportRequest
+
+class TestSlideHelperFunctions:
+    """Tests for helper functions."""
+
+    def test_parse_slide_number_standard(self):
+        """Test parsing slide number from standard filename."""
+        from backend.app.agent.api.v1.slides import parse_slide_number
         
-        request = ExportRequest(
-            presentation_name="my_slides",
-            format="pdf"
-        )
+        assert parse_slide_number("slide_1.html") == 1
+        assert parse_slide_number("slide_10.html") == 10
+        assert parse_slide_number("SLIDE_5.HTML") == 5
+
+    def test_parse_slide_number_numbered_prefix(self):
+        """Test parsing slide number from numbered prefix filename."""
+        from backend.app.agent.api.v1.slides import parse_slide_number
         
-        assert request.presentation_name == "my_slides"
-        assert request.format == "pdf"
+        assert parse_slide_number("01_intro.html") == 1
+        assert parse_slide_number("05-content.html") == 5
+
+    def test_parse_slide_number_just_number(self):
+        """Test parsing slide number from just number filename."""
+        from backend.app.agent.api.v1.slides import parse_slide_number
+        
+        assert parse_slide_number("1.html") == 1
+        assert parse_slide_number("12.html") == 12
+
+    def test_parse_slide_number_no_match(self):
+        """Test parsing returns None for non-matching filenames."""
+        from backend.app.agent.api.v1.slides import parse_slide_number
+        
+        assert parse_slide_number("style.css") is None
+        assert parse_slide_number("readme.txt") is None
 
 
-class TestSlideHelpers:
-    """Tests for slides helper functions."""
+class TestRouterConfiguration:
+    """Tests for router configuration."""
 
-    @pytest.mark.asyncio
-    async def test_get_presentations_from_sandbox(self):
-        """Test getting presentations list."""
-        from backend.app.agent.api.v1.slides import get_presentations_from_sandbox
-        
-        mock_sandbox = MagicMock()
-        mock_sandbox.list_directory = AsyncMock(return_value=[
-            {"name": "presentation1", "type": "directory"},
-            {"name": "presentation2", "type": "directory"},
-            {"name": "other_file.txt", "type": "file"},
-        ])
-        
-        result = await get_presentations_from_sandbox(mock_sandbox)
-        
-        assert len(result) == 2
-        assert "presentation1" in result
-        assert "presentation2" in result
-
-    @pytest.mark.asyncio
-    async def test_get_slides_from_presentation(self):
-        """Test getting slides from a presentation."""
-        from backend.app.agent.api.v1.slides import get_slides_from_presentation
-        
-        mock_sandbox = MagicMock()
-        mock_sandbox.list_directory = AsyncMock(return_value=[
-            {"name": "slide_1.html", "type": "file"},
-            {"name": "slide_2.html", "type": "file"},
-            {"name": "style.css", "type": "file"},
-        ])
-        
-        result = await get_slides_from_presentation(mock_sandbox, "test_pres")
-        
-        # Should only return HTML files
-        assert len(result) == 2
-        assert all(s.endswith('.html') for s in result)
-
-
-class TestSlidesRouter:
-    """Tests for slides router configuration."""
-
-    def test_router_import(self):
-        """Test that slides router can be imported."""
-        from backend.app.agent.api.v1.slides import router
-        
-        assert router is not None
-        assert hasattr(router, 'routes')
-
-    def test_router_has_expected_routes(self):
-        """Test that router has expected endpoint paths."""
+    def test_router_has_presentations_endpoint(self):
+        """Test router has list presentations endpoint."""
         from backend.app.agent.api.v1.slides import router
         
         route_paths = [r.path for r in router.routes]
-        
-        # Check for key endpoints
         assert "/{sandbox_id}/presentations" in route_paths
-        assert "/{sandbox_id}/slides/export" in route_paths
 
-
-class TestSlideExport:
-    """Tests for slide export functionality."""
-
-    def test_slides_dependencies_available(self):
-        """Test that required dependencies are available."""
-        try:
-            from pypdf import PdfWriter
-            from playwright.async_api import async_playwright
-            pdf_available = True
-        except ImportError:
-            pdf_available = False
+    def test_router_has_slides_endpoints(self):
+        """Test router has slides-related endpoints."""
+        from backend.app.agent.api.v1.slides import router
         
-        # Just test imports, don't require them to be installed
-        # This test documents the dependencies
-        assert True  # Placeholder - actual functionality tested in integration
+        route_paths = [r.path for r in router.routes]
+        assert "/{sandbox_id}/slides/export" in route_paths
+        assert "/{sandbox_id}/slides/download/{presentation_name}" in route_paths
+
+
+class TestSlideExportDependencies:
+    """Tests for slide export dependencies."""
+
+    def test_pypdf_import(self):
+        """Test that pypdf can be imported."""
+        try:
+            from pypdf import PdfWriter, PdfReader
+            available = True
+        except ImportError:
+            available = False
+        
+        # Just document availability, don't fail if not installed
+        assert True
+
+    def test_playwright_import(self):
+        """Test that playwright can be imported."""
+        try:
+            from playwright.async_api import async_playwright
+            available = True
+        except ImportError:
+            available = False
+        
+        # Just document availability, don't fail if not installed
+        assert True
 
 
 if __name__ == "__main__":

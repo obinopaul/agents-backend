@@ -21,7 +21,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import Response, StreamingResponse
 from pydantic import BaseModel, Field
 
-from backend.common.response.response_schema import ResponseModel
+from backend.common.response.response_schema import ResponseModel, ResponseSchemaModel
 from backend.common.security.jwt import DependsJwtAuth
 from backend.src.services.sandbox_service import sandbox_service
 from backend.src.sandbox.sandbox_server.models.exceptions import (
@@ -176,10 +176,10 @@ async def count_slides_in_presentation(controller, sandbox_id: str, presentation
 
 @router.get(
     "/{sandbox_id}/presentations",
-    response_model=ResponseModel[ListPresentationsResponse],
+    response_model=ResponseSchemaModel[ListPresentationsResponse],
     summary="List presentations in sandbox",
     description="List all presentation folders in the sandbox workspace.",
-    dependencies=[Depends(DependsJwtAuth)],
+    dependencies=[DependsJwtAuth],
 )
 async def list_presentations(
     sandbox_id: str,
@@ -222,10 +222,10 @@ async def list_presentations(
 
 @router.get(
     "/{sandbox_id}/presentations/{presentation_name}",
-    response_model=ResponseModel[ListSlidesResponse],
+    response_model=ResponseSchemaModel[ListSlidesResponse],
     summary="List slides in presentation",
     description="List all slides within a specific presentation.",
-    dependencies=[Depends(DependsJwtAuth)],
+    dependencies=[DependsJwtAuth],
 )
 async def list_slides(
     sandbox_id: str,
@@ -284,10 +284,10 @@ async def list_slides(
 
 @router.get(
     "/{sandbox_id}/slides/{presentation_name}/{slide_num}",
-    response_model=ResponseModel[SlideContentResponse],
+    response_model=ResponseSchemaModel[SlideContentResponse],
     summary="Get slide content",
     description="Get HTML content of a specific slide for preview.",
-    dependencies=[Depends(DependsJwtAuth)],
+    dependencies=[DependsJwtAuth],
 )
 async def get_slide(
     sandbox_id: str,
@@ -355,7 +355,7 @@ async def get_slide(
         404: {"description": "Presentation not found"},
         500: {"description": "Internal server error"},
     },
-    dependencies=[Depends(DependsJwtAuth)],
+    dependencies=[DependsJwtAuth],
 )
 async def export_presentation(
     sandbox_id: str,
@@ -495,7 +495,7 @@ async def export_presentation(
         404: {"description": "Presentation not found"},
         500: {"description": "Internal server error"},
     },
-    dependencies=[Depends(DependsJwtAuth)],
+    dependencies=[DependsJwtAuth],
 )
 async def download_presentation_zip(
     sandbox_id: str,
