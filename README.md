@@ -791,6 +791,7 @@ See [`.env.example`](backend/.env.example) for complete reference.
 
 ## 📚 Documentation
 
+- [API Contracts](API_CONTRACTS.md) - Complete API reference for frontend developers
 - [API Documentation](http://localhost:8000/docs) - Interactive Swagger UI
 - [Agent System Guide](docs/agent-system.md) - Deep dive into agent architecture
 - [Sandbox Guide](backend/src/sandbox/sandbox_server/README.md) - Sandbox server documentation
