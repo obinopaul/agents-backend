@@ -184,7 +184,7 @@ For simple cases without workspace isolation:
 ```python
 from langchain_tools import create_sandbox_tools
 
-tools = create_sandbox_tools(base_url="http://localhost:8080")
+tools = create_sandbox_tools(base_url="http://localhost:8090")
 # Tools use absolute paths
 ```
 

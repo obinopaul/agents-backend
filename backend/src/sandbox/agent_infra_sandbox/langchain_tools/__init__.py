@@ -7,7 +7,7 @@ Provides tools for file operations, shell execution, code running, browser autom
 
 For isolated workspaces with automatic path scoping:
 
-    from langchain_tools import SandboxSession
+    from agent_infra_sandbox import SandboxSession
     
     # Create an isolated session for a chat/agent
     async with await SandboxSession.create(session_id="chat_123") as session:
@@ -26,12 +26,17 @@ For simple use cases without isolation:
     tools = create_sandbox_tools(base_url="http://localhost:8080")
 """
 
-# Session-based (recommended)
-from backend.src.sandbox.agent_infra_sandbox.langchain_tools.session import SandboxSession
+# Use shared client from root package
+try:
+    from backend.src.sandbox.agent_infra_sandbox.client import SandboxClient
+    from backend.src.sandbox.agent_infra_sandbox.session import SandboxSession
+except ImportError:
+    # Fallback for local imports
+    from ..client import SandboxClient
+    from ..session import SandboxSession
 
 # Direct access (no isolation)
 from backend.src.sandbox.agent_infra_sandbox.langchain_tools.toolkit import SandboxToolkit, create_sandbox_tools
-from backend.src.sandbox.agent_infra_sandbox.langchain_tools.client import SandboxClient
 
 __all__ = [
     # Recommended
@@ -42,4 +47,5 @@ __all__ = [
     "create_sandbox_tools",
 ]
 
-__version__ = "0.2.0"
+__version__ = "0.3.0"
+
