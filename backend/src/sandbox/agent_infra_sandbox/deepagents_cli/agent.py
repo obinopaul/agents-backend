@@ -114,11 +114,11 @@ def get_system_prompt(assistant_id: str, sandbox_type: str | None = None, worksp
     current_year = now.year
 
     if sandbox_type:
-        # Use provided workspace_path or fall back to default
-        working_dir = workspace_path if workspace_path else get_default_working_dir(sandbox_type)
+        # NOTE: We do NOT hardcode the workspace path in the prompt!
+        # The agent discovers its location by running 'pwd' or similar commands.
+        # All commands automatically run in the session workspace.
 
         working_dir_section = f"""<env>
-Working directory: {working_dir}
 Current time: {current_time}
 Current date: {current_date}
 Current year: {current_year}
@@ -131,15 +131,17 @@ Today is {current_date} ({current_year}). When searching for information, making
 - Recent events should reference {current_year}, not previous years
 - Example: If asked about "this year's events", search for "{current_year} events", not "{current_year - 1} events"
 
-### Current Working Directory
+### Sandbox Environment
 
-You are operating in a **remote Linux sandbox** at `{working_dir}`.
+You are operating in a **remote Linux sandbox session**. Each session has its own isolated workspace directory.
 
 All code execution and file operations happen in this sandbox environment.
 
 **Important:**
-- The CLI is running locally on the user's machine, but you execute code remotely
-- Use `{working_dir}` as your working directory for all operations
+- The CLI is running locally on the user's machine, but you execute code remotely in the sandbox
+- Your working directory is your session workspace (run `pwd` to see it)
+- All relative paths are automatically resolved relative to your workspace
+- Use shell commands like `pwd`, `ls`, etc. to explore your environment
 
 """
     else:
@@ -362,6 +364,7 @@ def create_cli_agent(
     tools: list[BaseTool] | None = None,
     sandbox: SandboxBackendProtocol | None = None,
     sandbox_type: str | None = None,
+    workspace_path: str | None = None,
     system_prompt: str | None = None,
     auto_approve: bool = False,
     enable_memory: bool = True,
@@ -475,7 +478,11 @@ def create_cli_agent(
 
     # Get or use custom system prompt
     if system_prompt is None:
-        system_prompt = get_system_prompt(assistant_id=assistant_id, sandbox_type=sandbox_type)
+        system_prompt = get_system_prompt(
+            assistant_id=assistant_id, 
+            sandbox_type=sandbox_type, 
+            workspace_path=workspace_path,
+        )
 
     # Configure interrupt_on based on auto_approve setting
     if auto_approve:

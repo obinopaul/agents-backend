@@ -331,7 +331,11 @@ Check `ls memories/` at session start to recall saved context.
         return base_prompt + session_context
 
     def execute(self, command: str) -> ExecuteResponse:
-        """Execute a command in the sandbox and return ExecuteResponse.
+        """Execute a command in the sandbox.
+
+        All commands automatically run in the session workspace directory.
+        This ensures 'pwd' returns the correct path and relative paths work
+        relative to the workspace.
 
         Args:
             command: Full shell command string to execute.
@@ -340,8 +344,18 @@ Check `ls memories/` at session start to recall saved context.
             ExecuteResponse with output, exit code, and truncation flag.
         """
         try:
+            # Automatically run all commands in session workspace
+            # This is NOT an optional parameter - workspace is ALWAYS used
+            if self._current_session:
+                workspace = self.current_workspace
+                # Wrap command: cd to workspace first, then run the actual command
+                # This ensures pwd returns the workspace, not /home/gem
+                wrapped_command = f"cd {workspace} && {command}"
+            else:
+                wrapped_command = command
+            
             result = self.sync_client.shell.exec_command(
-                command=command,
+                command=wrapped_command,
                 timeout=self._timeout,
             )
             
@@ -384,12 +398,22 @@ Check `ls memories/` at session start to recall saved context.
         """
         responses = []
         
+        # Get workspace path for resolving relative paths
+        workspace = self.current_workspace if self._current_session else None
+        
         for path in paths:
             try:
-                # Read file content using shell command
+                # Resolve relative paths against session workspace
+                if workspace and not path.startswith('/'):
+                    resolved_path = f"{workspace}/{path}"
+                else:
+                    resolved_path = path
+                
+                # Read file content using shell command in workspace context
                 result = self.sync_client.shell.exec_command(
-                    command=f"cat {path}",
+                    command=f"cat {resolved_path}",
                     timeout=self._timeout,
+                    exec_dir=workspace,  # Ensure we're in workspace context
                 )
                 
                 content = ""
@@ -425,14 +449,24 @@ Check `ls memories/` at session start to recall saved context.
         """
         responses = []
         
+        # Get workspace path for resolving relative paths  
+        workspace = self.current_workspace if self._current_session else None
+        
         for path, content in files:
             try:
+                # Resolve relative paths against session workspace
+                if workspace and not path.startswith('/'):
+                    resolved_path = f"{workspace}/{path}"
+                else:
+                    resolved_path = path
+                
                 # Ensure parent directory exists
-                parent_dir = os.path.dirname(path)
+                parent_dir = os.path.dirname(resolved_path)
                 if parent_dir:
                     self.sync_client.shell.exec_command(
                         command=f"mkdir -p {parent_dir}",
                         timeout=self._timeout,
+                        exec_dir=workspace,
                     )
                 
                 # Write file content using heredoc for better handling
@@ -441,8 +475,9 @@ Check `ls memories/` at session start to recall saved context.
                 escaped_content = content_str.replace("'", "'\"'\"'")
                 
                 self.sync_client.shell.exec_command(
-                    command=f"printf '%s' '{escaped_content}' > {path}",
+                    command=f"printf '%s' '{escaped_content}' > {resolved_path}",
                     timeout=self._timeout,
+                    exec_dir=workspace,
                 )
                 
                 responses.append(FileUploadResponse(
@@ -468,3 +503,388 @@ Check `ls memories/` at session start to recall saved context.
             return True
         except Exception:
             return False
+
+    # =========================================================================
+    # Browser API Methods
+    # =========================================================================
+
+    def get_browser_info(self) -> dict:
+        """Get information about the sandbox browser.
+        
+        Returns:
+            Dictionary with browser info:
+            - cdp_url: Chrome DevTools Protocol URL for Playwright/Puppeteer
+            - vnc_url: VNC URL for visual browser access
+            - viewport: {width, height} of the browser viewport
+            - user_agent: Browser user agent string
+        """
+        try:
+            result = self.sync_client.browser.get_info()
+            if result.success and result.data:
+                return {
+                    "cdp_url": result.data.cdp_url,
+                    "vnc_url": result.data.vnc_url,
+                    "viewport": {
+                        "width": result.data.viewport.width,
+                        "height": result.data.viewport.height,
+                    },
+                    "user_agent": result.data.user_agent,
+                }
+            return {"error": "Failed to get browser info"}
+        except Exception as e:
+            return {"error": str(e)}
+
+    def get_vnc_url(self) -> str:
+        """Get the VNC URL for accessing the sandbox browser visually.
+        
+        This URL opens a browser-in-browser view showing the sandbox desktop.
+        Useful for viewing web apps running inside the sandbox.
+        
+        Returns:
+            Full VNC URL with autoconnect, e.g. 
+            'http://localhost:8090/vnc/index.html?autoconnect=true'
+        """
+        return f"{self._base_url}/vnc/index.html?autoconnect=true"
+
+    def take_screenshot(self) -> bytes | None:
+        """Take a screenshot of the current sandbox display.
+        
+        This captures the sandbox screen, including any browsers or
+        applications running inside it.
+        
+        Returns:
+            PNG image bytes, or None if failed
+        """
+        try:
+            result = self.sync_client.browser.screenshot()
+            if result:
+                # The result may be a generator/iterator, consume it
+                if hasattr(result, '__iter__') and not isinstance(result, (bytes, str)):
+                    return b''.join(chunk for chunk in result)
+                return result
+            return None
+        except Exception:
+            return None
+
+    # =========================================================================
+    # Jupyter Execution API Methods
+    # =========================================================================
+
+    def execute_python(
+        self, 
+        code: str, 
+        session_id: str | None = None,
+        timeout: int = 30,
+        kernel_name: str = "python3",
+    ) -> dict:
+        """Execute Python code using Jupyter kernel.
+        
+        This provides better Python execution than shell commands:
+        - Session persistence (variables survive across calls)
+        - Rich outputs (images, dataframes, etc.)
+        - Better error handling
+        
+        Args:
+            code: Python code to execute
+            session_id: Optional session ID to maintain state across calls
+            timeout: Execution timeout in seconds (max 300)
+            kernel_name: Kernel to use (python3, python3.11, python3.12)
+            
+        Returns:
+            Dictionary with:
+            - success: bool
+            - status: 'ok', 'error', or 'timeout'
+            - session_id: ID for this session (use to maintain state)
+            - outputs: List of execution outputs
+            - error: Error message if failed
+        """
+        try:
+            # Prepend os.chdir to ensure Python runs in session workspace
+            if self._current_session:
+                workspace = self.current_workspace
+                code = f"import os; os.chdir({workspace!r})\n{code}"
+            
+            result = self.sync_client.jupyter.execute_code(
+                code=code,
+                session_id=session_id,
+                timeout=timeout,
+                kernel_name=kernel_name,
+            )
+            
+            if result.success and result.data:
+                outputs = []
+                for output in result.data.outputs:
+                    out = {"type": output.output_type}
+                    if output.text:
+                        out["text"] = output.text
+                    if output.data:
+                        out["data"] = output.data
+                    if output.ename:
+                        out["error_name"] = output.ename
+                        out["error_value"] = output.evalue
+                        out["traceback"] = output.traceback
+                    outputs.append(out)
+                
+                return {
+                    "success": True,
+                    "status": result.data.status,
+                    "session_id": result.data.session_id,
+                    "outputs": outputs,
+                    "execution_count": result.data.execution_count,
+                }
+            return {
+                "success": False,
+                "error": result.message or "Unknown error",
+            }
+        except Exception as e:
+            return {
+                "success": False,
+                "error": str(e),
+            }
+
+    def create_jupyter_session(
+        self,
+        session_id: str | None = None,
+        kernel_name: str = "python3",
+    ) -> dict:
+        """Create a new Jupyter session.
+        
+        Sessions allow maintaining Python state across multiple
+        execute_python calls.
+        
+        Args:
+            session_id: Optional ID (auto-generated if not provided)
+            kernel_name: Kernel to use
+            
+        Returns:
+            Dictionary with session_id and kernel_name
+        """
+        try:
+            result = self.sync_client.jupyter.create_session(
+                session_id=session_id,
+                kernel_name=kernel_name,
+            )
+            if result.success and result.data:
+                return {
+                    "success": True,
+                    "session_id": result.data.session_id,
+                    "kernel_name": result.data.kernel_name,
+                }
+            return {"success": False, "error": result.message}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    def get_jupyter_info(self) -> dict:
+        """Get information about available Jupyter kernels.
+        
+        Returns:
+            Dictionary with available kernels, active sessions, etc.
+        """
+        try:
+            result = self.sync_client.jupyter.get_info()
+            if result.success and result.data:
+                return {
+                    "success": True,
+                    "default_kernel": result.data.default_kernel,
+                    "available_kernels": result.data.available_kernels,
+                    "active_sessions": result.data.active_sessions,
+                }
+            return {"success": False, "error": result.message}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    # =========================================================================
+    # Node.js Execution API Methods
+    # =========================================================================
+
+    def execute_javascript(
+        self,
+        code: str,
+        timeout: int = 30,
+    ) -> dict:
+        """Execute JavaScript code using Node.js.
+        
+        Each request creates a fresh execution environment.
+        
+        Args:
+            code: JavaScript code to execute
+            timeout: Execution timeout in seconds (max 300)
+            
+        Returns:
+            Dictionary with:
+            - success: bool
+            - status: 'ok', 'error', or 'timeout'
+            - stdout: Standard output
+            - stderr: Standard error
+            - exit_code: Process exit code
+        """
+        try:
+            result = self.sync_client.nodejs.execute_code(
+                code=code,
+                timeout=timeout,
+            )
+            
+            if result.success and result.data:
+                return {
+                    "success": True,
+                    "status": result.data.status,
+                    "stdout": result.data.stdout,
+                    "stderr": result.data.stderr,
+                    "exit_code": result.data.exit_code,
+                }
+            return {
+                "success": False,
+                "error": result.message or "Unknown error",
+            }
+        except Exception as e:
+            return {
+                "success": False,
+                "error": str(e),
+            }
+
+    def get_nodejs_info(self) -> dict:
+        """Get Node.js runtime information.
+        
+        Returns:
+            Dictionary with node_version, npm_version, etc.
+        """
+        try:
+            result = self.sync_client.nodejs.get_info()
+            if result.success and result.data:
+                return {
+                    "success": True,
+                    "node_version": result.data.node_version,
+                    "npm_version": result.data.npm_version,
+                }
+            return {"success": False, "error": result.message}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    # =========================================================================
+    # Unified Code Execution API
+    # =========================================================================
+
+    def execute_code(
+        self,
+        code: str,
+        language: str = "python",
+        timeout: int = 30,
+    ) -> dict:
+        """Execute code in specified language.
+        
+        Unified interface that dispatches to Python (Jupyter) or
+        JavaScript (Node.js) executors.
+        
+        Args:
+            code: Code to execute
+            language: 'python' or 'javascript'
+            timeout: Execution timeout in seconds
+            
+        Returns:
+            Execution result dictionary
+        """
+        try:
+            result = self.sync_client.code.execute_code(
+                code=code,
+                language=language,
+                timeout=timeout,
+            )
+            
+            if result.success and result.data:
+                return {
+                    "success": True,
+                    "language": result.data.language,
+                    "status": result.data.status,
+                    "stdout": result.data.stdout,
+                    "stderr": result.data.stderr,
+                    "exit_code": result.data.exit_code,
+                }
+            return {
+                "success": False,
+                "error": result.message or "Unknown error",
+            }
+        except Exception as e:
+            return {
+                "success": False,
+                "error": str(e),
+            }
+
+    # =========================================================================
+    # MCP Integration API
+    # =========================================================================
+
+    def list_mcp_servers(self) -> list[str]:
+        """List available MCP servers in the sandbox.
+        
+        MCP servers provide additional tools like browser automation,
+        file conversion, etc.
+        
+        Returns:
+            List of MCP server names
+        """
+        try:
+            result = self.sync_client.mcp.servers()
+            if result.success and result.data:
+                return result.data
+            return []
+        except Exception:
+            return []
+
+    def list_mcp_tools(self, server_name: str) -> list[dict]:
+        """List tools available from an MCP server.
+        
+        Args:
+            server_name: Name of the MCP server
+            
+        Returns:
+            List of tool definitions
+        """
+        try:
+            # Access endpoint via shell since SDK may not have this
+            result = self.execute(f"curl -s {self._base_url}/v1/mcp/{server_name}/tools")
+            if result.exit_code == 0 and result.output:
+                import json
+                data = json.loads(result.output)
+                if data.get("success") and data.get("data"):
+                    return data["data"].get("tools", [])
+            return []
+        except Exception:
+            return []
+
+    # =========================================================================
+    # Utility Methods  
+    # =========================================================================
+
+    def convert_to_markdown(self, uri: str) -> str:
+        """Convert a URL or file to markdown.
+        
+        Uses the sandbox's markitdown utility to convert web pages
+        or documents to markdown format.
+        
+        Args:
+            uri: URL or file path to convert
+            
+        Returns:
+            Markdown content
+        """
+        try:
+            result = self.sync_client.util.convert_to_markdown(uri=uri)
+            if result.success and result.data:
+                return result.data
+            return f"Error: {result.message}"
+        except Exception as e:
+            return f"Error: {e}"
+
+    def get_terminal_url(self) -> str:
+        """Get the WebSocket terminal URL.
+        
+        Returns:
+            Terminal URL for WebSocket connection
+        """
+        try:
+            result = self.sync_client.shell.get_terminal_url()
+            if result.success and result.data:
+                return result.data
+            return f"{self._base_url}/terminal"
+        except Exception:
+            return f"{self._base_url}/terminal"

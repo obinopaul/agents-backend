@@ -319,6 +319,7 @@ async def _run_agent_session(
         tools=tools,
         sandbox=sandbox_backend,
         sandbox_type=sandbox_type,
+        workspace_path=effective_workspace,  # Pass session workspace to system prompt
         auto_approve=session_state.auto_approve,
     )
 
