@@ -132,6 +132,26 @@ class CommandCompleter(Completer):
     MODEL_SUBCOMMANDS = {
         "use": "Switch to a different model",
     }
+    
+    # Mode subcommands
+    MODE_SUBCOMMANDS = {
+        "list": "List available modes",
+    }
+    
+    # Mode flags (for injection target)
+    MODE_FLAGS = {
+        "--sandbox": "Inject to sandbox workspace only",
+        "--local": "Inject to local .deepagents/skills/ only",
+        "--all": "Inject to both sandbox and local",
+    }
+    
+    # Available modes (for autocomplete)
+    AVAILABLE_MODES = [
+        "data_scientist",
+        "software_developer",
+        "scientific_skills",
+        "basic",
+    ]
 
     def get_completions(self, document, _complete_event):
         """Get command completions with subcommand support."""
@@ -254,6 +274,83 @@ class CommandCompleter(Completer):
                             start_position=-len(model_fragment),
                             display=model_name,
                         )
+                return
+        
+        # Handle /mode subcommands
+        if main_cmd == "mode":
+            # After "/mode " - show subcommands and mode names
+            if len(parts) == 1 and has_trailing_space:
+                # Show "list" subcommand first
+                for subcmd, desc in self.MODE_SUBCOMMANDS.items():
+                    yield Completion(
+                        text=subcmd,
+                        start_position=0,
+                        display=subcmd,
+                        display_meta=desc,
+                    )
+                # Show flags
+                for flag, desc in self.MODE_FLAGS.items():
+                    yield Completion(
+                        text=flag,
+                        start_position=0,
+                        display=flag,
+                        display_meta=desc,
+                    )
+                # Then show available mode names
+                for mode_name in self.AVAILABLE_MODES:
+                    yield Completion(
+                        text=mode_name,
+                        start_position=0,
+                        display=mode_name,
+                        display_meta="Activate this mode",
+                    )
+                return
+            
+            # Typing subcommand, flag, or mode name: "/mode da" or "/mode --"
+            if len(parts) == 2 and not has_trailing_space:
+                fragment = parts[1]
+                # Match subcommands
+                for subcmd, desc in self.MODE_SUBCOMMANDS.items():
+                    if subcmd.startswith(fragment.lower()):
+                        yield Completion(
+                            text=subcmd,
+                            start_position=-len(fragment),
+                            display=subcmd,
+                            display_meta=desc,
+                        )
+                # Match flags
+                for flag, desc in self.MODE_FLAGS.items():
+                    if flag.startswith(fragment.lower()):
+                        yield Completion(
+                            text=flag,
+                            start_position=-len(fragment),
+                            display=flag,
+                            display_meta=desc,
+                        )
+                # Match mode names
+                for mode_name in self.AVAILABLE_MODES:
+                    if mode_name.startswith(fragment.lower()):
+                        yield Completion(
+                            text=mode_name,
+                            start_position=-len(fragment),
+                            display=mode_name,
+                            display_meta="Activate this mode",
+                        )
+                return
+            
+            # After a flag: "/mode --sandbox " - show mode names
+            if len(parts) >= 2 and parts[1].startswith("--"):
+                if has_trailing_space or len(parts) == 3:
+                    # Show mode names
+                    fragment = parts[-1] if len(parts) == 3 and not has_trailing_space else ""
+                    for mode_name in self.AVAILABLE_MODES:
+                        if mode_name.startswith(fragment.lower()):
+                            yield Completion(
+                                text=mode_name,
+                                start_position=-len(fragment),
+                                display=mode_name,
+                                display_meta="Activate this mode",
+                            )
                 return
 
 

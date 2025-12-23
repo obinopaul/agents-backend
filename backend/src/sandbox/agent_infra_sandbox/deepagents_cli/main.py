@@ -26,7 +26,7 @@ from deepagents_cli.integrations.sandbox_factory import (
 )
 from deepagents_cli.skills import execute_skills_command, setup_skills_parser
 from deepagents_cli.config import ForceExitException
-from deepagents_cli.tools import fetch_url, http_request, web_search
+from deepagents_cli.tools import crawl_tool, fetch_url, get_sandbox_tools_sync, http_request, web_search
 from deepagents_cli.ui import TokenTracker, print_banner, show_help
 
 
@@ -146,6 +146,7 @@ async def simple_cli(
     setup_script_path: str | None = None,
     no_splash: bool = False,
     workspace_path: str | None = None,
+    mcp_tools: list | None = None,
 ) -> None:
     """Main CLI loop.
 
@@ -157,6 +158,7 @@ async def simple_cli(
         workspace_path: Session-specific workspace path
         setup_script_path: Path to setup script that was run (if any)
         no_splash: If True, skip displaying the startup splash screen
+        mcp_tools: List of MCP tools for sandbox operations (used by /mode command)
     """
     console.clear()
     if not no_splash:
@@ -254,7 +256,14 @@ async def simple_cli(
 
         # Check for slash commands first
         if user_input.startswith("/"):
-            result = handle_command(user_input, agent, token_tracker)
+            result = handle_command(
+                user_input, 
+                agent, 
+                token_tracker,
+                sandbox_type=sandbox_type,
+                workspace_path=workspace_path,
+                mcp_tools=mcp_tools,
+            )
             if result == "exit":
                 console.print("\nGoodbye!", style=COLORS["primary"])
                 break
@@ -308,10 +317,43 @@ async def _run_agent_session(
     effective_workspace = None
     if sandbox_backend and hasattr(sandbox_backend, 'current_workspace'):
         effective_workspace = sandbox_backend.current_workspace
-    # Create agent with conditional tools
-    tools = [http_request, fetch_url]
+    
+    # Build tool list and track categories for system prompt
+    # Note: Local tools come from deepagents backend protocol (not listed here)
+    local_tool_names = ["write_todos", "ls", "read_file", "write_file", "edit_file", "glob", "grep", "execute", "task"]
+    web_tool_names = []
+    sandbox_tool_names = []
+    
+    # 1. Core web tools (always available)
+    tools = [http_request, fetch_url, crawl_tool]
+    web_tool_names.extend(["http_request", "fetch_url", "crawl_tool"])
+    
+    # 2. Optional Tavily web search
     if settings.has_tavily:
         tools.append(web_search)
+        web_tool_names.append("web_search")
+    
+    # 3. MCP tools from sandbox (only when using agent_infra sandbox)
+    mcp_tools = []
+    if sandbox_type == "agent_infra" and sandbox_backend:
+        try:
+            console.print("[dim]Loading sandbox MCP tools...[/dim]")
+            mcp_tools = get_sandbox_tools_sync()
+            tools.extend(mcp_tools)
+            sandbox_tool_names = [t.name for t in mcp_tools]
+            console.print(f"[green]✓ Loaded {len(mcp_tools)} sandbox tools via MCP[/green]")
+        except Exception as e:
+            console.print(f"[yellow]⚠ Failed to load MCP tools: {e}[/yellow]")
+            console.print("[dim]Sandbox tools will be provided by backend protocol instead[/dim]")
+    
+    # Build tool categories for system prompt
+    tool_categories = {
+        "local": local_tool_names,
+        "web": web_tool_names,
+        "sandbox": sandbox_tool_names if sandbox_tool_names else None,
+    }
+    # Remove empty categories
+    tool_categories = {k: v for k, v in tool_categories.items() if v}
 
     agent, composite_backend = create_cli_agent(
         model=model,
@@ -319,7 +361,8 @@ async def _run_agent_session(
         tools=tools,
         sandbox=sandbox_backend,
         sandbox_type=sandbox_type,
-        workspace_path=effective_workspace,  # Pass session workspace to system prompt
+        workspace_path=effective_workspace,
+        tool_categories=tool_categories,
         auto_approve=session_state.auto_approve,
     )
 
@@ -328,7 +371,7 @@ async def _run_agent_session(
     from .token_utils import calculate_baseline_tokens
 
     agent_dir = settings.get_agent_dir(assistant_id)
-    system_prompt = get_system_prompt(assistant_id=assistant_id, sandbox_type=sandbox_type, workspace_path=effective_workspace)
+    system_prompt = get_system_prompt(assistant_id=assistant_id, sandbox_type=sandbox_type, workspace_path=effective_workspace, tool_categories=tool_categories)
     baseline_tokens = calculate_baseline_tokens(model, agent_dir, system_prompt, assistant_id)
 
     await simple_cli(
@@ -341,6 +384,7 @@ async def _run_agent_session(
         setup_script_path=setup_script_path,
         no_splash=session_state.no_splash,
         workspace_path=effective_workspace,
+        mcp_tools=mcp_tools,
     )
 
 

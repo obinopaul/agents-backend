@@ -500,3 +500,5 @@ mongomock>=4.3.0
 pytest-postgresql>=7.0.2
 structlog>=24.1.0
 alibabacloud_oss_v2>=1.2.1
+agent_sandbox>=0.0.19
+deepagents>=0.3.0

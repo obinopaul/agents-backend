@@ -37,6 +37,11 @@ Expected output:
 
 #### Option A: DeepAgents CLI (Interactive)
 
+
+<div align="center">
+  <img src="deepagents_cli/public/agents_backend_cli.png" alt="DeepAgents CLI Preview" width="800">
+</div>
+
 ```bash
 # Set your API key
 export OPENAI_API_KEY=your_key_here
@@ -111,22 +116,21 @@ agent_infra_sandbox/
 
 ## DeepAgents CLI Commands
 
-```bash
-# Interactive mode with sandbox
-python -m deepagents_cli
+| Command | Description |
+|---------|-------------|
+| `/help` | Show all available commands |
+| `/mode list` | List available skill modes |
+| `/mode <name>` | Activate a skill mode (injects skills to sandbox) |
+| `/mode --sandbox` | Inject skills to sandbox workspace only |
+| `/mode --local` | Inject skills to local .deepagents/skills/ |
+| `/mode --all` | Inject skills to both sandbox and local |
+| `/model list` | List available LLM models |
+| `/model use` | Switch to a different model |
+| `/session list` | List saved sessions |
+| `/tokens` | Show token usage for current session |
+| `/clear` | Clear screen and reset conversation |
+| `!<cmd>` | Execute bash command locally |
 
-# List available agents
-python -m deepagents_cli list
-
-# Reset an agent's memory
-python -m deepagents_cli reset --agent my_agent
-
-# Run without sandbox (local filesystem only)
-python -m deepagents_cli --sandbox none
-
-# Show help
-python -m deepagents_cli help
-```
 
 ## LangChain Tools Available
 

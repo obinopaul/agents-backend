@@ -54,6 +54,7 @@ COMMANDS = {
     "session": "Manage sessions (list, create, connect, delete)",
     "models": "Show available AI models",
     "model": "Manage models (use /model use <name> to switch)",
+    "mode": "Activate skill modes (data_scientist, software_developer, etc.)",
     "quit": "Exit the CLI",
     "exit": "Exit the CLI",
 }

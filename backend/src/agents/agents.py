@@ -1,7 +1,8 @@
 import logging
 from typing import List, Optional
 
-from langgraph.prebuilt import create_react_agent
+# from langgraph.prebuilt import create_react_agent
+from langchain.agents import create_agent as create_react_agent
 
 from backend.src.agents.tool_interceptor import wrap_tools_with_interceptor
 from backend.src.config.agents import AGENT_LLM_MAP

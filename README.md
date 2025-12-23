@@ -80,7 +80,68 @@ docker-compose up -d fba_postgres fba_redis
 # 3️⃣ Run migrations & start server
 cd backend && alembic upgrade head
 python -m uvicorn backend.main:app --reload --host 0.0.0.0 --port 8000
+---
 ```
+
+## 🎬 Demo
+
+<div align="center">
+
+![Agents Backend Demo](https://via.placeholder.com/900x500?text=Demo+GIF+Coming+Soon)
+
+*Watch the agent autonomously research, code, and execute tasks in the secure sandbox*
+
+</div>
+
+---
+
+---
+
+> ## 💡 DeepAgents CLI
+>
+> **Hey Developer! We built DeepAgents CLI to help you easily interact with the Agents Backend.**
+>
+> It's an interactive AI coding assistant that lets you chat with agents that can write, execute, and debug code in a secure sandbox. Currently integrated with the local Agent-Infra sandbox.
+>
+> <div align="center">
+>   <img src="backend/src/sandbox/agent_infra_sandbox/deepagents_cli/public/agents_backend_cli.png" alt="DeepAgents CLI Preview" width="800">
+> </div>
+>
+> #### Quick Start
+>
+> ```bash
+> # Navigate to sandbox directory and start container
+> cd backend/src/sandbox/agent_infra_sandbox && docker-compose up -d
+>
+> # Run DeepAgents CLI
+> python -m deepagents_cli
+>
+> # Or explicitly specify sandbox
+> python -m deepagents_cli --sandbox agent_infra
+> ```
+>
+> #### CLI Commands
+>
+> | Command | Description |
+> |---------|-------------|
+> | `/help` | Show all available commands |
+> | `/mode list` | List available skill modes |
+> | `/mode <name>` | Activate a skill mode (injects skills to sandbox) |
+> | `/mode --sandbox <name>` | set a mode that injects skills to sandbox workspace only |
+> | `/mode --local <name>` | set a mode that injects skills to local .deepagents/skills/ |
+> | `/mode --all <name>` | set a mode that injects skills to both sandbox and local |
+> | `/model list` | List available LLM models |
+> | `/model use <name>` | Switch to a different model |
+> | `/session list` | List saved sessions |
+> | `/tokens` | Show token usage for current session |
+> | `/clear` | Clear screen and reset conversation |
+> | `!<cmd>` | Execute bash command locally |
+>
+> #### Sandbox URLs
+> Viewable at `http://localhost:8090`
+
+---
+---
 
 **🎉 Access Your Services:**
 
@@ -492,24 +553,88 @@ The platform includes **two sandbox systems** for different use cases.
 
 ### 1. Agent Infra Sandbox (Local Development)
 
-A containerized local sandbox for development and testing.
+A containerized local sandbox for development and testing, with **two integration options**:
+
+#### Quick Start
+
+```bash
+# 1. Start the sandbox
+cd backend/src/sandbox/agent_infra_sandbox
+docker-compose up -d
+
+# 2. Verify sandbox is running
+python check_sandbox.py
+
+# 3. Run DeepAgents CLI (interactive AI coding assistant)
+export OPENAI_API_KEY=your_key_here
+python -m deepagents_cli
+```
+
+#### Integration Options
+
+| Approach | Description | Best For |
+|----------|-------------|----------|
+| **DeepAgents CLI** | Interactive terminal AI coding assistant | Developers, interactive sessions |
+| **LangChain Tools** | 23+ tools for LangChain/LangGraph agents | Production agents, automation |
+
+#### DeepAgents CLI Commands
+
+```bash
+# Interactive mode (default sandbox: agent_infra)
+python -m deepagents_cli
+
+# With auto-approve (no confirmation prompts)
+python -m deepagents_cli --auto-approve
+
+# List available agents
+python -m deepagents_cli list
+
+# Reset an agent's memory
+python -m deepagents_cli reset --agent my_agent
+
+# Run without sandbox (local filesystem only)
+python -m deepagents_cli --sandbox none
+```
+
+#### LangChain Tools Usage
+
+```python
+from agent_infra_sandbox import SandboxSession
+
+async with await SandboxSession.create(session_id="chat_123") as session:
+    tools = session.get_tools()
+    tool_map = {t.name: t for t in tools}
+    
+    await tool_map["file_write"].ainvoke({
+        "file": "app.py",
+        "content": "print('Hello!')"
+    })
+    
+    result = await tool_map["shell_exec"].ainvoke({
+        "command": "python app.py"
+    })
+```
+
+#### Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
 │                    Agent Infra Sandbox (Docker)                      │
 ├─────────────────────────────────────────────────────────────────────┤
 │                                                                      │
-│   ┌─────────────┐   ┌─────────────┐   ┌─────────────┐              │
-│   │   Python    │   │   Browser   │   │    File     │              │
-│   │   Runtime   │   │  (Playwright)│   │   System    │              │
-│   └─────────────┘   └─────────────┘   └─────────────┘              │
-│                                                                      │
+│   ┌─────────────────────┐    ┌─────────────────────┐                │
+│   │   DeepAgents CLI    │    │   LangChain Tools   │                │
+│   │  (Interactive AI    │    │  (23+ sandbox tools │                │
+│   │   coding assistant) │    │   for agents)       │                │
+│   └─────────────────────┘    └─────────────────────┘                │
+│              │                        │                              │
+│              └────────────┬───────────┘                              │
+│                           ▼                                          │
 │   ┌────────────────────────────────────────────────────────────┐   │
-│   │                    LangChain Tools                          │   │
-│   │  • session.py (11.5KB) - Session management                │   │
-│   │  • session_tools.py (29KB) - 40+ integrated tools          │   │
-│   │  • toolkit.py (4.8KB) - Tool registration                  │   │
-│   │  • client.py (5.4KB) - API client                          │   │
+│   │              Shared Infrastructure                          │   │
+│   │  • client.py - Unified sandbox client                      │   │
+│   │  • session.py - Workspace isolation                        │   │
+│   │  • exceptions.py - Common error handling                   │   │
 │   └────────────────────────────────────────────────────────────┘   │
 │                                                                      │
 └─────────────────────────────────────────────────────────────────────┘
@@ -517,16 +642,12 @@ A containerized local sandbox for development and testing.
 
 | Component | Description | Code Path |
 |-----------|-------------|-----------|
-| **Session Manager** | Manages sandbox sessions and state | [`session.py`](backend/src/sandbox/agent_infra_sandbox/langchain_tools/session.py) |
-| **Session Tools** | 40+ pre-integrated tools (**29KB**) | [`session_tools.py`](backend/src/sandbox/agent_infra_sandbox/langchain_tools/session_tools.py) |
-| **Toolkit** | Tool registration and discovery | [`toolkit.py`](backend/src/sandbox/agent_infra_sandbox/langchain_tools/toolkit.py) |
+| **DeepAgents CLI** | Interactive AI coding assistant | [`deepagents_cli/`](backend/src/sandbox/agent_infra_sandbox/deepagents_cli/) |
+| **LangChain Tools** | 23+ sandbox tools for agents | [`langchain_tools/`](backend/src/sandbox/agent_infra_sandbox/langchain_tools/) |
+| **Shared Client** | Unified sandbox connection | [`client.py`](backend/src/sandbox/agent_infra_sandbox/client.py) |
 | **Docker Compose** | Container orchestration | [`docker-compose.yaml`](backend/src/sandbox/agent_infra_sandbox/docker-compose.yaml) |
 
-**Start locally:**
-```bash
-cd backend/src/sandbox/agent_infra_sandbox
-docker-compose up -d
-```
+📖 **Full Documentation:** [`backend/src/sandbox/agent_infra_sandbox/README.md`](backend/src/sandbox/agent_infra_sandbox/README.md)
 
 ---
 

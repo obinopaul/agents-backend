@@ -9,8 +9,154 @@ from .config import COLORS, DEEP_AGENTS_ASCII, console
 from .ui import TokenTracker, print_banner, show_interactive_help
 
 
-def handle_command(command: str, agent, token_tracker: TokenTracker) -> str | bool:
-    """Handle slash commands. Returns 'exit' to exit, True if handled, False to pass to agent."""
+def _inject_mode_to_sandbox(
+    manager,
+    mode_name: str,
+    workspace_path: str,
+    mcp_tools: list,
+) -> dict:
+    """Inject mode skills to sandbox workspace via MCP.
+    
+    Uses synchronous wrapper to call async MCP sandbox_file_operations tool.
+    
+    Args:
+        manager: ModeManager instance
+        mode_name: Name of the mode to activate
+        workspace_path: Sandbox workspace path (e.g., /home/gem/workspaces/session-xxx)
+        mcp_tools: List of MCP tools (looking for sandbox_file_operations)
+        
+    Returns:
+        Result dict with 'success', 'skills_copied', 'error' keys
+    """
+    import asyncio
+    
+    # Find the file operations tool (name may be 'file_operations' or 'sandbox_file_operations')
+    file_tool = None
+    for tool in mcp_tools:
+        if tool.name in ("file_operations", "sandbox_file_operations"):
+            file_tool = tool
+            break
+    
+    if not file_tool:
+        # List available tools for debugging
+        tool_names = [t.name for t in mcp_tools[:10]]
+        return {
+            "success": False,
+            "error": f"file_operations tool not found. Available: {', '.join(tool_names)}...",
+            "skills_copied": [],
+        }
+    
+    # Get skill folders from mode
+    from deepagents_cli.modes.manager import AVAILABLE_MODES
+    
+    if mode_name not in AVAILABLE_MODES:
+        return {
+            "success": False,
+            "error": f"Unknown mode: {mode_name}",
+            "skills_copied": [],
+        }
+    
+    mode_dir = manager.skill_sets_dir / AVAILABLE_MODES[mode_name]["folder"]
+    if not mode_dir.exists():
+        return {
+            "success": False,
+            "error": f"Mode skill set not found at {mode_dir}",
+            "skills_copied": [],
+        }
+    
+    sandbox_skills_dir = f"{workspace_path}/.deepagents/skills"
+    skills_copied = []
+    errors = []
+    
+    async def inject_skill(skill_dir):
+        """Inject a single skill folder to sandbox."""
+        skill_name = skill_dir.name
+        files_written = 0
+        
+        for file_path in skill_dir.rglob("*"):
+            if file_path.is_file():
+                # Use as_posix() to convert Windows backslashes to Linux forward slashes
+                relative = file_path.relative_to(skill_dir).as_posix()
+                target_path = f"{sandbox_skills_dir}/{skill_name}/{relative}"
+                
+                try:
+                    content = file_path.read_text(encoding="utf-8", errors="replace")
+                    # Use 'action' parameter (not 'operation')
+                    await file_tool.ainvoke({
+                        "action": "write",
+                        "path": target_path,
+                        "content": content,
+                    })
+                    files_written += 1
+                except Exception as e:
+                    raise Exception(f"Failed to write {target_path}: {e}")
+        
+        return skill_name, files_written
+    
+    async def inject_all_skills():
+        """Inject all skills from mode to sandbox."""
+        nonlocal skills_copied, errors
+        
+        for skill_dir in mode_dir.iterdir():
+            if skill_dir.is_dir() and (skill_dir / "SKILL.md").exists():
+                try:
+                    skill_name, _ = await inject_skill(skill_dir)
+                    skills_copied.append(skill_name)
+                except Exception as e:
+                    errors.append(str(e))
+    
+    # Run async injection in sync context
+    try:
+        loop = asyncio.get_event_loop()
+        if loop.is_running():
+            # If we're already in an async context, create a new task
+            import concurrent.futures
+            with concurrent.futures.ThreadPoolExecutor() as executor:
+                future = executor.submit(asyncio.run, inject_all_skills())
+                future.result(timeout=120)  # 2 minute timeout
+        else:
+            loop.run_until_complete(inject_all_skills())
+    except Exception as e:
+        errors.append(f"Injection failed: {e}")
+    
+    if errors and not skills_copied:
+        return {
+            "success": False,
+            "error": "; ".join(errors),
+            "skills_copied": skills_copied,
+        }
+    
+    if errors:
+        return {
+            "success": True,
+            "skills_copied": skills_copied,
+            "warning": f"Some skills had errors: {'; '.join(errors)}",
+        }
+    
+    return {
+        "success": True,
+        "skills_copied": skills_copied,
+    }
+
+
+def handle_command(
+    command: str, 
+    agent, 
+    token_tracker: TokenTracker,
+    sandbox_type: str | None = None,
+    workspace_path: str | None = None,
+    mcp_tools: list | None = None,
+) -> str | bool:
+    """Handle slash commands. Returns 'exit' to exit, True if handled, False to pass to agent.
+    
+    Args:
+        command: The slash command string
+        agent: The agent instance
+        token_tracker: Token tracking instance
+        sandbox_type: Type of sandbox (e.g., "agent_infra") or None for local
+        workspace_path: Sandbox workspace path for skill injection
+        mcp_tools: List of MCP tools for sandbox file operations
+    """
     cmd = command.lower().strip().lstrip("/")
     parts = command.strip().lstrip("/").split()
     
@@ -130,6 +276,128 @@ def handle_command(command: str, agent, token_tracker: TokenTracker) -> str | bo
         console.print("[dim]To switch models: /model use <model-name>[/dim]")
         console.print("[dim]Priority: OpenAI > Anthropic > Google (first available is used)[/dim]")
         console.print()
+        return True
+
+    # Mode management commands
+    if parts and parts[0].lower() == "mode":
+        from deepagents_cli.modes.manager import ModeManager, print_modes_list
+        
+        manager = ModeManager()
+        
+        # Parse flags and mode name
+        # Syntax: /mode [--sandbox|--local|--all] <mode_name>
+        # Also: /mode list, /mode help
+        flags = []
+        remaining_args = []
+        for arg in parts[1:]:
+            if arg.startswith("--") or arg.startswith("-"):
+                flags.append(arg.lower().lstrip("-"))
+            else:
+                remaining_args.append(arg)
+        
+        subcommand = remaining_args[0].lower() if remaining_args else ("help" if not flags else None)
+        
+        # Help
+        if subcommand in ("help", "-h", "--help") or "help" in flags or "h" in flags:
+            console.print("\n[bold]Mode Management[/bold]\n", style=COLORS["primary"])
+            console.print("Modes are pre-configured skill sets that enhance the agent.\n")
+            console.print("[bold]Commands:[/bold]")
+            console.print("  /mode list                      List available modes")
+            console.print("  /mode <name>                    Activate mode (default target)")
+            console.print("  /mode --sandbox <name>          Inject to sandbox workspace only")
+            console.print("  /mode --local <name>            Inject to local .deepagents/skills/ only")
+            console.print("  /mode --all <name>              Inject to both sandbox and local")
+            console.print("\n[bold]Available Modes:[/bold]")
+            for mode in manager.list_modes():
+                status = "✓" if mode.get("available", True) else "✗"
+                console.print(f"  {status} {mode['name']:<20} {mode['description']}")
+            if sandbox_type:
+                console.print(f"\n[dim]Default target: sandbox ({workspace_path})[/dim]")
+            else:
+                console.print("\n[dim]Default target: local (.deepagents/skills/)[/dim]")
+            console.print()
+            return True
+        
+        # List
+        if subcommand == "list" or "list" in flags:
+            modes = manager.list_modes()
+            print_modes_list(modes)
+            return True
+        
+        # No mode name provided
+        if not subcommand:
+            console.print("\n[red]Please specify a mode name.[/red]")
+            console.print("[dim]Usage: /mode [--sandbox|--local|--all] <mode_name>[/dim]")
+            console.print("[dim]Try: /mode list[/dim]\n")
+            return True
+        
+        mode_name = subcommand
+        available_modes = [m["name"] for m in manager.list_modes()]
+        
+        if mode_name not in available_modes:
+            console.print(f"\n[red]Unknown mode: {mode_name}[/red]")
+            console.print(f"[dim]Available: {', '.join(available_modes)}[/dim]\n")
+            return True
+        
+        # Determine injection targets based on flags
+        inject_sandbox = False
+        inject_local = False
+        
+        if "all" in flags:
+            inject_sandbox = True
+            inject_local = True
+        elif "sandbox" in flags:
+            inject_sandbox = True
+        elif "local" in flags:
+            inject_local = True
+        else:
+            # Default: sandbox if available, otherwise local
+            if sandbox_type == "agent_infra" and mcp_tools and workspace_path:
+                inject_sandbox = True
+            else:
+                inject_local = True
+        
+        results = []
+        
+        # Inject to sandbox
+        if inject_sandbox:
+            if sandbox_type == "agent_infra" and mcp_tools and workspace_path:
+                console.print(f"\n[dim]Injecting '{mode_name}' to sandbox...[/dim]")
+                result = _inject_mode_to_sandbox(manager, mode_name, workspace_path, mcp_tools)
+                if result["success"]:
+                    skills = result["skills_copied"]
+                    console.print(f"[green]✓ Sandbox: Injected {len(skills)} skills to {workspace_path}/.deepagents/skills/[/green]")
+                    results.append(("sandbox", True, skills))
+                else:
+                    console.print(f"[red]✗ Sandbox injection failed: {result.get('error')}[/red]")
+                    results.append(("sandbox", False, []))
+            else:
+                console.print("[yellow]⚠ Sandbox not available (use --sandbox agent_infra flag when starting CLI)[/yellow]")
+                results.append(("sandbox", False, []))
+        
+        # Inject locally
+        if inject_local:
+            target_dir = Path.cwd() / ".deepagents" / "skills"
+            target_dir.mkdir(parents=True, exist_ok=True)
+            
+            console.print(f"\n[dim]Injecting '{mode_name}' locally...[/dim]" if not inject_sandbox else f"[dim]Injecting '{mode_name}' locally...[/dim]")
+            result = manager.activate_mode_local(mode_name, target_dir)
+            if result["success"]:
+                skills = result["skills_copied"]
+                console.print(f"[green]✓ Local: Injected {len(skills)} skills to {target_dir}[/green]")
+                results.append(("local", True, skills))
+            else:
+                console.print(f"[red]✗ Local injection failed: {result.get('error')}[/red]")
+                results.append(("local", False, []))
+        
+        # Summary
+        successes = [r for r in results if r[1]]
+        if successes:
+            console.print(f"\n[green]✓ Mode '{mode_name}' activated![/green]")
+        else:
+            console.print(f"\n[red]✗ Mode '{mode_name}' activation failed[/red]")
+        console.print()
+        
         return True
 
     console.print()

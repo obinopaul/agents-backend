@@ -12,6 +12,96 @@ from deepagents_cli.config import settings
 tavily_client = TavilyClient(api_key=settings.tavily_api_key) if settings.has_tavily else None
 
 
+# =============================================================================
+# MCP Tools Integration
+# =============================================================================
+#
+# The Agent-Infra Sandbox exposes ALL its tools via MCP at {base_url}/mcp/
+# This is the RECOMMENDED way to get sandbox tools:
+#
+#     tools = await get_sandbox_tools()
+#     agent = create_deep_agent(tools=tools, ...)
+#
+# =============================================================================
+
+async def get_sandbox_tools(base_url: str | None = None):
+    """Get all sandbox tools via MCP (async).
+    
+    This is the RECOMMENDED way to get sandbox tools for LangGraph agents.
+    Returns LangChain-compatible tools that can be passed directly to agents.
+    
+    Args:
+        base_url: Sandbox base URL (default from AGENT_INFRA_URL env or localhost:8090)
+        
+    Returns:
+        List of LangChain-compatible BaseTool instances
+        
+    Example:
+        tools = await get_sandbox_tools()
+        agent = create_deep_agent(
+            tools=tools,
+            system_prompt="You are a coding agent.",
+            model=init_chat_model("openai:gpt-4"),
+        )
+    """
+    import os
+    from langchain_mcp_adapters.client import MultiServerMCPClient
+    
+    url = base_url or os.environ.get("AGENT_INFRA_URL", "http://localhost:8090")
+    
+    mcp_client = MultiServerMCPClient({
+        "sandbox": {
+            "url": f"{url}/mcp/",
+            "transport": "http"  # Use "http" transport (per langchain-mcp-adapters docs)
+        },
+    })
+    return await mcp_client.get_tools()
+
+
+def get_sandbox_tools_sync(base_url: str | None = None):
+    """Get all sandbox tools via MCP (sync wrapper).
+    
+    Synchronous wrapper for get_sandbox_tools(). Handles cases where
+    there's already an event loop running (common in CLI contexts).
+    
+    Args:
+        base_url: Sandbox base URL
+        
+    Returns:
+        List of LangChain-compatible BaseTool instances
+    """
+    import asyncio
+    
+    # Check if there's already an event loop running
+    try:
+        loop = asyncio.get_running_loop()
+    except RuntimeError:
+        loop = None
+    
+    if loop is not None:
+        # We're inside an async context, need to use nest_asyncio or run in thread
+        import concurrent.futures
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            future = executor.submit(asyncio.run, get_sandbox_tools(base_url))
+            return future.result()
+    else:
+        # No event loop running, safe to use asyncio.run
+        return asyncio.run(get_sandbox_tools(base_url))
+
+
+def get_sandbox_tools_list(base_url: str | None = None) -> list[dict]:
+    """List available sandbox tools via MCP (returns metadata only).
+    
+    Use this to see what tools are available without creating tool instances.
+    
+    Returns:
+        List of tool definitions with name, description, and input_schema
+    """
+    from deepagents_cli.integrations.agent_infra import AgentInfraBackend
+    backend = AgentInfraBackend(base_url=base_url)
+    return backend.list_mcp_tools()
+
+
 def http_request(
     url: str,
     method: str = "GET",
@@ -181,6 +271,80 @@ def fetch_url(url: str, timeout: int = 30) -> dict[str, Any]:
         }
     except Exception as e:
         return {"error": f"Fetch URL error: {e!s}", "url": url}
+
+
+def crawl_tool(url: str) -> dict[str, Any]:
+    """Crawl a URL and extract readable content using advanced readability extraction.
+    
+    This is more robust than fetch_url for article-style content:
+    - Uses readability extraction (better for articles/blog posts)
+    - Supports multiple backends (Jina, InfoQuest)
+    - Handles PDF detection gracefully
+    - Better error handling with fallbacks
+    
+    Args:
+        url: The URL to crawl
+        
+    Returns:
+        Dictionary containing:
+        - url: The crawled URL
+        - crawled_content: Extracted content in markdown format (truncated to 5000 chars)
+        - is_pdf: True if URL is a PDF (which cannot be crawled)
+        - error: Error message if crawling failed
+        
+    Note:
+        Use this for articles, documentation, and blog posts.
+        Use fetch_url for simpler content or when you need the full raw HTML.
+    """
+    import json
+    import logging
+    from urllib.parse import urlparse
+    
+    logger = logging.getLogger(__name__)
+    
+    # Check for PDF URLs
+    parsed_url = urlparse(url)
+    if parsed_url.path.lower().endswith('.pdf'):
+        return {
+            "url": url,
+            "error": "PDF files cannot be crawled directly. Use a PDF extraction tool instead.",
+            "crawled_content": None,
+            "is_pdf": True,
+        }
+    
+    try:
+        # Try to import the crawler module
+        from backend.src.crawler import Crawler
+        
+        crawler = Crawler()
+        article = crawler.crawl(url)
+        markdown_content = article.to_markdown()
+        
+        # Truncate to reasonable size for LLM context
+        max_length = 5000
+        if len(markdown_content) > max_length:
+            markdown_content = markdown_content[:max_length] + "\n\n... [Content truncated]"
+        
+        return {
+            "url": url,
+            "crawled_content": markdown_content,
+            "title": getattr(article, 'title', None),
+        }
+    except ImportError:
+        # Crawler module not available, fall back to fetch_url
+        logger.warning("Crawler module not available, falling back to fetch_url")
+        result = fetch_url(url)
+        if "markdown_content" in result:
+            return {
+                "url": url,
+                "crawled_content": result["markdown_content"][:5000],
+                "fallback": True,
+            }
+        return {"url": url, "error": "Crawler unavailable and fetch_url also failed"}
+    except Exception as e:
+        error_msg = f"Failed to crawl {url}: {repr(e)}"
+        logger.error(error_msg)
+        return {"url": url, "error": error_msg}
 
 
 # =============================================================================

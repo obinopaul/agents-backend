@@ -7,7 +7,7 @@ import os
 from .base import Compressor
 
 
-OPENAI_BASE_URL = os.getenv("OPENAI_BASE_URL", "http://localhost:4000")
+OPENAI_BASE_URL = os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1")
 
 
 class EmbeddingCompressor(Compressor):

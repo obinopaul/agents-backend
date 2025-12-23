@@ -92,7 +92,12 @@ def reset_agent(agent_name: str, source_agent: str | None = None) -> None:
     console.print(f"Location: {agent_dir}\n", style=COLORS["dim"])
 
 
-def get_system_prompt(assistant_id: str, sandbox_type: str | None = None, workspace_path: str | None = None) -> str:
+def get_system_prompt(
+    assistant_id: str, 
+    sandbox_type: str | None = None, 
+    workspace_path: str | None = None,
+    tool_categories: dict[str, list[str]] | None = None,
+) -> str:
     """Get the base system prompt for the agent.
 
     Args:
@@ -101,6 +106,8 @@ def get_system_prompt(assistant_id: str, sandbox_type: str | None = None, worksp
                      If None, agent is operating in local mode.
         workspace_path: Optional session-specific workspace path. If provided,
                        overrides the default working directory for the sandbox.
+        tool_categories: Optional dict with keys 'local', 'web', 'sandbox' containing
+                        tool name lists for dynamic prompt injection.
 
     Returns:
         The system prompt string (without agent.md content)
@@ -174,6 +181,15 @@ The filesystem backend is currently operating in: `{cwd}`
 
 """
 
+    # Build tool categories section if provided
+    tool_categories_section = ""
+    if tool_categories:
+        tool_categories_section = "\n\n" + build_tool_categories_prompt(
+            local_tools=tool_categories.get("local"),
+            web_tools=tool_categories.get("web"),
+            sandbox_tools=tool_categories.get("sandbox"),
+        )
+
     return (
         working_dir_section
         + f"""### Skills Directory
@@ -218,7 +234,75 @@ When using the write_todos tool:
 6. Update todo status promptly as you complete each item
 
 The todo list is a planning tool - use it judiciously to avoid overwhelming the user with excessive task tracking."""
+        + tool_categories_section
     )
+
+
+def build_tool_categories_prompt(
+    local_tools: list[str] | None = None,
+    web_tools: list[str] | None = None,
+    sandbox_tools: list[str] | None = None,
+) -> str:
+    """Build a system prompt section that categorizes available tools.
+    
+    This helps the agent understand which tools operate locally vs in the sandbox,
+    making it clear when to use each category.
+    
+    Args:
+        local_tools: Tool names for local file operations (from deepagents backend)
+        web_tools: Tool names for web/HTTP operations
+        sandbox_tools: Tool names for sandbox operations (from MCP)
+        
+    Returns:
+        Formatted markdown section for the system prompt
+    """
+    if not any([local_tools, web_tools, sandbox_tools]):
+        return ""
+    
+    sections = ["### Available Tool Categories\n"]
+    sections.append("You have access to tools organized in these categories:\n")
+    
+    if local_tools:
+        sections.append(f"""**1. Local File Operations** ({len(local_tools)} tools)
+These operate on the USER's LOCAL machine (where the CLI is running):
+`{', '.join(local_tools)}`
+Use these to edit files in the user's project directory.
+""")
+    
+    if web_tools:
+        sections.append(f"""**2. Web & HTTP Tools** ({len(web_tools)} tools)
+For web requests, content fetching, and search:
+`{', '.join(web_tools)}`
+Use these to research information or fetch web content.
+""")
+    
+    if sandbox_tools:
+        # Group sandbox tools by prefix for readability
+        sandbox_prefixed = [t for t in sandbox_tools if t.startswith("sandbox_")]
+        browser_tools = [t for t in sandbox_tools if t.startswith("browser_")]
+        other_sandbox = [t for t in sandbox_tools if not t.startswith("sandbox_") and not t.startswith("browser_")]
+        
+        tool_listing = []
+        if sandbox_prefixed:
+            tool_listing.append(f"  - Core: `{', '.join(sandbox_prefixed)}`")
+        if browser_tools:
+            tool_listing.append(f"  - Browser: `{', '.join(browser_tools[:5])}` + {len(browser_tools)-5} more" if len(browser_tools) > 5 else f"  - Browser: `{', '.join(browser_tools)}`")
+        if other_sandbox:
+            tool_listing.append(f"  - Other: `{', '.join(other_sandbox)}`")
+        
+        sections.append(f"""**3. Sandbox Tools** ({len(sandbox_tools)} tools)
+For isolated code execution in the Docker sandbox:
+{chr(10).join(tool_listing)}
+Use these for safe code execution, browser automation, and file operations in the sandbox environment.
+""")
+    
+    sections.append("""**When to use each:**
+- **Local tools**: Edit files in the user's project
+- **Sandbox tools**: Run code safely, browser automation, isolated testing
+- **Web tools**: Search the internet, fetch external content
+""")
+    
+    return "\n".join(sections)
 
 
 def _format_write_file_description(
@@ -365,6 +449,7 @@ def create_cli_agent(
     sandbox: SandboxBackendProtocol | None = None,
     sandbox_type: str | None = None,
     workspace_path: str | None = None,
+    tool_categories: dict[str, list[str]] | None = None,
     system_prompt: str | None = None,
     auto_approve: bool = False,
     enable_memory: bool = True,
@@ -384,6 +469,8 @@ def create_cli_agent(
                  If None, uses local filesystem + shell.
         sandbox_type: Type of sandbox provider ("modal", "runloop", "daytona").
                      Used for system prompt generation.
+        tool_categories: Dict with keys 'local', 'web', 'sandbox' containing tool
+                        name lists. Used for dynamic system prompt generation.
         system_prompt: Override the default system prompt. If None, generates one
                       based on sandbox_type and assistant_id.
         auto_approve: If True, automatically approves all tool calls without human
@@ -482,6 +569,7 @@ def create_cli_agent(
             assistant_id=assistant_id, 
             sandbox_type=sandbox_type, 
             workspace_path=workspace_path,
+            tool_categories=tool_categories,
         )
 
     # Configure interrupt_on based on auto_approve setting
