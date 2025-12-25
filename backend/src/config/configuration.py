@@ -5,7 +5,6 @@ from typing import Any, Optional
 
 from langchain_core.runnables import RunnableConfig
 
-from backend.src.config.report_style import ReportStyle
 from backend.src.rag.retriever import Resource
 
 logger = logging.getLogger(__name__)
@@ -36,7 +35,6 @@ class Configuration:
     max_step_num: int = 3  # Maximum number of steps in a plan
     max_search_results: int = 3  # Maximum number of search results
     mcp_settings: dict = None  # MCP settings, including dynamic loaded tools
-    report_style: str = ReportStyle.ACADEMIC.value  # Report style
     enable_deep_thinking: bool = False  # Whether to enable deep thinking
     enforce_web_search: bool = (
         False  # Enforce at least one web search step in every plan

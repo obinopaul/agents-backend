@@ -63,21 +63,13 @@ def load_yaml_config(file_path: str) -> Dict[str, Any]:
         from backend.core.conf import settings
         
         return {
-            "BASIC_MODEL": {
-                "base_url": settings.BASIC_MODEL_BASE_URL,
-                "model": settings.BASIC_MODEL_NAME,
-                "api_key": settings.BASIC_MODEL_API_KEY,
-                "max_retries": settings.BASIC_MODEL_MAX_RETRIES,
-                "token_limit": settings.BASIC_MODEL_TOKEN_LIMIT,
-                "verify_ssl": settings.BASIC_MODEL_VERIFY_SSL,
-            },
-            "REASONING_MODEL": {
-                "base_url": settings.REASONING_MODEL_BASE_URL,
-                "model": settings.REASONING_MODEL_NAME,
-                "api_key": settings.REASONING_MODEL_API_KEY,
-                "max_retries": settings.REASONING_MODEL_MAX_RETRIES,
-                "token_limit": settings.REASONING_MODEL_TOKEN_LIMIT,
-            },
+            # LLM Provider Configuration (new provider-based system)
+            "LLM_PROVIDER": settings.LLM_PROVIDER,
+            "LLM_MAX_RETRIES": settings.LLM_MAX_RETRIES,
+            "LLM_TOKEN_LIMIT": settings.LLM_TOKEN_LIMIT,
+            "LLM_TEMPERATURE": settings.LLM_TEMPERATURE,
+            
+            # Search Engine Configuration
             "SEARCH_ENGINE": {
                 "engine": settings.AGENT_SEARCH_ENGINE,
                 "include_domains": settings.SEARCH_ENGINE_INCLUDE_DOMAINS,

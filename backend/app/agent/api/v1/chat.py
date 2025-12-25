@@ -29,7 +29,6 @@ from psycopg_pool import AsyncConnectionPool
 from backend.common.security.jwt import DependsJwtAuth
 from backend.core.conf import settings
 from backend.src.config.configuration import Configuration
-from backend.src.config.report_style import ReportStyle
 from backend.src.graph.builder import build_graph_with_memory
 from backend.src.graph.checkpoint import chat_stream_message
 from backend.src.graph.utils import (
@@ -96,7 +95,6 @@ class ChatRequest(BaseModel):
     mcp_settings: Optional[MCPSettings] = Field(None, description="MCP server configuration")
     enable_background_investigation: bool = Field(default=True, description="Enable background web search")
     enable_web_search: bool = Field(default=True, description="Enable web search in research steps")
-    report_style: ReportStyle = Field(default=ReportStyle.ACADEMIC, description="Report output style")
     enable_deep_thinking: bool = Field(default=False, description="Enable deep thinking mode")
     enable_clarification: bool = Field(default=False, description="Enable clarification mode")
     max_clarification_rounds: int = Field(default=3, ge=1, le=10, description="Maximum clarification rounds")
@@ -399,7 +397,6 @@ async def _astream_workflow_generator(
     mcp_settings: dict,
     enable_background_investigation: bool,
     enable_web_search: bool,
-    report_style: ReportStyle,
     enable_deep_thinking: bool,
     enable_clarification: bool,
     max_clarification_rounds: int,
@@ -463,7 +460,6 @@ async def _astream_workflow_generator(
         "max_search_results": max_search_results,
         "mcp_settings": mcp_settings,
         "enable_web_search": enable_web_search,
-        "report_style": report_style.value if hasattr(report_style, 'value') else report_style,
         "enable_deep_thinking": enable_deep_thinking,
         "interrupt_before_tools": interrupt_before_tools,
         "recursion_limit": _get_recursion_limit(),
@@ -594,7 +590,6 @@ async def chat_stream(request: ChatRequest):
             mcp_settings=mcp_settings_dict if mcp_enabled else {},
             enable_background_investigation=request.enable_background_investigation,
             enable_web_search=request.enable_web_search,
-            report_style=request.report_style,
             enable_deep_thinking=request.enable_deep_thinking,
             enable_clarification=request.enable_clarification,
             max_clarification_rounds=request.max_clarification_rounds,

@@ -3,6 +3,7 @@ import logging
 from backend.src.config.configuration import get_recursion_limit
 from backend.src.graph import build_graph
 from backend.src.graph.utils import build_clarified_topic_from_history
+from langfuse.langchain import CallbackHandler 
 
 # Configure logging
 logging.basicConfig(
@@ -37,12 +38,12 @@ async def run_agent_workflow_async(
     Args:
         user_input: The user's query or request
         debug: If True, enables debug level logging
-        max_plan_iterations: Maximum number of plan iterations
-        max_step_num: Maximum number of steps in a plan
-        enable_background_investigation: If True, performs web search before planning to enhance context
-        enable_clarification: If None, use default from State class (False); if True/False, override
-        max_clarification_rounds: Maximum number of clarification rounds allowed
-        initial_state: Initial state to use (for recursive calls during clarification)
+        max_plan_iterations: (Deprecated) validation kept for compatibility
+        max_step_num: (Deprecated) validation kept for compatibility
+        enable_background_investigation: If True, performs web search before execution
+        enable_clarification: (Deprecated) validation kept for compatibility
+        max_clarification_rounds: (Deprecated) validation kept for compatibility
+        initial_state: Initial state to use (for recursive calls)
 
     Returns:
         The final state after the workflow completes
@@ -60,25 +61,13 @@ async def run_agent_workflow_async(
         initial_state = {
             # Runtime Variables
             "messages": [{"role": "user", "content": user_input}],
-            "auto_accepted_plan": True,
             "enable_background_investigation": enable_background_investigation,
+            "research_topic": user_input,
         }
-        initial_state["research_topic"] = user_input
-        initial_state["clarified_research_topic"] = user_input
-
-        # Only set clarification parameter if explicitly provided
-        # If None, State class default will be used (enable_clarification=False)
-        if enable_clarification is not None:
-            initial_state["enable_clarification"] = enable_clarification
-
-        if max_clarification_rounds is not None:
-            initial_state["max_clarification_rounds"] = max_clarification_rounds
 
     config = {
         "configurable": {
             "thread_id": "default",
-            "max_plan_iterations": max_plan_iterations,
-            "max_step_num": max_step_num,
             "mcp_settings": {
                 "servers": {
                     "mcp-github-trending": {
@@ -92,6 +81,10 @@ async def run_agent_workflow_async(
             },
         },
         "recursion_limit": get_recursion_limit(default=100),
+        "callbacks": [CallbackHandler(
+                public_key=os.getenv("LANGFUSE_PUBLIC_KEY"),
+                secret_key=os.getenv("LANGFUSE_SECRET_KEY"),
+                host=os.getenv("LANGFUSE_HOST"))],
     }
     last_message_cnt = 0
     final_state = None
@@ -114,50 +107,6 @@ async def run_agent_workflow_async(
         except Exception as e:
             logger.error(f"Error processing stream output: {e}")
             print(f"Error processing output: {str(e)}")
-
-    # Check if clarification is needed using centralized logic
-    if final_state and isinstance(final_state, dict):
-        from backend.src.graph.nodes import needs_clarification
-
-        if needs_clarification(final_state):
-            # Wait for user input
-            print()
-            clarification_rounds = final_state.get("clarification_rounds", 0)
-            max_clarification_rounds = final_state.get("max_clarification_rounds", 3)
-            user_response = input(
-                f"Your response ({clarification_rounds}/{max_clarification_rounds}): "
-            ).strip()
-
-            if not user_response:
-                logger.warning("Empty response, ending clarification")
-                return final_state
-
-            # Continue workflow with user response
-            current_state = final_state.copy()
-            current_state["messages"] = final_state["messages"] + [
-                {"role": "user", "content": user_response}
-            ]
-            for key in (
-                "clarification_history",
-                "clarification_rounds",
-                "clarified_research_topic",
-                "research_topic",
-                "locale",
-                "enable_clarification",
-                "max_clarification_rounds",
-            ):
-                if key in final_state:
-                    current_state[key] = final_state[key]
-
-            return await run_agent_workflow_async(
-                user_input=user_response,
-                max_plan_iterations=max_plan_iterations,
-                max_step_num=max_step_num,
-                enable_background_investigation=enable_background_investigation,
-                enable_clarification=enable_clarification,
-                max_clarification_rounds=max_clarification_rounds,
-                initial_state=current_state,
-            )
 
     logger.info("Async workflow completed successfully")
 

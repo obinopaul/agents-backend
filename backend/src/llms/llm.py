@@ -1,338 +1,541 @@
+"""LLM Factory - Provider-based LLM instantiation.
+
+This module provides a unified factory for creating LLM instances from different
+providers using their native LangChain packages.
+
+Supported providers:
+- openai: langchain_openai.ChatOpenAI
+- anthropic: langchain_anthropic.ChatAnthropic
+- gemini: langchain_google_genai.ChatGoogleGenerativeAI
+- deepseek: langchain_deepseek.ChatDeepSeek
+- groq: langchain_groq.ChatGroq
+- huggingface: langchain_huggingface.ChatHuggingFace
+"""
+
 import logging
-import os
-from pathlib import Path
-from typing import Any, Dict, get_args
+from functools import lru_cache
+from typing import Literal
 
-import httpx
 from langchain_core.language_models import BaseChatModel
-from langchain_deepseek import ChatDeepSeek
-from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain_openai import AzureChatOpenAI, ChatOpenAI
 
-from backend.src.config import load_yaml_config
-from backend.src.config.agents import LLMType
-from backend.src.llms.providers.dashscope import ChatDashscope
+from backend.core.conf import settings
+from backend.src.config.agents import LLMProvider, get_provider_display_name, get_provider_package
 
 logger = logging.getLogger(__name__)
 
-# Cache for LLM instances
-_llm_cache: dict[LLMType, BaseChatModel] = {}
 
-# Allowed LLM configuration keys to prevent unexpected parameters from being passed
-# to LLM constructors (Issue #411 - SEARCH_ENGINE warning fix)
-ALLOWED_LLM_CONFIG_KEYS = {
-    # Common LLM configuration keys
-    "model",
-    "api_key",
-    "base_url",
-    "api_base",
-    "max_retries",
-    "timeout",
-    "max_tokens",
-    "temperature",
-    "top_p",
-    "frequency_penalty",
-    "presence_penalty",
-    "stop",
-    "n",
-    "stream",
-    "logprobs",
-    "echo",
-    "best_of",
-    "logit_bias",
-    "user",
-    "seed",
-    # SSL and HTTP client settings
-    "verify_ssl",
-    "http_client",
-    "http_async_client",
-    # Platform-specific keys
-    "platform",
-    "google_api_key",
-    # Azure-specific keys
-    "azure_endpoint",
-    "azure_deployment",
-    "api_version",
-    "azure_ad_token",
-    "azure_ad_token_provider",
-    # Dashscope/Doubao specific keys
-    "extra_body",
-    # Token limit for context compression (removed before passing to LLM)
-    "token_limit",
-    # Default headers
-    "default_headers",
-    "default_query",
+def _create_openai_llm() -> BaseChatModel:
+    """Create OpenAI LLM client using langchain-openai.
+    
+    Uses ChatOpenAI from langchain_openai package.
+    Supports custom base_url for proxies/emulators.
+    
+    Returns:
+        ChatOpenAI instance configured from settings.
+    """
+    from langchain_openai import ChatOpenAI
+    
+    kwargs = {
+        "model": settings.OPENAI_MODEL,
+        "api_key": settings.OPENAI_API_KEY,
+        "max_retries": settings.LLM_MAX_RETRIES,
+        "temperature": settings.LLM_TEMPERATURE,
+    }
+    
+    # Add optional base_url for proxies/emulators
+    if settings.OPENAI_BASE_URL:
+        kwargs["base_url"] = settings.OPENAI_BASE_URL
+    
+    logger.info(f"Creating OpenAI LLM: model={settings.OPENAI_MODEL}")
+    return ChatOpenAI(**kwargs)
+
+
+def _create_anthropic_llm() -> BaseChatModel:
+    """Create Anthropic LLM client using langchain-anthropic.
+    
+    Uses ChatAnthropic from langchain_anthropic package.
+    
+    Returns:
+        ChatAnthropic instance configured from settings.
+    """
+    from langchain_anthropic import ChatAnthropic
+    
+    logger.info(f"Creating Anthropic LLM: model={settings.ANTHROPIC_MODEL}")
+    return ChatAnthropic(
+        model=settings.ANTHROPIC_MODEL,
+        api_key=settings.ANTHROPIC_API_KEY,
+        max_retries=settings.LLM_MAX_RETRIES,
+        temperature=settings.LLM_TEMPERATURE,
+    )
+
+
+def _create_gemini_llm() -> BaseChatModel:
+    """Create Google Gemini LLM client using langchain-google-genai.
+    
+    Uses ChatGoogleGenerativeAI from langchain_google_genai package.
+    Supports optional Vertex AI configuration.
+    
+    Returns:
+        ChatGoogleGenerativeAI instance configured from settings.
+    """
+    from langchain_google_genai import ChatGoogleGenerativeAI
+    
+    kwargs = {
+        "model": settings.GEMINI_MODEL,
+        "google_api_key": settings.GOOGLE_API_KEY,
+        "temperature": settings.LLM_TEMPERATURE,
+    }
+    
+    # Add Vertex AI configuration if enabled
+    if settings.GOOGLE_GENAI_USE_VERTEXAI:
+        kwargs["vertexai"] = True
+        if settings.GOOGLE_CLOUD_PROJECT:
+            kwargs["project"] = settings.GOOGLE_CLOUD_PROJECT
+    
+    logger.info(f"Creating Gemini LLM: model={settings.GEMINI_MODEL}, vertexai={settings.GOOGLE_GENAI_USE_VERTEXAI}")
+    return ChatGoogleGenerativeAI(**kwargs)
+
+
+def _create_deepseek_llm() -> BaseChatModel:
+    """Create DeepSeek LLM client using langchain-deepseek.
+    
+    Uses ChatDeepSeek from langchain_deepseek package.
+    
+    Returns:
+        ChatDeepSeek instance configured from settings.
+    """
+    from langchain_deepseek import ChatDeepSeek
+    
+    logger.info(f"Creating DeepSeek LLM: model={settings.DEEPSEEK_MODEL}")
+    return ChatDeepSeek(
+        model=settings.DEEPSEEK_MODEL,
+        api_key=settings.DEEPSEEK_API_KEY,
+        max_retries=settings.LLM_MAX_RETRIES,
+        temperature=settings.LLM_TEMPERATURE,
+    )
+
+
+def _create_groq_llm() -> BaseChatModel:
+    """Create Groq LLM client using langchain-groq.
+    
+    Uses ChatGroq from langchain_groq package.
+    
+    Returns:
+        ChatGroq instance configured from settings.
+    """
+    from langchain_groq import ChatGroq
+    
+    logger.info(f"Creating Groq LLM: model={settings.GROQ_MODEL}")
+    return ChatGroq(
+        model=settings.GROQ_MODEL,
+        api_key=settings.GROQ_API_KEY,
+        max_retries=settings.LLM_MAX_RETRIES,
+        temperature=settings.LLM_TEMPERATURE,
+    )
+
+
+def _create_huggingface_llm() -> BaseChatModel:
+    """Create HuggingFace LLM client using langchain-huggingface.
+    
+    Uses ChatHuggingFace with HuggingFaceEndpoint from langchain_huggingface package.
+    
+    Returns:
+        ChatHuggingFace instance configured from settings.
+    """
+    from langchain_huggingface import ChatHuggingFace, HuggingFaceEndpoint
+    
+    logger.info(f"Creating HuggingFace LLM: repo_id={settings.HUGGINGFACE_REPO_ID}")
+    
+    # Create the endpoint
+    endpoint = HuggingFaceEndpoint(
+        repo_id=settings.HUGGINGFACE_REPO_ID,
+        huggingfacehub_api_token=settings.HUGGINGFACE_API_KEY,
+        task="text-generation",
+    )
+    
+    return ChatHuggingFace(llm=endpoint)
+
+
+def _create_ollama_llm() -> BaseChatModel:
+    """Create Ollama LLM client using langchain-ollama.
+    
+    For running open-source models locally via Ollama.
+    Uses ChatOllama from langchain_ollama package.
+    
+    Returns:
+        ChatOllama instance configured from settings.
+    """
+    from langchain_ollama import ChatOllama
+    
+    logger.info(f"Creating Ollama LLM: model={settings.OLLAMA_MODEL}, base_url={settings.OLLAMA_BASE_URL}")
+    return ChatOllama(
+        model=settings.OLLAMA_MODEL,
+        base_url=settings.OLLAMA_BASE_URL,
+        temperature=settings.LLM_TEMPERATURE,
+    )
+
+
+def _create_openai_compat_llm() -> BaseChatModel:
+    """Create OpenAI-compatible LLM client using langchain-openai.
+    
+    For custom deployed models using OpenAI-compatible APIs.
+    Examples: vLLM, TGI, LocalAI, LMStudio, etc.
+    Uses ChatOpenAI with a custom base_url.
+    
+    Returns:
+        ChatOpenAI instance configured for custom endpoint.
+        
+    Raises:
+        ValueError: If OPENAI_COMPAT_BASE_URL is not set.
+    """
+    from langchain_openai import ChatOpenAI
+    
+    if not settings.OPENAI_COMPAT_BASE_URL:
+        raise ValueError(
+            "OPENAI_COMPAT_BASE_URL is required for the 'openai_compat' provider. "
+            "Please set the base URL for your OpenAI-compatible endpoint."
+        )
+    
+    if not settings.OPENAI_COMPAT_MODEL:
+        raise ValueError(
+            "OPENAI_COMPAT_MODEL is required for the 'openai_compat' provider. "
+            "Please set the model name for your deployment."
+        )
+    
+    logger.info(
+        f"Creating OpenAI-Compatible LLM: model={settings.OPENAI_COMPAT_MODEL}, "
+        f"base_url={settings.OPENAI_COMPAT_BASE_URL}"
+    )
+    
+    kwargs = {
+        "model": settings.OPENAI_COMPAT_MODEL,
+        "base_url": settings.OPENAI_COMPAT_BASE_URL,
+        "max_retries": settings.LLM_MAX_RETRIES,
+        "temperature": settings.LLM_TEMPERATURE,
+    }
+    
+    # Only add API key if provided (some local deployments don't require it)
+    if settings.OPENAI_COMPAT_API_KEY:
+        kwargs["api_key"] = settings.OPENAI_COMPAT_API_KEY
+    else:
+        # Set a dummy key for providers that require the field but don't validate
+        kwargs["api_key"] = "not-needed"
+    
+    return ChatOpenAI(**kwargs)
+
+
+# Provider factory mapping
+_PROVIDER_FACTORIES: dict[str, callable] = {
+    "openai": _create_openai_llm,
+    "anthropic": _create_anthropic_llm,
+    "gemini": _create_gemini_llm,
+    "deepseek": _create_deepseek_llm,
+    "groq": _create_groq_llm,
+    "huggingface": _create_huggingface_llm,
+    "ollama": _create_ollama_llm,
+    "openai_compat": _create_openai_compat_llm,
 }
 
-
-def _get_config_file_path() -> str:
-    """Get the path to the configuration file."""
-    return str((Path(__file__).parent.parent.parent / "conf.yaml").resolve())
+# Cache for LLM instance
+_llm_cache: BaseChatModel | None = None
 
 
-def _get_llm_type_config_keys() -> dict[str, str]:
-    """Get mapping of LLM types to their configuration keys."""
-    return {
-        "reasoning": "REASONING_MODEL",
-        "basic": "BASIC_MODEL",
-        "vision": "VISION_MODEL",
-        "code": "CODE_MODEL",
-    }
-
-
-def _get_env_llm_conf(llm_type: str) -> Dict[str, Any]:
+def get_llm() -> BaseChatModel:
+    """Get the configured LLM instance.
+    
+    Returns a cached instance of the LLM based on the configured provider.
+    The provider is determined by the LLM_PROVIDER environment variable.
+    
+    Returns:
+        BaseChatModel: The configured LLM instance.
+        
+    Raises:
+        ValueError: If an unsupported provider is configured.
+        ImportError: If the required LangChain package is not installed.
     """
-    Get LLM configuration from environment variables.
-    Environment variables should follow the format: {LLM_TYPE}__{KEY}
-    e.g., BASIC_MODEL__api_key, BASIC_MODEL__base_url
-    """
-    prefix = f"{llm_type.upper()}_MODEL__"
-    conf = {}
-    for key, value in os.environ.items():
-        if key.startswith(prefix):
-            conf_key = key[len(prefix) :].lower()
-            conf[conf_key] = value
-    return conf
-
-
-def _create_llm_use_conf(llm_type: LLMType, conf: Dict[str, Any]) -> BaseChatModel:
-    """Create LLM instance using configuration."""
-    llm_type_config_keys = _get_llm_type_config_keys()
-    config_key = llm_type_config_keys.get(llm_type)
-
-    if not config_key:
-        raise ValueError(f"Unknown LLM type: {llm_type}")
-
-    llm_conf = conf.get(config_key, {})
-    if not isinstance(llm_conf, dict):
-        raise ValueError(f"Invalid LLM configuration for {llm_type}: {llm_conf}")
-
-    # Get configuration from environment variables
-    env_conf = _get_env_llm_conf(llm_type)
-
-    # Merge configurations, with environment variables taking precedence
-    merged_conf = {**llm_conf, **env_conf}
-
-    # Filter out unexpected parameters to prevent LangChain warnings (Issue #411)
-    # This prevents configuration keys like SEARCH_ENGINE from being passed to LLM constructors
-    allowed_keys_lower = {k.lower() for k in ALLOWED_LLM_CONFIG_KEYS}
-    unexpected_keys = [key for key in merged_conf.keys() if key.lower() not in allowed_keys_lower]
-    for key in unexpected_keys:
-        removed_value = merged_conf.pop(key)
-        logger.warning(
-            f"Removed unexpected LLM configuration key '{key}'. "
-            f"This key is not a valid LLM parameter and may have been placed in the wrong section of conf.yaml. "
-            f"Valid LLM config keys include: model, api_key, base_url, max_retries, temperature, etc."
+    global _llm_cache
+    
+    if _llm_cache is not None:
+        return _llm_cache
+    
+    provider: str = settings.LLM_PROVIDER
+    
+    if provider not in _PROVIDER_FACTORIES:
+        supported = list(_PROVIDER_FACTORIES.keys())
+        raise ValueError(
+            f"Unsupported LLM provider: '{provider}'. "
+            f"Supported providers: {supported}"
         )
+    
+    try:
+        logger.info(f"Initializing LLM provider: {get_provider_display_name(provider)}")
+        _llm_cache = _PROVIDER_FACTORIES[provider]()
+        logger.info(f"LLM provider '{get_provider_display_name(provider)}' initialized successfully")
+        return _llm_cache
+    except ImportError as e:
+        package = get_provider_package(provider)
+        raise ImportError(
+            f"Failed to import LLM provider '{provider}'. "
+            f"Please install the required package: pip install {package}\n"
+            f"Original error: {e}"
+        ) from e
 
-    # Remove unnecessary parameters when initializing the client
-    if "token_limit" in merged_conf:
-        merged_conf.pop("token_limit")
 
-    if not merged_conf:
-        raise ValueError(f"No configuration found for LLM type: {llm_type}")
+def clear_llm_cache() -> None:
+    """Clear the cached LLM instance.
+    
+    Useful for testing or when settings change at runtime.
+    """
+    global _llm_cache
+    _llm_cache = None
+    logger.info("LLM cache cleared")
 
-    # Add max_retries to handle rate limit errors
-    if "max_retries" not in merged_conf:
-        merged_conf["max_retries"] = 3
 
-    # Handle SSL verification settings
-    verify_ssl = merged_conf.pop("verify_ssl", True)
+def get_llm_token_limit() -> int:
+    """Get the configured token limit for the LLM.
+    
+    Returns:
+        int: The maximum token limit from settings.
+    """
+    return settings.LLM_TOKEN_LIMIT
 
-    # Create custom HTTP client if SSL verification is disabled
-    if not verify_ssl:
-        http_client = httpx.Client(verify=False)
-        http_async_client = httpx.AsyncClient(verify=False)
-        merged_conf["http_client"] = http_client
-        merged_conf["http_async_client"] = http_async_client
 
-    # Check if it's Google AI Studio platform based on configuration
-    platform = merged_conf.get("platform", "").lower()
-    is_google_aistudio = platform == "google_aistudio" or platform == "google-aistudio"
+# =============================================================================
+# Fallback/Supplementary LLM Functions
+# =============================================================================
 
-    if is_google_aistudio:
-        # Handle Google AI Studio specific configuration
-        gemini_conf = merged_conf.copy()
+def get_fallback_llm() -> BaseChatModel:
+    """Get a fallback/supplementary LLM instance for middleware operations.
+    
+    This creates a separate LLM instance for middleware operations like
+    summarization, tool emulation, etc. It uses FALLBACK_LLM_PROVIDER and
+    FALLBACK_LLM_MODEL if configured, otherwise falls back to the primary LLM.
+    
+    Returns:
+        BaseChatModel: A configured LLM instance for middleware use.
+    """
+    # Check if fallback provider is configured
+    fallback_provider = settings.FALLBACK_LLM_PROVIDER
+    fallback_model = settings.FALLBACK_LLM_MODEL
+    
+    if fallback_provider and fallback_model:
+        logger.info(f"Creating fallback LLM: provider={fallback_provider}, model={fallback_model}")
+        return create_llm_by_provider(fallback_provider, fallback_model)
+    
+    # If no fallback configured, return a fresh instance of the primary LLM
+    logger.debug("No fallback LLM configured, using primary LLM provider")
+    provider = settings.LLM_PROVIDER
+    return _PROVIDER_FACTORIES[provider]()
 
-        # Map common keys to Google AI Studio specific keys
-        if "api_key" in gemini_conf:
-            gemini_conf["google_api_key"] = gemini_conf.pop("api_key")
 
-        # Remove base_url and platform since Google AI Studio doesn't use them
-        gemini_conf.pop("base_url", None)
-        gemini_conf.pop("platform", None)
+def create_llm_by_provider(provider: str, model: str = None) -> BaseChatModel:
+    """Create an LLM instance for a specific provider and model.
+    
+    This allows creating LLM instances for any supported provider,
+    useful for fallback chains or middleware that needs different models.
+    
+    Args:
+        provider: The LLM provider (e.g., 'openai', 'anthropic', 'groq')
+        model: Optional model override. If not provided, uses the default
+               model from settings for that provider.
+               
+    Returns:
+        BaseChatModel: A configured LLM instance.
+        
+    Raises:
+        ValueError: If an unsupported provider is specified.
+    """
+    if provider not in _PROVIDER_FACTORIES:
+        supported = list(_PROVIDER_FACTORIES.keys())
+        raise ValueError(
+            f"Unsupported LLM provider: '{provider}'. "
+            f"Supported providers: {supported}"
+        )
+    
+    # Create LLM with model override if provided
+    if model:
+        return _create_llm_with_model_override(provider, model)
+    
+    return _PROVIDER_FACTORIES[provider]()
 
-        # Remove unsupported parameters for Google AI Studio
-        gemini_conf.pop("http_client", None)
-        gemini_conf.pop("http_async_client", None)
 
-        return ChatGoogleGenerativeAI(**gemini_conf)
-
-    if "azure_endpoint" in merged_conf or os.getenv("AZURE_OPENAI_ENDPOINT"):
-        return AzureChatOpenAI(**merged_conf)
-
-    # Check if base_url is dashscope endpoint
-    if "base_url" in merged_conf and "dashscope." in merged_conf["base_url"]:
-        if llm_type == "reasoning":
-            merged_conf["extra_body"] = {"enable_thinking": True}
+def _create_llm_with_model_override(provider: str, model: str) -> BaseChatModel:
+    """Create an LLM with a specific model override.
+    
+    Args:
+        provider: The LLM provider
+        model: The model name to use
+        
+    Returns:
+        BaseChatModel: A configured LLM instance with the specified model.
+    """
+    if provider == "openai":
+        from langchain_openai import ChatOpenAI
+        kwargs = {
+            "model": model,
+            "api_key": settings.OPENAI_API_KEY,
+            "max_retries": settings.LLM_MAX_RETRIES,
+            "temperature": settings.LLM_TEMPERATURE,
+        }
+        if settings.OPENAI_BASE_URL:
+            kwargs["base_url"] = settings.OPENAI_BASE_URL
+        return ChatOpenAI(**kwargs)
+    
+    elif provider == "anthropic":
+        from langchain_anthropic import ChatAnthropic
+        return ChatAnthropic(
+            model=model,
+            api_key=settings.ANTHROPIC_API_KEY,
+            max_retries=settings.LLM_MAX_RETRIES,
+            temperature=settings.LLM_TEMPERATURE,
+        )
+    
+    elif provider == "gemini":
+        from langchain_google_genai import ChatGoogleGenerativeAI
+        kwargs = {
+            "model": model,
+            "google_api_key": settings.GOOGLE_API_KEY,
+            "temperature": settings.LLM_TEMPERATURE,
+        }
+        if settings.GOOGLE_GENAI_USE_VERTEXAI:
+            kwargs["vertexai"] = True
+            if settings.GOOGLE_CLOUD_PROJECT:
+                kwargs["project"] = settings.GOOGLE_CLOUD_PROJECT
+        return ChatGoogleGenerativeAI(**kwargs)
+    
+    elif provider == "deepseek":
+        from langchain_deepseek import ChatDeepSeek
+        return ChatDeepSeek(
+            model=model,
+            api_key=settings.DEEPSEEK_API_KEY,
+            max_retries=settings.LLM_MAX_RETRIES,
+            temperature=settings.LLM_TEMPERATURE,
+        )
+    
+    elif provider == "groq":
+        from langchain_groq import ChatGroq
+        return ChatGroq(
+            model=model,
+            api_key=settings.GROQ_API_KEY,
+            max_retries=settings.LLM_MAX_RETRIES,
+            temperature=settings.LLM_TEMPERATURE,
+        )
+    
+    elif provider == "ollama":
+        from langchain_ollama import ChatOllama
+        return ChatOllama(
+            model=model,
+            base_url=settings.OLLAMA_BASE_URL,
+            temperature=settings.LLM_TEMPERATURE,
+        )
+    
+    elif provider == "openai_compat":
+        from langchain_openai import ChatOpenAI
+        if not settings.OPENAI_COMPAT_BASE_URL:
+            raise ValueError("OPENAI_COMPAT_BASE_URL is required for openai_compat provider")
+        kwargs = {
+            "model": model,
+            "base_url": settings.OPENAI_COMPAT_BASE_URL,
+            "max_retries": settings.LLM_MAX_RETRIES,
+            "temperature": settings.LLM_TEMPERATURE,
+        }
+        if settings.OPENAI_COMPAT_API_KEY:
+            kwargs["api_key"] = settings.OPENAI_COMPAT_API_KEY
         else:
-            merged_conf["extra_body"] = {"enable_thinking": False}
-        return ChatDashscope(**merged_conf)
-
-    if llm_type == "reasoning":
-        merged_conf["api_base"] = merged_conf.pop("base_url", None)
-        return ChatDeepSeek(**merged_conf)
+            kwargs["api_key"] = "not-needed"
+        return ChatOpenAI(**kwargs)
+    
     else:
-        return ChatOpenAI(**merged_conf)
+        # Fallback to default factory
+        return _PROVIDER_FACTORIES[provider]()
 
 
-def get_llm_by_type(llm_type: LLMType) -> BaseChatModel:
+def get_fallback_model_identifiers() -> list[str]:
+    """Get the list of fallback model identifiers from settings.
+    
+    Parses MIDDLEWARE_FALLBACK_MODELS which is a comma-separated string
+    of model identifiers (e.g., "gpt-4o-mini,anthropic:claude-3-5-sonnet").
+    
+    Returns:
+        list[str]: List of model identifier strings for ModelFallbackMiddleware.
     """
-    Get LLM instance by type. Returns cached instance if available.
-    """
-    if llm_type in _llm_cache:
-        return _llm_cache[llm_type]
+    fallback_models_str = settings.MIDDLEWARE_FALLBACK_MODELS
+    if not fallback_models_str:
+        return []
+    
+    # Parse comma-separated list and strip whitespace
+    models = [m.strip() for m in fallback_models_str.split(',') if m.strip()]
+    return models
 
-    conf = load_yaml_config(_get_config_file_path())
-    llm = _create_llm_use_conf(llm_type, conf)
-    _llm_cache[llm_type] = llm
-    return llm
+
+# =============================================================================
+# Backwards Compatibility Layer (Deprecated)
+# =============================================================================
+# These functions are kept for backwards compatibility during migration.
+# They will be removed in a future version.
+
+def get_llm_by_type(llm_type: str = "basic") -> BaseChatModel:
+    """DEPRECATED: Use get_llm() instead.
+    
+    This function is kept for backwards compatibility during migration.
+    It ignores the llm_type parameter and returns the configured LLM.
+    
+    Args:
+        llm_type: Ignored. Previously used to select between 'basic', 'reasoning', etc.
+        
+    Returns:
+        BaseChatModel: The configured LLM instance.
+    """
+    logger.warning(
+        f"get_llm_by_type('{llm_type}') is DEPRECATED. "
+        "The llm_type parameter is now ignored. Use get_llm() instead."
+    )
+    return get_llm()
+
+
+def get_llm_token_limit_by_type(llm_type: str = "basic") -> int:
+    """DEPRECATED: Use get_llm_token_limit() instead.
+    
+    This function is kept for backwards compatibility during migration.
+    It ignores the llm_type parameter and returns the configured token limit.
+    
+    Args:
+        llm_type: Ignored. Previously used to select between 'basic', 'reasoning', etc.
+        
+    Returns:
+        int: The configured token limit.
+    """
+    logger.warning(
+        f"get_llm_token_limit_by_type('{llm_type}') is DEPRECATED. "
+        "The llm_type parameter is now ignored. Use get_llm_token_limit() instead."
+    )
+    return get_llm_token_limit()
 
 
 def get_configured_llm_models() -> dict[str, list[str]]:
-    """
-    Get all configured LLM models grouped by type.
-
+    """DEPRECATED: Returns current provider configuration.
+    
+    This function is kept for backwards compatibility.
+    Returns a dict with the current provider and model.
+    
     Returns:
-        Dictionary mapping LLM type to list of configured model names.
+        dict: Provider to model list mapping.
     """
-    try:
-        conf = load_yaml_config(_get_config_file_path())
-        llm_type_config_keys = _get_llm_type_config_keys()
-
-        configured_models: dict[str, list[str]] = {}
-
-        for llm_type in get_args(LLMType):
-            # Get configuration from YAML file
-            config_key = llm_type_config_keys.get(llm_type, "")
-            yaml_conf = conf.get(config_key, {}) if config_key else {}
-
-            # Get configuration from environment variables
-            env_conf = _get_env_llm_conf(llm_type)
-
-            # Merge configurations, with environment variables taking precedence
-            merged_conf = {**yaml_conf, **env_conf}
-
-            # Check if model is configured
-            model_name = merged_conf.get("model")
-            if model_name:
-                configured_models.setdefault(llm_type, []).append(model_name)
-
-        return configured_models
-
-    except Exception as e:
-        # Log error and return empty dict to avoid breaking the application
-        print(f"Warning: Failed to load LLM configuration: {e}")
-        return {}
-
-
-def _get_model_token_limit_defaults() -> dict[str, int]:
-    """
-    Get default token limits for common LLM models.
-    These are conservative limits to prevent token overflow errors (Issue #721).
-    Users can override by setting token_limit in their config.
-    """
-    return {
-        # OpenAI models
-        "gpt-4o": 120000,
-        "gpt-4-turbo": 120000,
-        "gpt-4": 8000,
-        "gpt-3.5-turbo": 4000,
-        # Anthropic Claude
-        "claude-3": 180000,
-        "claude-2": 100000,
-        # Google Gemini
-        "gemini-2": 180000,
-        "gemini-1.5-pro": 180000,
-        "gemini-1.5-flash": 180000,
-        "gemini-pro": 30000,
-        # Bytedance Doubao
-        "doubao": 200000,
-        # DeepSeek
-        "deepseek": 100000,
-        # Ollama/local
-        "qwen": 30000,
-        "llama": 4000,
-        # Default fallback for unknown models
-        "default": 100000,
+    logger.warning(
+        "get_configured_llm_models() is DEPRECATED. "
+        "Use settings.LLM_PROVIDER directly instead."
+    )
+    provider = settings.LLM_PROVIDER
+    
+    # Build model info based on provider
+    model_map = {
+        "openai": settings.OPENAI_MODEL,
+        "anthropic": settings.ANTHROPIC_MODEL,
+        "gemini": settings.GEMINI_MODEL,
+        "deepseek": settings.DEEPSEEK_MODEL,
+        "groq": settings.GROQ_MODEL,
+        "huggingface": settings.HUGGINGFACE_REPO_ID,
     }
-
-
-def _infer_token_limit_from_model(model_name: str) -> int:
-    """
-    Infer a reasonable token limit from the model name.
-    This helps protect against token overflow errors when token_limit is not explicitly configured.
     
-    Args:
-        model_name: The model name from configuration
-        
-    Returns:
-        A conservative token limit based on known model capabilities
-    """
-    if not model_name:
-        return 100000  # Safe default
-    
-    model_name_lower = model_name.lower()
-    defaults = _get_model_token_limit_defaults()
-    
-    # Try exact or prefix matches
-    for key, limit in defaults.items():
-        if key in model_name_lower:
-            return limit
-    
-    # Return safe default if no match found
-    return defaults["default"]
-
-
-def get_llm_token_limit_by_type(llm_type: str) -> int:
-    """
-    Get the maximum token limit for a given LLM type.
-    
-    Priority order:
-    1. Explicitly configured token_limit in conf.yaml
-    2. Inferred from model name based on known model capabilities
-    3. Safe default (100,000 tokens)
-    
-    This helps prevent token overflow errors (Issue #721) even when token_limit is not configured.
-
-    Args:
-        llm_type (str): The type of LLM (e.g., 'basic', 'reasoning', 'vision', 'code').
-
-    Returns:
-        int: The maximum token limit for the specified LLM type (conservative estimate).
-    """
-    llm_type_config_keys = _get_llm_type_config_keys()
-    config_key = llm_type_config_keys.get(llm_type)
-
-    conf = load_yaml_config(_get_config_file_path())
-    model_config = conf.get(config_key, {})
-    
-    # First priority: explicitly configured token_limit
-    if "token_limit" in model_config:
-        configured_limit = model_config["token_limit"]
-        if configured_limit is not None:
-            return configured_limit
-    
-    # Second priority: infer from model name
-    model_name = model_config.get("model")
-    if model_name:
-        inferred_limit = _infer_token_limit_from_model(model_name)
-        return inferred_limit
-    
-    # Fallback: safe default
-    return _get_model_token_limit_defaults()["default"]
-
-
-# In the future, we will use reasoning_llm and vl_llm for different purposes
-# reasoning_llm = get_llm_by_type("reasoning")
-# vl_llm = get_llm_by_type("vision")
+    model = model_map.get(provider, "unknown")
+    return {provider: [model]}

@@ -100,11 +100,24 @@ class AgentConfig:
     @classmethod
     def from_settings(cls) -> "AgentConfig":
         """Create config from application settings."""
+        # Determine model name based on provider
+        provider = getattr(settings, "LLM_PROVIDER", "openai")
+        model_names = {
+            "openai": getattr(settings, "OPENAI_MODEL", "gpt-4o"),
+            "anthropic": getattr(settings, "ANTHROPIC_MODEL", "claude-sonnet-4-20250514"),
+            "gemini": getattr(settings, "GEMINI_MODEL", "gemini-2.0-flash"),
+            "deepseek": getattr(settings, "DEEPSEEK_MODEL", "deepseek-chat"),
+            "groq": getattr(settings, "GROQ_MODEL", "llama-3.1-8b-instant"),
+            "huggingface": getattr(settings, "HUGGINGFACE_REPO_ID", "microsoft/Phi-3-mini-4k-instruct"),
+            "ollama": getattr(settings, "OLLAMA_MODEL", "llama3"),
+            "openai_compat": getattr(settings, "OPENAI_COMPAT_MODEL", ""),
+        }
+        
         return cls(
             model=ModelConfig(
-                name=getattr(settings, "BASIC_MODEL_NAME", "gpt-4o"),
-                base_url=getattr(settings, "BASIC_MODEL_BASE_URL", None),
-                api_key=getattr(settings, "BASIC_MODEL_API_KEY", None),
+                name=model_names.get(provider, "gpt-4o"),
+                provider=provider,
+                temperature=getattr(settings, "LLM_TEMPERATURE", 0.7),
             ),
             tools=ToolConfig(
                 enable_mcp=getattr(settings, "AGENT_MCP_ENABLED", True),

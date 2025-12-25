@@ -1,0 +1,69 @@
+============================================================
+GRAPH QUERY TEST
+============================================================
+C:\Users\pault\AppData\Roaming\Python\Python313\site-packages\langchain_tavily\tavily_research.py:97: UserWarning: Field name "output_schema" in "TavilyResearch" shadows an attribute in parent "BaseTool"
+  class TavilyResearch(BaseTool):  # type: ignore[override, override]
+C:\Users\pault\AppData\Roaming\Python\Python313\site-packages\langchain_tavily\tavily_research.py:97: UserWarning: Field name "stream" in "TavilyResearch" shadows an attribute in parent "BaseTool"
+  class TavilyResearch(BaseTool):  # type: ignore[override, override]
+
+1. Building graph...
+   Γ£ô Graph built
+
+2. Running query: 'What is LangGraph and how does it work?'
+----------------------------------------
+
+[HumanMessage] What is LangGraph and how does it work?...
+
+Γ£ù ERROR: create_react_agent() got unexpected keyword arguments: {'state_modifier': <function create_agent.<locals>.combined_state_modifier at 0x0000027799352A20>}
+Traceback (most recent call last):
+  File "C:\Users\pault\Documents\3. AI and Machine Learning\2. Deep Learning\1c. App\Projects\agents-backend\backend\src\graph\test_query.py", line 46, in test_query
+    async for state in graph.astream(
+    ...<12 lines>...
+                print(f"\n[{msg_type}] {content_preview}...")
+  File "C:\Users\pault\AppData\Roaming\Python\Python313\site-packages\langgraph\pregel\main.py", line 2971, in astream
+    async for _ in runner.atick(
+    ...<13 lines>...
+            yield o
+  File "C:\Users\pault\AppData\Roaming\Python\Python313\site-packages\langgraph\pregel\_runner.py", line 304, in atick
+    await arun_with_retry(
+    ...<15 lines>...
+    )
+  File "C:\Users\pault\AppData\Roaming\Python\Python313\site-packages\langgraph\pregel\_retry.py", line 137, in arun_with_retry
+    return await task.proc.ainvoke(task.input, config)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\pault\AppData\Roaming\Python\Python313\site-packages\langgraph\_internal\_runnable.py", line 705, in ainvoke
+    input = await asyncio.create_task(
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+        step.ainvoke(input, config, **kwargs), context=context
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\pault\AppData\Roaming\Python\Python313\site-packages\langgraph\_internal\_runnable.py", line 473, in ainvoke
+    ret = await self.afunc(*args, **kwargs)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\pault\Documents\3. AI and Machine Learning\2. Deep Learning\1c. App\Projects\agents-backend\backend\src\graph\nodes.py", line 603, in base_node
+    return await _setup_and_execute_agent_step(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<4 lines>...
+    )
+    ^
+  File "C:\Users\pault\Documents\3. AI and Machine Learning\2. Deep Learning\1c. App\Projects\agents-backend\backend\src\graph\nodes.py", line 530, in _setup_and_execute_agent_step
+    agent = create_agent(
+        agent_type,
+    ...<5 lines>...
+        locale=locale,
+    )
+  File "C:\Users\pault\Documents\3. AI and Machine Learning\2. Deep Learning\1c. App\Projects\agents-backend\backend\src\agents\agents.py", line 87, in create_agent
+    agent = create_react_agent(
+        model=llm,
+    ...<2 lines>...
+        # Name is not a parameter in langgraph's create_react_agent, it returns a CompiledGraph
+    )
+  File "C:\Python313\Lib\warnings.py", line 637, in wrapper
+    return arg(*args, **kwargs)
+  File "C:\Users\pault\AppData\Roaming\Python\Python313\site-packages\langgraph\prebuilt\chat_agent_executor.py", line 518, in create_react_agent
+    raise TypeError(
+        f"create_react_agent() got unexpected keyword arguments: {deprecated_kwargs}"
+    )
+TypeError: create_react_agent() got unexpected keyword arguments: {'state_modifier': <function create_agent.<locals>.combined_state_modifier at 0x0000027799352A20>}
+During task with name 'base' and id 'f95ac7f5-f3f6-92b0-859f-45f4978a1516'

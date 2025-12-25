@@ -277,16 +277,94 @@ class Settings(BaseSettings):
     ##################################################
     # [ Module ] Agent - LangChain/LangGraph AI Agents
     ##################################################
-    # .env LLM API Keys
+    
+    # --------------------------------------------------------------------------
+    # [LLM Provider Configuration]
+    # Select provider: openai, anthropic, gemini, deepseek, groq, huggingface, ollama, openai_compat
+    # --------------------------------------------------------------------------
+    LLM_PROVIDER: Literal['openai', 'anthropic', 'gemini', 'deepseek', 'groq', 'huggingface', 'ollama', 'openai_compat'] = 'openai'
+    
+    # Common LLM Settings (applies to all providers)
+    LLM_MAX_RETRIES: int = 3
+    LLM_TOKEN_LIMIT: int = 200000
+    LLM_TEMPERATURE: float = 0.7
+    
+    # Fallback/Supplementary LLM Configuration
+    # These are used for middleware operations like summarization, model fallback, etc.
+    # If not set, uses the primary LLM provider settings
+    FALLBACK_LLM_PROVIDER: str = ''  # Leave empty to use primary provider
+    FALLBACK_LLM_MODEL: str = ''  # Model to use for fallback/supplementary operations
+    
+    # --------------------------------------------------------------------------
+    # OpenAI Configuration (provider: openai)
+    # Package: langchain-openai
+    # --------------------------------------------------------------------------
     OPENAI_API_KEY: str = ''
-    OPENAI_API_BASE: str = ''
+    OPENAI_MODEL: str = 'gpt-4o'
+    OPENAI_BASE_URL: str = ''  # Optional: Custom base URL for proxies/emulators
+    
+    # --------------------------------------------------------------------------
+    # Anthropic Configuration (provider: anthropic)
+    # Package: langchain-anthropic
+    # --------------------------------------------------------------------------
     ANTHROPIC_API_KEY: str = ''
+    ANTHROPIC_MODEL: str = 'claude-sonnet-4-20250514'
+    
+    # --------------------------------------------------------------------------
+    # Google Gemini Configuration (provider: gemini)
+    # Package: langchain-google-genai
+    # --------------------------------------------------------------------------
+    GOOGLE_API_KEY: str = ''
+    GEMINI_MODEL: str = 'gemini-2.0-flash'
+    GOOGLE_CLOUD_PROJECT: str = ''  # Optional: For Vertex AI
+    GOOGLE_GENAI_USE_VERTEXAI: bool = False  # Optional: Enable Vertex AI
+    
+    # --------------------------------------------------------------------------
+    # DeepSeek Configuration (provider: deepseek)
+    # Package: langchain-deepseek
+    # --------------------------------------------------------------------------
+    DEEPSEEK_API_KEY: str = ''
+    DEEPSEEK_MODEL: str = 'deepseek-chat'
+    
+    # --------------------------------------------------------------------------
+    # Groq Configuration (provider: groq)
+    # Package: langchain-groq
+    # --------------------------------------------------------------------------
+    GROQ_API_KEY: str = ''
+    GROQ_MODEL: str = 'llama-3.1-8b-instant'
+    
+    # --------------------------------------------------------------------------
+    # HuggingFace Configuration (provider: huggingface)
+    # Package: langchain-huggingface
+    # --------------------------------------------------------------------------
+    HUGGINGFACE_API_KEY: str = ''
+    HUGGINGFACE_REPO_ID: str = 'microsoft/Phi-3-mini-4k-instruct'
+    
+    # --------------------------------------------------------------------------
+    # Ollama Configuration (provider: ollama)
+    # For running open-source models locally
+    # Package: langchain-ollama
+    # --------------------------------------------------------------------------
+    OLLAMA_MODEL: str = 'llama3'
+    OLLAMA_BASE_URL: str = 'http://localhost:11434'
+    
+    # --------------------------------------------------------------------------
+    # OpenAI-Compatible API Configuration (provider: openai_compat)
+    # For custom deployed models using OpenAI-compatible APIs
+    # (e.g., vLLM, TGI, LocalAI, LMStudio, etc.)
+    # Package: langchain-openai
+    # --------------------------------------------------------------------------
+    OPENAI_COMPAT_API_KEY: str = ''
+    OPENAI_COMPAT_MODEL: str = ''
+    OPENAI_COMPAT_BASE_URL: str = ''  # REQUIRED for this provider
+    
+    # --------------------------------------------------------------------------
+    # Legacy/Fallback API Keys (backward compatibility)
+    # --------------------------------------------------------------------------
     AZURE_OPENAI_API_KEY: str = ''
     AZURE_OPENAI_ENDPOINT: str = ''
     AZURE_OPENAI_API_VERSION: str = '2024-02-15-preview'
-    GOOGLE_API_KEY: str = ''
     TOGETHER_API_KEY: str = ''
-    DEEPSEEK_API_KEY: str = ''
     DASHSCOPE_API_KEY: str = ''  # Alibaba Cloud
 
     # Agent Workflow Configuration
@@ -299,23 +377,44 @@ class Settings(BaseSettings):
     AGENT_MAX_CLARIFICATION_ROUNDS: int = 3
     AGENT_ENFORCE_WEB_SEARCH: bool = False
     AGENT_ENFORCE_RESEARCHER_SEARCH: bool = True
-    
-    # --------------------------------------------------------------------------
-    # [Robust Model Configuration]
-    # Basic Model (for general chat and planning)
-    BASIC_MODEL_BASE_URL: str = ''
-    BASIC_MODEL_NAME: str = ''
-    BASIC_MODEL_API_KEY: str = ''
-    BASIC_MODEL_MAX_RETRIES: int = 3
-    BASIC_MODEL_TOKEN_LIMIT: int = 200000
-    BASIC_MODEL_VERIFY_SSL: bool = True
 
-    # Reasoning Model (Optional, for complex planning)
-    REASONING_MODEL_BASE_URL: str = ''
-    REASONING_MODEL_NAME: str = ''
-    REASONING_MODEL_API_KEY: str = ''
-    REASONING_MODEL_MAX_RETRIES: int = 3
-    REASONING_MODEL_TOKEN_LIMIT: int = 150000
+    # --------------------------------------------------------------------------
+    # [Agent Middleware Configuration]
+    # Production-ready middleware for robust agent operation
+    # --------------------------------------------------------------------------
+    
+    # Summarization Middleware - compresses long conversations to fit context windows
+    MIDDLEWARE_ENABLE_SUMMARIZATION: bool = True
+    MIDDLEWARE_SUMMARIZATION_TRIGGER_TOKENS: int = 100000  # Token count to trigger summarization
+    MIDDLEWARE_SUMMARIZATION_KEEP_MESSAGES: int = 10  # Number of recent messages to preserve
+    
+    # Model Retry Middleware - retries failed model calls with exponential backoff
+    MIDDLEWARE_ENABLE_MODEL_RETRY: bool = True
+    MIDDLEWARE_MODEL_MAX_RETRIES: int = 3
+    MIDDLEWARE_MODEL_BACKOFF_FACTOR: float = 2.0
+    MIDDLEWARE_MODEL_INITIAL_DELAY: float = 1.0
+    
+    # Tool Retry Middleware - retries failed tool calls with exponential backoff
+    MIDDLEWARE_ENABLE_TOOL_RETRY: bool = True
+    MIDDLEWARE_TOOL_MAX_RETRIES: int = 3
+    MIDDLEWARE_TOOL_BACKOFF_FACTOR: float = 2.0
+    MIDDLEWARE_TOOL_INITIAL_DELAY: float = 0.5
+    
+    # Model Call Limit Middleware - prevents runaway costs
+    MIDDLEWARE_ENABLE_MODEL_CALL_LIMIT: bool = True
+    MIDDLEWARE_MODEL_CALL_THREAD_LIMIT: int = 50  # Max model calls per thread
+    MIDDLEWARE_MODEL_CALL_RUN_LIMIT: int = 25  # Max model calls per run
+    
+    # Tool Call Limit Middleware - prevents excessive tool usage
+    MIDDLEWARE_ENABLE_TOOL_CALL_LIMIT: bool = True
+    MIDDLEWARE_TOOL_CALL_THREAD_LIMIT: int = 100  # Max tool calls per thread
+    MIDDLEWARE_TOOL_CALL_RUN_LIMIT: int = 50  # Max tool calls per run
+    
+    # Model Fallback Middleware - automatically fallback to alternative models when primary fails
+    MIDDLEWARE_ENABLE_MODEL_FALLBACK: bool = True
+    # Comma-separated list of fallback model identifiers (e.g., "gpt-4o-mini,claude-3-5-sonnet")
+    # Uses provider:model format or just model name for same provider as primary
+    MIDDLEWARE_FALLBACK_MODELS: str = ''
 
     # Python REPL (Sandbox Execution)
     ENABLE_PYTHON_REPL: bool = False
@@ -423,6 +522,15 @@ class Settings(BaseSettings):
 
     # Agent Report Styles
     AGENT_DEFAULT_REPORT_STYLE: str = 'ACADEMIC'  # ACADEMIC, POPULAR_SCIENCE, NEWS, SOCIAL_MEDIA, STRATEGIC_INVESTMENT
+
+    # --------------------------------------------------------------------------
+    # [Evaluation Configuration]
+    # --------------------------------------------------------------------------
+    EVALUATION_SLEEP_TIME: int = 10
+
+    # Langfuse
+    LANGFUSE_PUBLIC_KEY: str = ''
+    LANGFUSE_SECRET_KEY: str = ''
 
     # --------------------------------------------------------------------------
     # [Sandbox Configuration]

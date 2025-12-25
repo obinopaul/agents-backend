@@ -77,80 +77,46 @@ pip install -r requirements.txt
 # 2️⃣ Start PostgreSQL & Redis
 docker-compose up -d fba_postgres fba_redis
 
-# 3️⃣ Run migrations & start server
 cd backend && alembic upgrade head
 python -m uvicorn backend.main:app --reload --host 0.0.0.0 --port 8000
----
 ```
 
-## 🎬 Demo
+---
 
-<div align="center">
+### Option 3: FBA CLI (Prototyping & Testing)
 
-![Agents Backend Demo](https://via.placeholder.com/900x500?text=Demo+GIF+Coming+Soon)
+Test all backend functionalities **without starting the server** using the FBA CLI.
 
-*Watch the agent autonomously research, code, and execute tasks in the secure sandbox*
+```bash
+# Install & view commands
+pip install -r requirements.txt
+fba --help
 
-</div>
+# Quick test: Run the Deep Research Agent interactively
+fba agent
+```
+
+This launches an interactive session where you select a language, ask a question, and watch the agent research and generate a report.
+
+📖 **Full CLI Reference:** See [`docs/guides/cli-reference.md`](docs/guides/cli-reference.md) for all commands and options.
 
 ---
 
----
+### Option 4: FastAPI Server (Production)
 
-> ## 💡 DeepAgents CLI
->
-> **Hey Developer! We built DeepAgents CLI to help you easily interact with the Agents Backend.**
->
-> It's an interactive AI coding assistant that lets you chat with agents that can write, execute, and debug code in a secure sandbox. Currently integrated with the local Agent-Infra sandbox.
->
-> <div align="center">
->   <img src="backend/src/sandbox/agent_infra_sandbox/deepagents_cli/public/agents_backend_cli.png" alt="DeepAgents CLI Preview" width="800">
-> </div>
->
-> #### Quick Start
->
-> ```bash
-> # Navigate to sandbox directory and start container
-> cd backend/src/sandbox/agent_infra_sandbox && docker-compose up -d
->
-> # Run DeepAgents CLI
-> python -m deepagents_cli
->
-> # Or explicitly specify sandbox
-> python -m deepagents_cli --sandbox agent_infra
-> ```
->
-> #### CLI Commands
->
-> | Command | Description |
-> |---------|-------------|
-> | `/help` | Show all available commands |
-> | `/mode list` | List available skill modes |
-> | `/mode <name>` | Activate a skill mode (injects skills to sandbox) |
-> | `/mode --sandbox <name>` | set a mode that injects skills to sandbox workspace only |
-> | `/mode --local <name>` | set a mode that injects skills to local .deepagents/skills/ |
-> | `/mode --all <name>` | set a mode that injects skills to both sandbox and local |
-> | `/model list` | List available LLM models |
-> | `/model use <name>` | Switch to a different model |
-> | `/session list` | List saved sessions |
-> | `/tokens` | Show token usage for current session |
-> | `/clear` | Clear screen and reset conversation |
-> | `!<cmd>` | Execute bash command locally |
->
-> #### Sandbox URLs
-> Viewable at `http://localhost:8090`
+Start the full FastAPI server for production deployment:
 
----
----
+```bash
+fba run --host 0.0.0.0 --port 8000
+```
 
-**🎉 Access Your Services:**
+| Service | URL |
+|---------|-----|
+| Swagger UI | http://localhost:8000/docs |
+| ReDoc | http://localhost:8000/redoc |
+| Agent API | `POST /api/v1/agent/chat/stream` |
 
-| Service | URL | Description |
-|---------|-----|-------------|
-| **Swagger UI** | [http://localhost:8000/docs](http://localhost:8000/docs) | Interactive API documentation |
-| **ReDoc** | [http://localhost:8000/redoc](http://localhost:8000/redoc) | Alternative API docs |
-| **Agent API** | `/api/v1/agent/chat` | Streaming chat with AI agents |
-| **Sandbox API** | `/api/v1/agent/sandbox` | Code execution environment |
+📖 **Full API Reference:** See [`docs/guides/fastapi-backend.md`](docs/guides/fastapi-backend.md) for detailed endpoint documentation.
 
 ---
 
@@ -166,277 +132,137 @@ python -m uvicorn backend.main:app --reload --host 0.0.0.0 --port 8000
 
 ---
 
-## 🔌 FastAPI Backend - Full Stack Architecture
+## 💡 DeepAgents CLI
 
-This is not a simple REST API template. It's a **production-grade enterprise backend** with complete authentication, authorization, audit logging, and plugin architecture.
+An interactive AI coding assistant that connects to a secure sandbox for writing, executing, and debugging code.
 
-### System Architecture Overview
+<div align="center">
+  <img src="backend/src/sandbox/agent_infra_sandbox/deepagents_cli/public/agents_backend_cli.png" alt="DeepAgents CLI Preview" width="800">
+</div>
 
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                              FastAPI Application                             │
-├─────────────┬─────────────┬─────────────┬─────────────┬─────────────────────┤
-│  Middleware │   Routers   │  Services   │    CRUD     │      Models         │
-├─────────────┼─────────────┼─────────────┼─────────────┼─────────────────────┤
-│ JWT Auth    │ /api/v1/    │ Business    │ Type-Safe   │ SQLAlchemy ORM      │
-│ Access Log  │   admin/    │ Logic       │ Database    │ Async Sessions      │
-│ Opera Log   │   agent/    │ Transaction │ Operations  │ Alembic Migrations  │
-│ I18n        │   task/     │ Management  │             │                     │
-│ State       │             │             │             │                     │
-└─────────────┴─────────────┴─────────────┴─────────────┴─────────────────────┘
-                                    │
-          ┌─────────────────────────┼─────────────────────────┐
-          ▼                         ▼                         ▼
-    ┌──────────┐             ┌──────────┐             ┌──────────┐
-    │PostgreSQL│             │  Redis   │             │ Celery   │
-    │ Database │             │  Cache   │             │ Workers  │
-    └──────────┘             └──────────┘             └──────────┘
+```bash
+# Quick Start
+cd backend/src/sandbox/agent_infra_sandbox && docker-compose up -d
+python -m deepagents_cli
 ```
 
-### Core Services Layer
+**Sandbox URL:** http://localhost:8090
 
-The business logic resides in dedicated service classes with transaction management.
+📖 **Full Guide:** See [`docs/guides/deepagents-cli.md`](docs/guides/deepagents-cli.md) for all commands, skill modes, and configuration.
 
-| Service | Description | Code Path |
-|---------|-------------|-----------|
-| `auth_service` | JWT authentication, login/logout, token refresh | [`backend/app/admin/service/auth_service.py`](backend/app/admin/service/auth_service.py) |
-| `user_service` | User management, registration, profile updates | [`backend/app/admin/service/user_service.py`](backend/app/admin/service/user_service.py) |
-| `role_service` | RBAC role management, permissions assignment | [`backend/app/admin/service/role_service.py`](backend/app/admin/service/role_service.py) |
-| `menu_service` | Dynamic menu permissions, UI access control | [`backend/app/admin/service/menu_service.py`](backend/app/admin/service/menu_service.py) |
-| `dept_service` | Department/organization structure management | [`backend/app/admin/service/dept_service.py`](backend/app/admin/service/dept_service.py) |
-| `data_scope_service` | Row-level security, data access policies | [`backend/app/admin/service/data_scope_service.py`](backend/app/admin/service/data_scope_service.py) |
-| `data_rule_service` | Custom data filtering rules | [`backend/app/admin/service/data_rule_service.py`](backend/app/admin/service/data_rule_service.py) |
-| `login_log_service` | Track user login history | [`backend/app/admin/service/login_log_service.py`](backend/app/admin/service/login_log_service.py) |
-| `opera_log_service` | Audit trail for all operations | [`backend/app/admin/service/opera_log_service.py`](backend/app/admin/service/opera_log_service.py) |
-| `plugin_service` | Dynamic plugin management | [`backend/app/admin/service/plugin_service.py`](backend/app/admin/service/plugin_service.py) |
-| `password_history_service` | Password policy enforcement | [`backend/app/admin/service/user_password_history_service.py`](backend/app/admin/service/user_password_history_service.py) |
+</div>
 
 ---
 
-### CRUD Operations
+<!-- ## 🌟 Features -->
+## 🌟 FastAPI Backend - Production-Ready Backend Architecture
 
-Type-safe database operations with SQLAlchemy 2.0 async.
+<!-- ### Production-Ready Backend Architecture -->
 
-| CRUD Module | Operations | Code Path |
-|-------------|------------|-----------|
-| `crud_user` | Create, Read, Update, Delete, Search, Filter | [`backend/app/admin/crud/crud_user.py`](backend/app/admin/crud/crud_user.py) |
-| `crud_role` | Role CRUD with permission relationships | [`backend/app/admin/crud/crud_role.py`](backend/app/admin/crud/crud_role.py) |
-| `crud_dept` | Department hierarchy operations | [`backend/app/admin/crud/crud_dept.py`](backend/app/admin/crud/crud_dept.py) |
-| `crud_menu` | Menu/permission tree management | [`backend/app/admin/crud/crud_menu.py`](backend/app/admin/crud/crud_menu.py) |
-| `crud_data_scope` | Data access scope configuration | [`backend/app/admin/crud/crud_data_scope.py`](backend/app/admin/crud/crud_data_scope.py) |
-| `crud_data_rule` | Custom filtering rules | [`backend/app/admin/crud/crud_data_rule.py`](backend/app/admin/crud/crud_data_rule.py) |
-| `crud_login_log` | Login audit records | [`backend/app/admin/crud/crud_login_log.py`](backend/app/admin/crud/crud_login_log.py) |
-| `crud_opera_log` | Operation audit records | [`backend/app/admin/crud/crud_opera_log.py`](backend/app/admin/crud/crud_opera_log.py) |
+- **FastAPI with Async Performance**
+  - High-performance async API endpoints with uvloop optimization
+  - SQLAlchemy 2.0 async with PostgreSQL connection pooling
+  - Redis caching with configurable TTL
+  - Celery workers for background task processing
+  - Docker and Docker Compose support with health checks
 
----
+- **Enterprise Security**
+  - JWT authentication with access/refresh tokens and auto-renewal
+  - Role-Based Access Control (RBAC) with granular permissions
+  - Row-level security with custom data access policies
+  - Password policy enforcement with history tracking
+  - OAuth2 social login (GitHub, Google, Linux.do)
+  - Input sanitization and CORS configuration
 
-### Middleware Stack
+- **Complete Audit Trail**
+  - Login history with IP tracking and user agent detection
+  - Operation audit logs for all user actions
+  - Request/response logging with timing metrics
+  - Structured logging with request context binding
 
-Production-grade middleware for security, logging, and internationalization.
+- **Internationalization & Localization**
+  - Multi-language support with locale detection
+  - I18n middleware for automatic language switching
+  - Translatable content and error messages
 
-| Middleware | Purpose | Key Features | Code Path |
-|------------|---------|--------------|-----------|
-| **JWT Authentication** | Token-based auth | Access/refresh tokens, auto-renewal, blacklisting | [`jwt_auth_middleware.py`](backend/middleware/jwt_auth_middleware.py) |
-| **Access Logging** | Request/response logging | Timing, status codes, error tracking | [`access_middleware.py`](backend/middleware/access_middleware.py) |
-| **Operation Audit** | User action audit trail | IP tracking, user agent, action metadata | [`opera_log_middleware.py`](backend/middleware/opera_log_middleware.py) |
-| **I18n** | Internationalization | Multi-language support, locale detection | [`i18n_middleware.py`](backend/middleware/i18n_middleware.py) |
-| **State Management** | Request state | Context variables, request tracking | [`state_middleware.py`](backend/middleware/state_middleware.py) |
-
----
-
-### Plugin System
-
-Extensible architecture for additional functionality.
-
-| Plugin | Description | Features | Code Path |
-|--------|-------------|----------|-----------|
-| **OAuth2** | Social login | GitHub, Google, Linux.do SSO | [`backend/plugin/oauth2/`](backend/plugin/oauth2/) |
-| **Email** | Email notifications | SMTP, templates, async sending | [`backend/plugin/email/`](backend/plugin/email/) |
-| **Code Generator** | Auto-generate CRUD | Model → API endpoints generation | [`backend/plugin/code_generator/`](backend/plugin/code_generator/) |
-| **Config** | Dynamic configuration | Runtime config changes, feature flags | [`backend/plugin/config/`](backend/plugin/config/) |
-| **Dictionary** | System dictionaries | Key-value lookups, enums | [`backend/plugin/dict/`](backend/plugin/dict/) |
-| **Notice** | System notifications | Announcements, alerts, user messaging | [`backend/plugin/notice/`](backend/plugin/notice/) |
+- **Plugin System**
+  - OAuth2 social login providers
+  - Email notifications with SMTP and templates
+  - Auto-generate CRUD code from database models
+  - Dynamic configuration and feature flags
+  - System notifications and announcements
 
 ---
 
-### API Endpoints
+### AI & LLM Features
 
-#### Agent Module (`/api/v1/agent`)
+- **Multi-Agent Orchestration with LangGraph**
+  - Directed Acyclic Graph (DAG) state machine for agent workflows
+  - State persistence and checkpointing for long-running tasks
+  - Automatic plan generation, revision, and execution
+  - Human-in-the-loop interrupt/resume capabilities
 
-| Endpoint | Method | Description | Code Path |
-|----------|--------|-------------|-----------|
-| `/chat` | `POST` | Streaming multi-agent chat with tool calling | [`chat.py`](backend/app/agent/api/v1/chat.py) |
-| `/chat/models` | `GET` | List available LLM models (OpenAI, Anthropic, etc.) | [`chat.py`](backend/app/agent/api/v1/chat.py) |
-| `/generation/podcast` | `POST` | Generate audio podcasts from content | [`generation.py`](backend/app/agent/api/v1/generation.py) |
-| `/generation/ppt` | `POST` | Generate PowerPoint presentations | [`generation.py`](backend/app/agent/api/v1/generation.py) |
-| `/generation/prose` | `POST` | Generate long-form prose content | [`generation.py`](backend/app/agent/api/v1/generation.py) |
-| `/tts` | `POST` | Text-to-speech conversion | [`tts.py`](backend/app/agent/api/v1/tts.py) |
-| `/rag/upload` | `POST` | Upload documents for RAG retrieval | [`rag.py`](backend/app/agent/api/v1/rag.py) |
-| `/rag/query` | `POST` | Query RAG knowledge base | [`rag.py`](backend/app/agent/api/v1/rag.py) |
-| `/mcp/servers` | `GET` | List MCP servers | [`mcp.py`](backend/app/agent/api/v1/mcp.py) |
-| `/mcp/tools` | `GET` | List available MCP tools | [`mcp.py`](backend/app/agent/api/v1/mcp.py) |
-| `/config` | `GET/PUT` | Agent configuration management | [`config.py`](backend/app/agent/api/v1/config.py) |
+- **Specialized Agent Nodes**
+  - Research Node: Web search, RAG retrieval, information synthesis
+  - Code Node: Python/Bash execution in sandboxes
+  - Content Node: Podcast, PPT, and prose generation
+  - Tool Caller: MCP integration with 50+ tools
 
-#### Sandbox Endpoints (`/api/v1/agent/sandboxes`)
+- **LLM Provider Support**
+  - OpenAI (GPT-4o, GPT-4o-mini, o1, o3-mini)
+  - Anthropic (Claude 3.5 Sonnet, Claude 3 Opus)
+  - Google (Gemini 2.0, Gemini 1.5 Pro)
+  - Ollama for local/self-hosted models
+  - LangChain adapters for custom providers
 
-| Endpoint | Method | Description | Code Path |
-|----------|--------|-------------|-----------|
-| `/create` | `POST` | Create new sandbox instance | [`sandbox.py`](backend/app/agent/api/v1/sandbox.py) |
-| `/{sandbox_id}/status` | `GET` | Get sandbox status & metadata | [`sandbox.py`](backend/app/agent/api/v1/sandbox.py) |
-| `/{sandbox_id}` | `DELETE` | Delete sandbox instance | [`sandbox.py`](backend/app/agent/api/v1/sandbox.py) |
-| `/run-cmd` | `POST` | Execute shell commands | [`sandbox.py`](backend/app/agent/api/v1/sandbox.py) |
-| `/read-file` | `POST` | Read file content | [`sandbox.py`](backend/app/agent/api/v1/sandbox.py) |
-| `/write-file` | `POST` | Write file to sandbox | [`sandbox.py`](backend/app/agent/api/v1/sandbox.py) |
-| `/{sandbox_id}/urls` | `GET` | Get VS Code & MCP preview URLs | [`sandbox.py`](backend/app/agent/api/v1/sandbox.py) |
+- **RAG Pipeline with 6 Vector Databases**
+  - Milvus / Zilliz Cloud for high-performance storage
+  - Qdrant for efficient similarity search
+  - Dify, RagFlow for managed document processing
+  - VikingDB (ByteDance) for enterprise scale
+  - Custom vector store implementations
 
-#### Slides Endpoints (`/api/v1/agent/sandboxes`)
-
-Endpoints for viewing, previewing, and exporting agent-generated presentations stored in sandbox environments.
-
-| Endpoint | Method | Description | Code Path |
-|----------|--------|-------------|-----------|
-| `/{sandbox_id}/presentations` | `GET` | List all presentations in sandbox | [`slides.py`](backend/app/agent/api/v1/slides.py) |
-| `/{sandbox_id}/presentations/{name}` | `GET` | List slides in a presentation | [`slides.py`](backend/app/agent/api/v1/slides.py) |
-| `/{sandbox_id}/slides/{name}/{num}` | `GET` | Get slide HTML for preview | [`slides.py`](backend/app/agent/api/v1/slides.py) |
-| `/{sandbox_id}/slides/export` | `POST` | **Export presentation to PDF** | [`slides.py`](backend/app/agent/api/v1/slides.py) |
-| `/{sandbox_id}/slides/download/{name}` | `GET` | Download slides as ZIP archive | [`slides.py`](backend/app/agent/api/v1/slides.py) |
-
-> **Note:** PDF export uses Playwright to render HTML slides at 1280×720 resolution. Run `playwright install chromium` after installing dependencies.
-
-#### Credits & Billing (`/api/v1/agent/credits`)
-
-| Endpoint | Method | Description | Code Path |
-|----------|--------|-------------|-----------|
-| `/balance` | `GET` | Get user credit balance | [`credits.py`](backend/app/agent/api/v1/credits.py) |
-| `/usage` | `GET` | Get credit usage history | [`credits.py`](backend/app/agent/api/v1/credits.py) |
-
-#### Admin Module (`/api/v1/admin`)
-
-<details>
-<summary><strong>📋 Full Admin API Reference</strong></summary>
-
-##### Authentication (`/auth`)
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/login` | `POST` | User authentication with captcha |
-| `/logout` | `POST` | Invalidate JWT tokens |
-| `/register` | `POST` | User registration |
-| `/captcha` | `GET` | Generate login captcha |
-| `/refresh` | `POST` | Refresh access token |
-
-##### System (`/sys`)
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/users` | `GET/POST/PUT/DELETE` | User management |
-| `/roles` | `GET/POST/PUT/DELETE` | Role-based access control |
-| `/menus` | `GET/POST/PUT/DELETE` | Permission menus |
-| `/depts` | `GET/POST/PUT/DELETE` | Department structure |
-| `/data-scopes` | `GET/POST` | Data access policies |
-| `/data-rules` | `GET/POST` | Custom data filtering |
-
-##### Monitoring (`/monitor`)
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/server` | `GET` | Server resource metrics |
-| `/redis` | `GET` | Redis status & metrics |
-
-##### Logs (`/log`)
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/opera` | `GET` | Operation audit logs |
-| `/login` | `GET` | Login history |
-
-</details>
+- **Content Generation**
+  - Multi-voice podcast generation with audio effects
+  - AI-generated PowerPoint presentations
+  - Long-form prose with chapters and coherent narrative
+  - Prompt enhancement and optimization
 
 ---
 
-## 🤖 Agentic AI System - Production-Grade Orchestration
+### Sandbox Environments
 
-The heart of the platform is a sophisticated **multi-agent orchestration system** built on **LangChain** and **LangGraph**.
+- **Dual Sandbox Architecture**
+  - Agent Infra Sandbox: Local Docker-based for development
+  - E2B / Daytona: Cloud-based for production workloads
+  - Web preview URLs for running applications
+  - VS Code integration for interactive debugging
 
-### LangGraph Architecture
-
-```
-┌────────────────────────────────────────────────────────────────────────────┐
-│                         LangGraph State Machine                             │
-│                        (Directed Acyclic Graph)                             │
-├────────────────────────────────────────────────────────────────────────────┤
-│                                                                             │
-│     ┌─────────┐      ┌─────────────┐      ┌────────────┐                   │
-│     │  START  │ ───► │   Router    │ ───► │   Agent    │                   │
-│     └─────────┘      │    Node     │      │   Nodes    │                   │
-│                      └─────────────┘      └────────────┘                   │
-│                            │                    │                           │
-│              ┌─────────────┼─────────────┬─────┴───────┐                   │
-│              ▼             ▼             ▼             ▼                   │
-│        ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐             │
-│        │ Research │  │   Code   │  │  Content │  │   Tool   │             │
-│        │   Node   │  │   Node   │  │   Node   │  │  Caller  │             │
-│        └──────────┘  └──────────┘  └──────────┘  └──────────┘             │
-│              │             │             │             │                   │
-│              └─────────────┴─────────────┴─────────────┘                   │
-│                                    │                                        │
-│                                    ▼                                        │
-│                             ┌──────────┐                                   │
-│                             │   END    │                                   │
-│                             └──────────┘                                   │
-│                                                                             │
-└────────────────────────────────────────────────────────────────────────────┘
-```
-
-### Graph Components
-
-| Component | Description | Size | Code Path |
-|-----------|-------------|------|-----------|
-| **Graph Builder** | Constructs the agent workflow DAG | 2.7KB | [`backend/src/graph/builder.py`](backend/src/graph/builder.py) |
-| **Node Definitions** | All agent nodes (research, code, content, tools) | **56.8KB** | [`backend/src/graph/nodes.py`](backend/src/graph/nodes.py) |
-| **Checkpointing** | State persistence for long-running workflows | 15.5KB | [`backend/src/graph/checkpoint.py`](backend/src/graph/checkpoint.py) |
-| **Type Definitions** | State schemas and message types | 1.3KB | [`backend/src/graph/types.py`](backend/src/graph/types.py) |
-| **Graph Utilities** | Helper functions for graph operations | 3.6KB | [`backend/src/graph/utils.py`](backend/src/graph/utils.py) |
-
-### Agent Modules
-
-| Agent | Purpose | Key Capabilities | Code Path |
-|-------|---------|------------------|-----------|
-| **Research Agent** | Information gathering | Web search, RAG retrieval, synthesis | [`backend/src/agents/`](backend/src/agents/) |
-| **Code Agent** | Code writing & execution | Python, Bash, sandbox integration | [`backend/src/agents/`](backend/src/agents/) |
-| **Content Agent** | Content generation | Podcasts, PPT, prose | [`backend/src/agents/`](backend/src/agents/) |
-| **Crawler Agent** | Web scraping | BeautifulSoup, Firecrawl, Jina | [`backend/src/crawler/`](backend/src/crawler/) |
-| **Prompt Enhancer** | Prompt improvement | Expand, clarify, optimize prompts | [`backend/src/prompt_enhancer/`](backend/src/prompt_enhancer/) |
+- **Programmatic Tool Calling (PTC)**
+  - Agents write Python code instead of JSON tool calls
+  - Data stays in sandbox, only summaries returned
+  - Full programming power with loops and conditionals
+  - MCP tool discovery and Python function generation
 
 ---
 
-### Content Generators
+### Developer Experience
 
-| Generator | Output Format | Features | Code Path |
-|-----------|---------------|----------|-----------|
-| **Podcast** | Audio (MP3/WAV) | Multi-voice dialogue, music, effects | [`backend/src/podcast/`](backend/src/podcast/) |
-| **PPT Generator** | PowerPoint (.pptx) | Templates, charts, images | [`backend/src/ppt/`](backend/src/ppt/) |
-| **Prose Generator** | Long-form text | Chapters, sections, coherent narrative | [`backend/src/prose/`](backend/src/prose/) |
+- **CLI Tools**
+  - `fba` CLI for all backend operations (run, init, agent, celery)
+  - DeepAgents CLI for interactive AI coding
+  - Code generation from database schemas
+  - SQL script execution
 
----
+- **API Documentation**
+  - Swagger UI and ReDoc auto-generation
+  - Type hints throughout for IDE support
+  - Comprehensive endpoint documentation
+  - Request/response schema validation
 
-### RAG Pipeline - Multiple Vector Stores
+📖 **Full Technical Reference:** See [`docs/guides/fastapi-backend.md`](docs/guides/fastapi-backend.md) for complete API endpoints, service layers, and code paths.
 
-Production-grade Retrieval-Augmented Generation with support for **6 vector databases**.
-
-| Vector Store | Type | Features | Code Path |
-|--------------|------|----------|-----------|
-| **Milvus** | Self-hosted / Zilliz Cloud | High-performance, scalable | [`backend/src/rag/milvus.py`](backend/src/rag/milvus.py) |
-| **Qdrant** | Self-hosted / Cloud | Fast, efficient | [`backend/src/rag/qdrant.py`](backend/src/rag/qdrant.py) |
-| **Dify** | Managed platform | Easy integration | [`backend/src/rag/dify.py`](backend/src/rag/dify.py) |
-| **RagFlow** | Open-source | Document processing | [`backend/src/rag/ragflow.py`](backend/src/rag/ragflow.py) |
-| **VikingDB** | ByteDance | Enterprise-grade | [`backend/src/rag/vikingdb_knowledge_base.py`](backend/src/rag/vikingdb_knowledge_base.py) |
-| **Moi** | Custom implementation | Flexible | [`backend/src/rag/moi.py`](backend/src/rag/moi.py) |
-
-### LLM Providers
-
-| Provider | Models | Use Cases |
-|----------|--------|-----------|
-| **OpenAI** | GPT-4o, GPT-4o-mini, o1, o3-mini | General chat, code, reasoning |
-| **Anthropic** | Claude 3.5 Sonnet, Claude 3 Opus | Long-context, analysis |
-| **Google** | Gemini 2.0, Gemini 1.5 Pro | Multimodal, long-context |
-| **Custom** | Via LangChain adapters | Self-hosted models |
+📖 **Agentic AI Details:** See [`docs/guides/agentic-ai.md`](docs/guides/agentic-ai.md) for graph components, RAG pipeline, and LLM configuration.
 
 ---
 

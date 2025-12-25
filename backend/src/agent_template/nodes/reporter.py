@@ -20,7 +20,7 @@ from langgraph.types import Command
 from backend.src.agent_template.state import TemplateState
 from backend.src.agent_template.config import AgentConfig, default_config
 from backend.src.agent_template.prompts.reporter import REPORTER_SYSTEM_PROMPT
-from backend.src.llms.llm import get_llm_by_type
+from backend.src.llms.llm import get_llm
 
 logger = logging.getLogger(__name__)
 
@@ -62,7 +62,7 @@ async def reporter_node(
     
     # Get LLM for report generation
     try:
-        llm = get_llm_by_type("basic")
+        llm = get_llm()
     except Exception as e:
         logger.error(f"Failed to get LLM: {e}")
         # Fallback to simple summary
