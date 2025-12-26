@@ -2,7 +2,7 @@
 
 import mimetypes
 import pymupdf
-import imghdr
+from PIL import Image
 
 from pathlib import Path
 from typing import Optional, Any
@@ -164,10 +164,16 @@ class UnreadableImageError(Exception):
 def _read_image_file(path: Path):
     """Read an image and return base64 encoded content."""
 
-    # Detect actual image format from file content
-    actual_format = imghdr.what(path)
+    # Detect actual image format from file content using Pillow
+    # (replaces deprecated imghdr for Python 3.13+ compatibility)
+    actual_format = None
+    try:
+        with Image.open(path) as img:
+            actual_format = img.format.lower() if img.format else None
+    except Exception:
+        pass  # Will fallback to extension-based detection
 
-    # Map imghdr format to MIME type
+    # Map Pillow format to MIME type
     format_to_mime = {
         'jpeg': 'image/jpeg',
         'png': 'image/png',

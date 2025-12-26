@@ -21,7 +21,7 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
   cp /build/codex/codex-rs/target/release/sse-http-server /sse-http-server
 
 # Multi-stage build to obfuscate tool_server inside Linux environment
-FROM nikolaik/python-nodejs:python3.10-nodejs24-slim AS obfuscator
+FROM nikolaik/python-nodejs:python3.12-nodejs24-slim AS obfuscator
 
 # Optimization: Use pip cache mount
 RUN --mount=type=cache,target=/root/.cache/pip \
@@ -37,11 +37,11 @@ RUN rm -rf /obfuscate/tool_server/.venv && \
   python obfuscate.py
 
 # Main application stage
-FROM nikolaik/python-nodejs:python3.10-nodejs24-slim
+FROM nikolaik/python-nodejs:python3.12-nodejs24-slim
 
 # Copy bashrc to both root (for build) and pn user (for runtime)
-COPY docker/sandbox/.bashrc /root/.bashrc
-COPY docker/sandbox/.bashrc /home/pn/.bashrc
+COPY backend/docker/sandbox/.bashrc /root/.bashrc
+COPY backend/docker/sandbox/.bashrc /home/pn/.bashrc
 
 # Optimization: Use cache mounts for apt-get and combine into single layer
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
@@ -98,13 +98,14 @@ ENV UV_COMPILE_BYTECODE=1
 # Copy from the cache instead of linking since it's a mounted volume
 ENV UV_LINK_MODE=copy
 
-# Copy dependency files first for better layer caching
-COPY uv.lock pyproject.toml /app/agents_backend/
+# Copy e2b-specific requirements.txt for pip install
+COPY backend/e2b-requirements.txt /app/agents_backend/requirements.txt
 
-# Optimization: Remove redundant bind mounts (files already copied above)
-# Keep cache mount for uv packages
-RUN --mount=type=cache,target=/root/.cache/uv \
-  uv sync --locked --prerelease=allow --no-install-project --no-dev
+# Install dependencies with pip (skip editable install on line 3 which requires local package)
+RUN --mount=type=cache,target=/root/.cache/pip \
+  pip install -r /app/agents_backend/requirements.txt --ignore-installed || \
+  (sed '3d' /app/agents_backend/requirements.txt > /tmp/requirements_fixed.txt && \
+  pip install -r /tmp/requirements_fixed.txt)
 
 # Copy obfuscated tool_server and PyArmor runtime from build stage
 COPY --from=obfuscator /obfuscate/final/tool_server /app/agents_backend/src/tool_server
@@ -113,7 +114,7 @@ COPY --from=obfuscator /obfuscate/final/pyarmor_runtime_000000 /app/agents_backe
 # Optimization: Copy from cached location in codex-builder
 COPY --from=codex-builder /sse-http-server /usr/local/bin/sse-http-server
 
-COPY README.md /app/agents_backend/
+COPY backend/README.md /app/agents_backend/
 
 # Optimization: Combine mkdir and touch into one layer
 RUN mkdir -p /app/agents_backend/src/agents_backend && \
@@ -121,24 +122,22 @@ RUN mkdir -p /app/agents_backend/src/agents_backend && \
 
 # Copy config files for root (build time) and pn user (runtime)
 RUN mkdir -p /root/.codex /home/pn/.codex /home/pn/.claude
-COPY docker/sandbox/template.css /app/template.css
-COPY docker/sandbox/claude_template.json /root/.claude.json
-COPY docker/sandbox/claude_template.json /home/pn/.claude.json
+COPY backend/docker/sandbox/template.css /app/template.css
+COPY backend/docker/sandbox/claude_template.json /root/.claude.json
+COPY backend/docker/sandbox/claude_template.json /home/pn/.claude.json
 
 # COPY Template files
 COPY .templates /app/agents_backend/.templates
 
-# Optimization: Use cache mount for final uv sync
-RUN --mount=type=cache,target=/root/.cache/uv \
-  uv sync --locked --prerelease=allow --no-dev
+# Dependencies already installed with pip above
 
 
 RUN mkdir /workspace
 WORKDIR /workspace
 
 # Create a startup script to run both services
-COPY docker/sandbox/start-services.sh /app/start-services.sh
-COPY docker/sandbox/entrypoint.sh /app/entrypoint.sh
+COPY backend/docker/sandbox/start-services.sh /app/start-services.sh
+COPY backend/docker/sandbox/entrypoint.sh /app/entrypoint.sh
 RUN chmod +x /app/start-services.sh /app/entrypoint.sh
 
 # Fix ownership for pn user - give pn access to everything it needs

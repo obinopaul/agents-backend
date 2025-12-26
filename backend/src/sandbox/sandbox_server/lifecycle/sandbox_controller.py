@@ -74,15 +74,20 @@ class SandboxController:
         """Create a new sandbox."""
         await self._ensure_consumer_started()
         sandbox_id = str(uuid.uuid4())
+        
+        # Build metadata dict, filtering out None values (E2B API rejects null values)
+        metadata = {
+            "ii_sandbox_id": sandbox_id,
+            "user_id": user_id,
+        }
+        if sandbox_template_id:
+            metadata["sandbox_template_id"] = sandbox_template_id
+            
         sandbox = await self.sandbox_provider.create(
             config=self.sandbox_config,
             queue=self.queue_scheduler,
             sandbox_id=sandbox_id,
-            metadata={  # For future use
-                "ii_sandbox_id": sandbox_id,
-                "user_id": user_id,
-                "sandbox_template_id": sandbox_template_id,
-            },
+            metadata=metadata,
             sandbox_template_id=sandbox_template_id,
         )
 

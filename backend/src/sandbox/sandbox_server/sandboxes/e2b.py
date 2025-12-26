@@ -382,23 +382,19 @@ class E2BSandbox(BaseSandbox):
         return True
 
     @classmethod
-    @e2b_exception_handler
     async def is_paused(cls, config: SandboxConfig, sandbox_id: str) -> bool:
-        paginator = AsyncSandbox.list(
-            api_key=config.e2b_api_key,
-            query=SandboxQuery(
-                state=["paused"],
-                # Bad pattern as this use controlled sandbox id
-                metadata={
-                    "ii_sandbox_id": sandbox_id,
-                },
-            ),
-        )
-        if paginator.has_next:
-            sandbox = await paginator.next_items()
-            print(sandbox)
-            if sandbox:
-                return True
-            else:
-                return False
-        return False
+        """Check if a sandbox is paused.
+        
+        Uses database status instead of E2B API to avoid SDK version issues
+        with SandboxState enum types.
+        """
+        from backend.src.sandbox.sandbox_server.db.manager import Sandboxes
+        
+        try:
+            sandbox_data = await Sandboxes.get_sandbox_by_id(sandbox_id)
+            if sandbox_data:
+                return str(sandbox_data.status) == "paused"
+            return False
+        except Exception as e:
+            logger.warning(f"Could not check pause status for {sandbox_id}: {e}")
+            return False

@@ -39,7 +39,7 @@ numpy>=1.24.0
 
 # --- Google Cloud ---
 google-cloud>=1.0.0
-google-cloud-storage>=3.7.0
+google-cloud-storage==2.18.2  # Pinned <3.0 for vertexai compatibility
 gcloud-aio-storage>=9.6.1
 vertexai>=1.0.0
 google-genai>=0.1.0
