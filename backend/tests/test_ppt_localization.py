@@ -46,7 +46,7 @@ class TestPPTLocalization:
             return MockLLM()
         
         # Import here to ensure monkeypatching happens before module import
-        import src.ppt.graph.ppt_composer_node as ppt_module
+        import src.module.ppt.graph.ppt_composer_node as ppt_module
         
         # Monkeypatch the functions
         monkeypatch.setattr(
@@ -99,7 +99,7 @@ class TestPPTLocalization:
             return MockLLM()
         
         # Import here to ensure monkeypatching happens before module import
-        import src.ppt.graph.ppt_composer_node as ppt_module
+        import src.module.ppt.graph.ppt_composer_node as ppt_module
         
         # Monkeypatch the functions
         monkeypatch.setattr(

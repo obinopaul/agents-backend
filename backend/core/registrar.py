@@ -122,9 +122,10 @@ def register_app() -> FastAPI:
 
 
 def register_logger() -> None:
-    """注册日志"""
+    """Register logging handlers."""
     setup_logging()
-    set_custom_logfile()
+    # TEMPORARILY DISABLED: Log file rotation has issues on Windows
+    # set_custom_logfile()
 
 
 def register_static_file(app: FastAPI) -> None:

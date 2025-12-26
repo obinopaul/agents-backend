@@ -19,10 +19,10 @@ from pydantic import BaseModel, Field
 
 from backend.common.security.jwt import DependsJwtAuth
 from backend.src.config.report_style import ReportStyle
-from backend.src.podcast.graph.builder import build_graph as build_podcast_graph
-from backend.src.ppt.graph.builder import build_graph as build_ppt_graph
-from backend.src.prompt_enhancer.graph.builder import build_graph as build_prompt_enhancer_graph
-from backend.src.prose.graph.builder import build_graph as build_prose_graph
+from backend.src.module.podcast.graph.builder import build_graph as build_podcast_graph
+from backend.src.module.ppt.graph.builder import build_graph as build_ppt_graph
+from backend.src.module.prompt_enhancer.graph.builder import build_graph as build_prompt_enhancer_graph
+from backend.src.module.prose.graph.builder import build_graph as build_prose_graph
 
 logger = logging.getLogger(__name__)
 

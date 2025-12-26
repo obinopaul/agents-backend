@@ -75,13 +75,21 @@ def setup_logging() -> None:
     # 移除 loguru 默认处理器
     logger.remove()
 
-    # request_id 过滤器
+    # request_id filter
     def request_id_filter(record: logging.LogRecord) -> logging.LogRecord:
         rid = get_request_trace_id()
         record['request_id'] = rid[: settings.TRACE_ID_LOG_LENGTH]
         return record
 
-    # 配置 loguru 处理器
+    # Windows console encoding fix
+    if sys.platform == 'win32':
+        try:
+            sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+            sys.stderr.reconfigure(encoding='utf-8', errors='replace')
+        except (AttributeError, OSError):
+            pass  # Fallback for environments where reconfigure is not available
+
+    # Configure loguru handlers
     logger.configure(
         handlers=[
             {
@@ -89,6 +97,7 @@ def setup_logging() -> None:
                 'level': settings.LOG_STD_LEVEL,
                 'format': default_formatter,
                 'filter': lambda record: request_id_filter(record),
+                'colorize': sys.platform != 'win32',  # Disable colors on Windows to avoid encoding issues
             },
         ],
     )
@@ -103,13 +112,19 @@ def set_custom_logfile() -> None:
     log_access_file = LOG_DIR / settings.LOG_ACCESS_FILENAME
     log_error_file = LOG_DIR / settings.LOG_ERROR_FILENAME
 
-    # 日志压缩回调
+    # Log file compression callback (fixed for Windows)
     def compression(filepath: str) -> str:
-        filename = filepath.split(os.sep)[-1]
-        original_filename = filename.split('.')[0]
-        if '-' in original_filename:
-            return LOG_DIR / f'{original_filename}.log'
-        return LOG_DIR / f'{original_filename}_{timezone.now().strftime("%Y-%m-%d")}.log'
+        try:
+            filename = os.path.basename(filepath)
+            original_filename = filename.split('.')[0]
+            if '-' in original_filename:
+                new_path = str(LOG_DIR / f'{original_filename}.log')
+            else:
+                new_path = str(LOG_DIR / f'{original_filename}_{timezone.now().strftime("%Y-%m-%d")}.log')
+            return new_path
+        except Exception:
+            # Fallback: return the original path if there's any error
+            return filepath
 
     # 日志文件通用配置
     # https://loguru.readthedocs.io/en/stable/api/logger.html#loguru._logger.Logger.add

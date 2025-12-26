@@ -3,14 +3,14 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.prompt_enhancer.graph.builder import build_graph
-from src.prompt_enhancer.graph.state import PromptEnhancerState
+from src.module.prompt_enhancer.graph.builder import build_graph
+from src.module.prompt_enhancer.graph.state import PromptEnhancerState
 
 
 class TestBuildGraph:
     """Test cases for build_graph function."""
 
-    @patch("src.prompt_enhancer.graph.builder.StateGraph")
+    @patch("src.module.prompt_enhancer.graph.builder.StateGraph")
     def test_build_graph_structure(self, mock_state_graph):
         """Test that build_graph creates the correct graph structure."""
         mock_builder = MagicMock()
@@ -36,8 +36,8 @@ class TestBuildGraph:
         # Verify return value
         assert result == mock_compiled_graph
 
-    @patch("src.prompt_enhancer.graph.builder.StateGraph")
-    @patch("src.prompt_enhancer.graph.builder.prompt_enhancer_node")
+    @patch("src.module.prompt_enhancer.graph.builder.StateGraph")
+    @patch("src.module.prompt_enhancer.graph.builder.prompt_enhancer_node")
     def test_build_graph_node_function(self, mock_enhancer_node, mock_state_graph):
         """Test that the correct node function is added to the graph."""
         mock_builder = MagicMock()
@@ -53,7 +53,7 @@ class TestBuildGraph:
 
     def test_build_graph_returns_compiled_graph(self):
         """Test that build_graph returns a compiled graph object."""
-        with patch("src.prompt_enhancer.graph.builder.StateGraph") as mock_state_graph:
+        with patch("src.module.prompt_enhancer.graph.builder.StateGraph") as mock_state_graph:
             mock_builder = MagicMock()
             mock_compiled_graph = MagicMock()
 
@@ -64,7 +64,7 @@ class TestBuildGraph:
 
             assert result is mock_compiled_graph
 
-    @patch("src.prompt_enhancer.graph.builder.StateGraph")
+    @patch("src.module.prompt_enhancer.graph.builder.StateGraph")
     def test_build_graph_call_sequence(self, mock_state_graph):
         """Test that build_graph calls methods in the correct sequence."""
         mock_builder = MagicMock()
@@ -120,7 +120,7 @@ class TestBuildGraph:
             else:
                 raise
 
-    @patch("src.prompt_enhancer.graph.builder.StateGraph")
+    @patch("src.module.prompt_enhancer.graph.builder.StateGraph")
     def test_build_graph_single_node_workflow(self, mock_state_graph):
         """Test that the graph is configured as a single-node workflow."""
         mock_builder = MagicMock()
@@ -138,7 +138,7 @@ class TestBuildGraph:
         mock_builder.set_entry_point.assert_called_once_with("enhancer")
         mock_builder.set_finish_point.assert_called_once_with("enhancer")
 
-    @patch("src.prompt_enhancer.graph.builder.StateGraph")
+    @patch("src.module.prompt_enhancer.graph.builder.StateGraph")
     def test_build_graph_state_type(self, mock_state_graph):
         """Test that the graph is initialized with the correct state type."""
         mock_builder = MagicMock()

@@ -1,87 +1,22 @@
+"""Database manager for sandbox operations.
+
+Uses the main FastAPI database connection instead of a standalone engine.
+"""
+
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator, Optional, List
-import ssl
-from urllib.parse import urlparse, parse_qs
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
-from sqlalchemy.ext.asyncio import create_async_engine
-from sqlalchemy.ext.asyncio import async_sessionmaker
 from sqlalchemy.ext.asyncio import AsyncSession as DBSession
 
 from backend.src.sandbox.sandbox_server.logger import logger
 from backend.src.sandbox.sandbox_server.db.model import Sandbox
 
-
-def run_migrations():
-    try:
-        from alembic import command
-        from alembic.config import Config
-
-        alembic_cfg = Config("~/.backend.src.sandbox.sandbox_server/alembic.ini")
-        migrations_path = "~/.backend.src.sandbox.sandbox_server/migrations"
-        alembic_cfg.set_main_option("script_location", str(migrations_path))
-
-        command.upgrade(alembic_cfg, "head")
-
-    except Exception as e:
-        logger.error(f"Error running migrations: {e}")
-        raise
+# Import main database session and engine from FastAPI backend
+from backend.database.db import async_db_session as SessionLocal, async_engine as engine
 
 
-# run_migrations()
 
-# TODO: move this to config
-import os
-# Default to PostgreSQL, but allow override via environment variable
-database_url = os.getenv(
-    "SANDBOX_DATABASE_URL",
-    "postgresql+asyncpg://postgres:postgres@localhost:5432/ii_sandbox"
-)
-
-# Parse the database URL to handle SSL parameters for asyncpg
-connect_args = {}
-
-if "+asyncpg" in database_url:
-    # Parse the URL to extract SSL parameters
-    parsed = urlparse(database_url)
-    if parsed.query:
-        query_params = parse_qs(parsed.query)
-
-        # Remove SSL-related parameters from the URL
-        clean_params = []
-        for key, values in query_params.items():
-            if key not in ['sslmode', 'channel_binding', 'ssl']:
-                for value in values:
-                    clean_params.append(f"{key}={value}")
-
-        # Reconstruct the URL without SSL parameters
-        clean_query = '&'.join(clean_params) if clean_params else ''
-        database_url = database_url.split('?')[0]
-        if clean_query:
-            database_url += '?' + clean_query
-
-        # Configure SSL for asyncpg based on sslmode parameter
-        if 'sslmode' in query_params:
-            sslmode = query_params['sslmode'][0]
-            if sslmode in ['require', 'verify-ca', 'verify-full']:
-                # Create SSL context
-                ssl_context = ssl.create_default_context()
-                ssl_context.check_hostname = False
-                ssl_context.verify_mode = ssl.CERT_NONE
-                connect_args['ssl'] = ssl_context
-
-engine = create_async_engine(
-    database_url,
-    echo=False,
-    future=True,
-    connect_args=connect_args,
-    pool_size=20,
-    max_overflow=0,
-    pool_pre_ping=True,
-    pool_recycle=3600,
-    pool_timeout=30
-)
-SessionLocal = async_sessionmaker(bind=engine, expire_on_commit=False)
 
 
 @asynccontextmanager

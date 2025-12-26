@@ -1,5 +1,5 @@
 from src.config.report_style import ReportStyle
-from src.prompt_enhancer.graph.state import PromptEnhancerState
+from src.module.prompt_enhancer.graph.state import PromptEnhancerState
 
 
 def test_prompt_enhancer_state_creation():

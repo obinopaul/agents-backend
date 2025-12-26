@@ -13,7 +13,12 @@ logger = logging.getLogger(__name__)
 
 
 class SandboxQueueScheduler:
-    """Redis-based implementation of message queue provider."""
+    """Redis-based implementation of message queue provider.
+    
+    Can use either:
+    - An existing Redis client (from FastAPI backend)
+    - A new connection from redis_url
+    """
 
     def __init__(
         self,
@@ -21,13 +26,16 @@ class SandboxQueueScheduler:
         redis_tls_ca_path: Optional[str] = None,
         queue_name: str = "sandbox_lifecycle",
         max_retries: int = 3,
+        existing_redis_client: Optional[Redis] = None,
     ):
         self.redis_url = redis_url
         self.client = None
         self.redis_tls_ca_path = redis_tls_ca_path
         self.queue_name = queue_name
         self.max_retries = max_retries
-        self.redis_client: Optional[Redis] = None
+        # Use existing client if provided, otherwise create new one
+        self.redis_client: Optional[Redis] = existing_redis_client
+        self._owns_client = existing_redis_client is None  # Track if we own the client
         self.consumer_task: Optional[asyncio.Task] = None
         self.is_consuming = False
         self.message_handler: Optional[Callable[[str, str, Dict[str, Any]], None]] = (
@@ -203,7 +211,8 @@ class SandboxQueueScheduler:
             except asyncio.CancelledError:
                 pass
 
-        if self.redis_client:
+        # Only close client if we created it (not if it was passed in)
+        if self.redis_client and self._owns_client:
             await self.redis_client.close()
             self.redis_client = None
 

@@ -4,8 +4,8 @@ import pytest
 from langchain_core.messages import HumanMessage, SystemMessage
 
 from src.config.report_style import ReportStyle
-from src.prompt_enhancer.graph.enhancer_node import prompt_enhancer_node
-from src.prompt_enhancer.graph.state import PromptEnhancerState
+from src.module.prompt_enhancer.graph.enhancer_node import prompt_enhancer_node
+from src.module.prompt_enhancer.graph.state import PromptEnhancerState
 
 
 @pytest.fixture
@@ -96,10 +96,10 @@ def mock_messages():
 class TestPromptEnhancerNode:
     """Test cases for prompt_enhancer_node function."""
 
-    @patch("src.prompt_enhancer.graph.enhancer_node.apply_prompt_template")
-    @patch("src.prompt_enhancer.graph.enhancer_node.get_llm_by_type")
+    @patch("src.module.prompt_enhancer.graph.enhancer_node.apply_prompt_template")
+    @patch("src.module.prompt_enhancer.graph.enhancer_node.get_llm_by_type")
     @patch(
-        "src.prompt_enhancer.graph.enhancer_node.AGENT_LLM_MAP",
+        "src.module.prompt_enhancer.graph.enhancer_node.AGENT_LLM_MAP",
         {"prompt_enhancer": "basic"},
     )
     def test_basic_prompt_enhancement(
@@ -127,10 +127,10 @@ class TestPromptEnhancerNode:
         # Verify result
         assert result == {"output": "Enhanced test prompt"}
 
-    @patch("src.prompt_enhancer.graph.enhancer_node.apply_prompt_template")
-    @patch("src.prompt_enhancer.graph.enhancer_node.get_llm_by_type")
+    @patch("src.module.prompt_enhancer.graph.enhancer_node.apply_prompt_template")
+    @patch("src.module.prompt_enhancer.graph.enhancer_node.get_llm_by_type")
     @patch(
-        "src.prompt_enhancer.graph.enhancer_node.AGENT_LLM_MAP",
+        "src.module.prompt_enhancer.graph.enhancer_node.AGENT_LLM_MAP",
         {"prompt_enhancer": "basic"},
     )
     def test_prompt_enhancement_with_report_style(
@@ -155,10 +155,10 @@ class TestPromptEnhancerNode:
         # Verify result
         assert result == {"output": "Enhanced test prompt"}
 
-    @patch("src.prompt_enhancer.graph.enhancer_node.apply_prompt_template")
-    @patch("src.prompt_enhancer.graph.enhancer_node.get_llm_by_type")
+    @patch("src.module.prompt_enhancer.graph.enhancer_node.apply_prompt_template")
+    @patch("src.module.prompt_enhancer.graph.enhancer_node.get_llm_by_type")
     @patch(
-        "src.prompt_enhancer.graph.enhancer_node.AGENT_LLM_MAP",
+        "src.module.prompt_enhancer.graph.enhancer_node.AGENT_LLM_MAP",
         {"prompt_enhancer": "basic"},
     )
     def test_prompt_enhancement_with_context(
@@ -187,10 +187,10 @@ class TestPromptEnhancerNode:
 
         assert result == {"output": "Enhanced test prompt"}
 
-    @patch("src.prompt_enhancer.graph.enhancer_node.apply_prompt_template")
-    @patch("src.prompt_enhancer.graph.enhancer_node.get_llm_by_type")
+    @patch("src.module.prompt_enhancer.graph.enhancer_node.apply_prompt_template")
+    @patch("src.module.prompt_enhancer.graph.enhancer_node.get_llm_by_type")
     @patch(
-        "src.prompt_enhancer.graph.enhancer_node.AGENT_LLM_MAP",
+        "src.module.prompt_enhancer.graph.enhancer_node.AGENT_LLM_MAP",
         {"prompt_enhancer": "basic"},
     )
     def test_error_handling(
@@ -209,10 +209,10 @@ class TestPromptEnhancerNode:
         # Should return original prompt on error
         assert result == {"output": "Test prompt"}
 
-    @patch("src.prompt_enhancer.graph.enhancer_node.apply_prompt_template")
-    @patch("src.prompt_enhancer.graph.enhancer_node.get_llm_by_type")
+    @patch("src.module.prompt_enhancer.graph.enhancer_node.apply_prompt_template")
+    @patch("src.module.prompt_enhancer.graph.enhancer_node.get_llm_by_type")
     @patch(
-        "src.prompt_enhancer.graph.enhancer_node.AGENT_LLM_MAP",
+        "src.module.prompt_enhancer.graph.enhancer_node.AGENT_LLM_MAP",
         {"prompt_enhancer": "basic"},
     )
     def test_template_error_handling(
@@ -230,10 +230,10 @@ class TestPromptEnhancerNode:
         # Should return original prompt on error
         assert result == {"output": "Test prompt"}
 
-    @patch("src.prompt_enhancer.graph.enhancer_node.apply_prompt_template")
-    @patch("src.prompt_enhancer.graph.enhancer_node.get_llm_by_type")
+    @patch("src.module.prompt_enhancer.graph.enhancer_node.apply_prompt_template")
+    @patch("src.module.prompt_enhancer.graph.enhancer_node.get_llm_by_type")
     @patch(
-        "src.prompt_enhancer.graph.enhancer_node.AGENT_LLM_MAP",
+        "src.module.prompt_enhancer.graph.enhancer_node.AGENT_LLM_MAP",
         {"prompt_enhancer": "basic"},
     )
     def test_prefix_removal(
@@ -261,10 +261,10 @@ class TestPromptEnhancerNode:
 
             assert result == {"output": "This is the enhanced prompt"}
 
-    @patch("src.prompt_enhancer.graph.enhancer_node.apply_prompt_template")
-    @patch("src.prompt_enhancer.graph.enhancer_node.get_llm_by_type")
+    @patch("src.module.prompt_enhancer.graph.enhancer_node.apply_prompt_template")
+    @patch("src.module.prompt_enhancer.graph.enhancer_node.get_llm_by_type")
     @patch(
-        "src.prompt_enhancer.graph.enhancer_node.AGENT_LLM_MAP",
+        "src.module.prompt_enhancer.graph.enhancer_node.AGENT_LLM_MAP",
         {"prompt_enhancer": "basic"},
     )
     def test_whitespace_handling(
@@ -284,10 +284,10 @@ class TestPromptEnhancerNode:
 
         assert result == {"output": "Enhanced prompt"}
 
-    @patch("src.prompt_enhancer.graph.enhancer_node.apply_prompt_template")
-    @patch("src.prompt_enhancer.graph.enhancer_node.get_llm_by_type")
+    @patch("src.module.prompt_enhancer.graph.enhancer_node.apply_prompt_template")
+    @patch("src.module.prompt_enhancer.graph.enhancer_node.get_llm_by_type")
     @patch(
-        "src.prompt_enhancer.graph.enhancer_node.AGENT_LLM_MAP",
+        "src.module.prompt_enhancer.graph.enhancer_node.AGENT_LLM_MAP",
         {"prompt_enhancer": "basic"},
     )
     def test_xml_with_whitespace_handling(
@@ -306,10 +306,10 @@ class TestPromptEnhancerNode:
 
         assert result == {"output": "Enhanced prompt with whitespace"}
 
-    @patch("src.prompt_enhancer.graph.enhancer_node.apply_prompt_template")
-    @patch("src.prompt_enhancer.graph.enhancer_node.get_llm_by_type")
+    @patch("src.module.prompt_enhancer.graph.enhancer_node.apply_prompt_template")
+    @patch("src.module.prompt_enhancer.graph.enhancer_node.get_llm_by_type")
     @patch(
-        "src.prompt_enhancer.graph.enhancer_node.AGENT_LLM_MAP",
+        "src.module.prompt_enhancer.graph.enhancer_node.AGENT_LLM_MAP",
         {"prompt_enhancer": "basic"},
     )
     def test_xml_multiline_content(
@@ -329,10 +329,10 @@ and includes various formatting.
 It should preserve the structure."""
         assert result == {"output": expected_output}
 
-    @patch("src.prompt_enhancer.graph.enhancer_node.apply_prompt_template")
-    @patch("src.prompt_enhancer.graph.enhancer_node.get_llm_by_type")
+    @patch("src.module.prompt_enhancer.graph.enhancer_node.apply_prompt_template")
+    @patch("src.module.prompt_enhancer.graph.enhancer_node.get_llm_by_type")
     @patch(
-        "src.prompt_enhancer.graph.enhancer_node.AGENT_LLM_MAP",
+        "src.module.prompt_enhancer.graph.enhancer_node.AGENT_LLM_MAP",
         {"prompt_enhancer": "basic"},
     )
     def test_fallback_to_prefix_removal(
@@ -347,10 +347,10 @@ It should preserve the structure."""
 
         assert result == {"output": "This is an enhanced prompt without XML tags"}
 
-    @patch("src.prompt_enhancer.graph.enhancer_node.apply_prompt_template")
-    @patch("src.prompt_enhancer.graph.enhancer_node.get_llm_by_type")
+    @patch("src.module.prompt_enhancer.graph.enhancer_node.apply_prompt_template")
+    @patch("src.module.prompt_enhancer.graph.enhancer_node.get_llm_by_type")
     @patch(
-        "src.prompt_enhancer.graph.enhancer_node.AGENT_LLM_MAP",
+        "src.module.prompt_enhancer.graph.enhancer_node.AGENT_LLM_MAP",
         {"prompt_enhancer": "basic"},
     )
     def test_malformed_xml_fallback(
@@ -369,10 +369,10 @@ This XML tag is not properly closed
 <enhanced_prompt>"""
         assert result == {"output": expected_content}
 
-    @patch("src.prompt_enhancer.graph.enhancer_node.apply_prompt_template")
-    @patch("src.prompt_enhancer.graph.enhancer_node.get_llm_by_type")
+    @patch("src.module.prompt_enhancer.graph.enhancer_node.apply_prompt_template")
+    @patch("src.module.prompt_enhancer.graph.enhancer_node.get_llm_by_type")
     @patch(
-        "src.prompt_enhancer.graph.enhancer_node.AGENT_LLM_MAP",
+        "src.module.prompt_enhancer.graph.enhancer_node.AGENT_LLM_MAP",
         {"prompt_enhancer": "basic"},
     )
     def test_case_sensitive_prefix_removal(
@@ -399,10 +399,10 @@ This XML tag is not properly closed
             # Should return the full content since prefix doesn't match exactly
             assert result == {"output": response_content}
 
-    @patch("src.prompt_enhancer.graph.enhancer_node.apply_prompt_template")
-    @patch("src.prompt_enhancer.graph.enhancer_node.get_llm_by_type")
+    @patch("src.module.prompt_enhancer.graph.enhancer_node.apply_prompt_template")
+    @patch("src.module.prompt_enhancer.graph.enhancer_node.get_llm_by_type")
     @patch(
-        "src.prompt_enhancer.graph.enhancer_node.AGENT_LLM_MAP",
+        "src.module.prompt_enhancer.graph.enhancer_node.AGENT_LLM_MAP",
         {"prompt_enhancer": "basic"},
     )
     def test_prefix_with_extra_whitespace(
@@ -426,10 +426,10 @@ This XML tag is not properly closed
 
             assert result == {"output": expected_output}
 
-    @patch("src.prompt_enhancer.graph.enhancer_node.apply_prompt_template")
-    @patch("src.prompt_enhancer.graph.enhancer_node.get_llm_by_type")
+    @patch("src.module.prompt_enhancer.graph.enhancer_node.apply_prompt_template")
+    @patch("src.module.prompt_enhancer.graph.enhancer_node.get_llm_by_type")
     @patch(
-        "src.prompt_enhancer.graph.enhancer_node.AGENT_LLM_MAP",
+        "src.module.prompt_enhancer.graph.enhancer_node.AGENT_LLM_MAP",
         {"prompt_enhancer": "basic"},
     )
     def test_xml_with_special_characters(
@@ -457,10 +457,10 @@ Quotes: "double" and 'single'
 Backslashes: \\n \\t \\r"""
         assert result == {"output": expected_output}
 
-    @patch("src.prompt_enhancer.graph.enhancer_node.apply_prompt_template")
-    @patch("src.prompt_enhancer.graph.enhancer_node.get_llm_by_type")
+    @patch("src.module.prompt_enhancer.graph.enhancer_node.apply_prompt_template")
+    @patch("src.module.prompt_enhancer.graph.enhancer_node.get_llm_by_type")
     @patch(
-        "src.prompt_enhancer.graph.enhancer_node.AGENT_LLM_MAP",
+        "src.module.prompt_enhancer.graph.enhancer_node.AGENT_LLM_MAP",
         {"prompt_enhancer": "basic"},
     )
     def test_very_long_response(
@@ -482,10 +482,10 @@ Backslashes: \\n \\t \\r"""
         assert result == {"output": long_content.strip()}
         assert len(result["output"]) > 1000  # Verify it's actually long
 
-    @patch("src.prompt_enhancer.graph.enhancer_node.apply_prompt_template")
-    @patch("src.prompt_enhancer.graph.enhancer_node.get_llm_by_type")
+    @patch("src.module.prompt_enhancer.graph.enhancer_node.apply_prompt_template")
+    @patch("src.module.prompt_enhancer.graph.enhancer_node.get_llm_by_type")
     @patch(
-        "src.prompt_enhancer.graph.enhancer_node.AGENT_LLM_MAP",
+        "src.module.prompt_enhancer.graph.enhancer_node.AGENT_LLM_MAP",
         {"prompt_enhancer": "basic"},
     )
     def test_empty_response_content(
@@ -502,10 +502,10 @@ Backslashes: \\n \\t \\r"""
 
         assert result == {"output": ""}
 
-    @patch("src.prompt_enhancer.graph.enhancer_node.apply_prompt_template")
-    @patch("src.prompt_enhancer.graph.enhancer_node.get_llm_by_type")
+    @patch("src.module.prompt_enhancer.graph.enhancer_node.apply_prompt_template")
+    @patch("src.module.prompt_enhancer.graph.enhancer_node.get_llm_by_type")
     @patch(
-        "src.prompt_enhancer.graph.enhancer_node.AGENT_LLM_MAP",
+        "src.module.prompt_enhancer.graph.enhancer_node.AGENT_LLM_MAP",
         {"prompt_enhancer": "basic"},
     )
     def test_only_whitespace_response(
