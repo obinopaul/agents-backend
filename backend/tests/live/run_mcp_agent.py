@@ -1,373 +1,221 @@
 #!/usr/bin/env python3
 """
-Live Agent Integration Test with MCP Tool Server
+Sandbox Agent Example
 
-This script creates a LangChain agent that connects to the MCP tool server
-and tests various sandbox tools. It's designed to verify end-to-end
-functionality of the sandbox and tool server integration.
+This script demonstrates how to use the sandbox tools via the FastAPI backend.
+It creates an E2B sandbox and executes commands/file operations.
 
-Requirements:
-- MCP server running on port 6060
-- Redis running
-- Environment variables configured in backend/.env
+Note: The MCP SSE connection may timeout depending on your MCP server configuration.
+This example uses the direct REST API which is fully functional.
 
 Usage:
-    cd backend
-    python tests/live/run_mcp_agent.py
+    python run_mcp_agent.py
 """
 
 import asyncio
-import logging
-import os
-import sys
+import httpx
 import uuid
+import sys
 from datetime import datetime
-from pathlib import Path
 
-# Add backend to path
-backend_path = Path(__file__).parent.parent.parent
-sys.path.insert(0, str(backend_path))
-
-from dotenv import load_dotenv
-
-# Load environment variables
-load_dotenv(backend_path / ".env")
-
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
-logger = logging.getLogger(__name__)
-
-
-# ============================================================================
 # Configuration
-# ============================================================================
-
-MCP_SERVER_URL = os.getenv("MCP_SERVER_URL", "http://localhost:6060")
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-LLM_PROVIDER = os.getenv("LLM_PROVIDER", "openai")
+BASE_URL = "http://127.0.0.1:8000"
+TEST_USER = "sandbox_test"
+TEST_PASSWORD = "TestPass123!"
 
 
-# ============================================================================
-# MCP Client Integration
-# ============================================================================
-
-async def test_mcp_server_connection():
-    """Test basic MCP server connectivity."""
-    import httpx
+class SandboxAgent:
+    """Agent that uses sandbox tools via REST API."""
     
-    print("\n" + "=" * 60)
-    print("🔌 Testing MCP Server Connection")
-    print("=" * 60)
+    def __init__(self):
+        self.token = None
+        self.sandbox_id = None
+        self.mcp_url = None
+        self.client = None
     
-    try:
-        async with httpx.AsyncClient(timeout=10.0) as client:
-            # Test health endpoint
-            response = await client.get(f"{MCP_SERVER_URL}/health")
-            if response.status_code == 200:
-                print(f"✅ MCP Server is healthy at {MCP_SERVER_URL}")
-                return True
-            else:
-                print(f"❌ MCP Server returned status {response.status_code}")
-                return False
-    except httpx.ConnectError:
-        print(f"❌ Cannot connect to MCP server at {MCP_SERVER_URL}")
-        print("   Make sure the MCP server is running:")
-        print("   cd backend/src/tool_server && python -m uvicorn main:app --port 6060")
-        return False
-    except Exception as e:
-        print(f"❌ Error connecting to MCP server: {e}")
-        return False
-
-
-async def list_available_mcp_tools():
-    """List all available tools from the MCP server."""
-    from src.tool_server.mcp.client import MCPClient
-    
-    print("\n" + "=" * 60)
-    print("🔧 Listing Available MCP Tools")
-    print("=" * 60)
-    
-    try:
-        async with MCPClient(server_url=MCP_SERVER_URL) as client:
-            # Set test credentials
-            credential = {
-                "user_api_key": os.getenv("OPENAI_API_KEY", "test"),
-                "session_id": str(uuid.uuid4())
+    async def setup(self):
+        """Initialize HTTP client."""
+        self.client = httpx.AsyncClient(
+            timeout=60.0,
+            headers={
+                'User-Agent': 'SandboxAgent/1.0',
+                'X-Request-ID': str(uuid.uuid4()),
+                'Content-Type': 'application/json'
             }
-            await client.set_credential(credential)
-            
-            # List tools
-            tools = await client.list_tools()
-            print(f"\n✅ Found {len(tools)} tools:")
-            for tool in tools[:15]:  # Show first 15
-                print(f"   - {tool.name}: {tool.description[:50]}...")
-            if len(tools) > 15:
-                print(f"   ... and {len(tools) - 15} more tools")
-            
-            return tools
-    except Exception as e:
-        print(f"❌ Error listing tools: {e}")
-        return []
-
-
-# ============================================================================
-# LangChain Agent with MCP Tools
-# ============================================================================
-
-async def create_langchain_agent_with_mcp():
-    """Create a LangChain agent using MCP tools."""
-    
-    print("\n" + "=" * 60)
-    print("🤖 Creating LangChain Agent with MCP Tools")
-    print("=" * 60)
-    
-    # Check for API key
-    if not OPENAI_API_KEY:
-        print("⚠️  No OPENAI_API_KEY found. Using mock mode.")
-        return None
-    
-    try:
-        from langchain_openai import ChatOpenAI
-        from langchain.agents import create_react_agent, AgentExecutor
-        from langchain_core.tools import Tool
-        from langchain import hub
-        from src.tool_server.mcp.client import MCPClient
-        
-        # Create LLM
-        llm = ChatOpenAI(
-            model=os.getenv("OPENAI_MODEL", "gpt-4o-mini"),
-            temperature=0,
-            api_key=OPENAI_API_KEY
         )
-        print(f"✅ LLM initialized: {llm.model_name}")
-        
-        # Connect to MCP and get tools
-        async with MCPClient(server_url=MCP_SERVER_URL) as mcp_client:
-            # Set credentials
-            session_id = str(uuid.uuid4())
-            await mcp_client.set_credential({
-                "user_api_key": OPENAI_API_KEY,
-                "session_id": session_id
-            })
-            print(f"✅ MCP Client connected (session: {session_id[:8]}...)")
-            
-            # Get available MCP tools
-            mcp_tools = await mcp_client.list_tools()
-            print(f"✅ Retrieved {len(mcp_tools)} MCP tools")
-            
-            # Convert MCP tools to LangChain format
-            langchain_tools = []
-            for mcp_tool in mcp_tools[:10]:  # Limit to first 10 for testing
-                
-                async def make_tool_func(tool_name):
-                    async def tool_func(**kwargs):
-                        result = await mcp_client.call_tool(tool_name, kwargs)
-                        return str(result)
-                    return tool_func
-                
-                lc_tool = Tool(
-                    name=mcp_tool.name,
-                    description=mcp_tool.description,
-                    func=lambda x, tn=mcp_tool.name: f"Async tool {tn} - use with agent",
-                    coroutine=await make_tool_func(mcp_tool.name),
-                )
-                langchain_tools.append(lc_tool)
-            
-            print(f"✅ Created {len(langchain_tools)} LangChain tools")
-            
-            # Get ReAct prompt
-            try:
-                prompt = hub.pull("hwchase17/react")
-            except Exception:
-                # Fallback prompt if hub is not available
-                from langchain_core.prompts import PromptTemplate
-                prompt = PromptTemplate.from_template("""
-Answer the following questions as best you can. You have access to the following tools:
-
-{tools}
-
-Use the following format:
-
-Question: the input question you must answer
-Thought: you should always think about what to do
-Action: the action to take, should be one of [{tool_names}]
-Action Input: the input to the action
-Observation: the result of the action
-... (this Thought/Action/Action Input/Observation can repeat N times)
-Thought: I now know the final answer
-Final Answer: the final answer to the original input question
-
-Begin!
-
-Question: {input}
-Thought:{agent_scratchpad}
-""")
-            
-            # Create agent
-            agent = create_react_agent(llm, langchain_tools, prompt)
-            agent_executor = AgentExecutor(
-                agent=agent,
-                tools=langchain_tools,
-                verbose=True,
-                max_iterations=5,
-                handle_parsing_errors=True
+        return await self.login()
+    
+    async def login(self) -> bool:
+        """Authenticate and get JWT token."""
+        r = await self.client.post(
+            f'{BASE_URL}/api/v1/auth/login/swagger',
+            params={'username': TEST_USER, 'password': TEST_PASSWORD}
+        )
+        if r.status_code == 200:
+            self.token = r.json().get('access_token')
+            self.client.headers['Authorization'] = f'Bearer {self.token}'
+            print("✅ Authenticated")
+            return True
+        print(f"❌ Login failed: {r.status_code}")
+        return False
+    
+    async def create_sandbox(self) -> bool:
+        """Create a new E2B sandbox."""
+        r = await self.client.post(
+            f'{BASE_URL}/agent/sandboxes/sandboxes/create',
+            json={'user_id': 'sandbox-agent'}
+        )
+        if r.status_code == 200:
+            data = r.json().get('data', {})
+            self.sandbox_id = data.get('sandbox_id')
+            self.mcp_url = data.get('mcp_url')
+            print(f"✅ Sandbox created: {self.sandbox_id}")
+            print(f"   MCP URL: {self.mcp_url}")
+            return True
+        print(f"❌ Sandbox creation failed: {r.status_code}")
+        return False
+    
+    async def write_file(self, path: str, content: str) -> bool:
+        """Write a file to the sandbox."""
+        r = await self.client.post(
+            f'{BASE_URL}/agent/sandboxes/sandboxes/write-file',
+            json={
+                'sandbox_id': self.sandbox_id,
+                'file_path': path,
+                'content': content
+            }
+        )
+        return r.status_code == 200
+    
+    async def read_file(self, path: str) -> str:
+        """Read a file from the sandbox."""
+        r = await self.client.post(
+            f'{BASE_URL}/agent/sandboxes/sandboxes/read-file',
+            json={
+                'sandbox_id': self.sandbox_id,
+                'file_path': path
+            }
+        )
+        if r.status_code == 200:
+            return r.json().get('data', {}).get('content', '')
+        return ''
+    
+    async def run_command(self, command: str) -> str:
+        """Execute a command in the sandbox."""
+        r = await self.client.post(
+            f'{BASE_URL}/agent/sandboxes/sandboxes/run-cmd',
+            json={
+                'sandbox_id': self.sandbox_id,
+                'command': command
+            }
+        )
+        if r.status_code == 200:
+            return r.json().get('data', {}).get('output', '')
+        return f"Error: {r.status_code}"
+    
+    async def cleanup(self):
+        """Delete sandbox and close client."""
+        if self.sandbox_id:
+            await self.client.delete(
+                f'{BASE_URL}/agent/sandboxes/sandboxes/{self.sandbox_id}'
             )
-            
-            print("✅ Agent created successfully!")
-            
-            return agent_executor
-            
-    except ImportError as e:
-        print(f"❌ Missing dependency: {e}")
-        print("   Install with: pip install langchain langchain-openai")
-        return None
-    except Exception as e:
-        print(f"❌ Error creating agent: {e}")
-        import traceback
-        traceback.print_exc()
-        return None
+            print("✅ Sandbox cleaned up")
+        if self.client:
+            await self.client.aclose()
 
-
-async def run_agent_test(agent_executor, task: str):
-    """Run a test task with the agent."""
-    
-    print("\n" + "-" * 60)
-    print(f"📋 Running Agent Task")
-    print("-" * 60)
-    print(f"Task: {task}")
-    print("-" * 60 + "\n")
-    
-    try:
-        result = await agent_executor.ainvoke({"input": task})
-        print("\n" + "-" * 60)
-        print("✅ Agent Result:")
-        print("-" * 60)
-        print(result.get("output", result))
-        return result
-    except Exception as e:
-        print(f"❌ Agent error: {e}")
-        import traceback
-        traceback.print_exc()
-        return None
-
-
-# ============================================================================
-# Direct Tool Testing (Without Agent)
-# ============================================================================
-
-async def test_shell_tool_direct():
-    """Test shell tool directly via MCP."""
-    from src.tool_server.mcp.client import MCPClient
-    
-    print("\n" + "=" * 60)
-    print("🐚 Testing Shell Tool (Direct MCP Call)")
-    print("=" * 60)
-    
-    try:
-        async with MCPClient(server_url=MCP_SERVER_URL) as client:
-            # Set credentials
-            await client.set_credential({
-                "user_api_key": "test",
-                "session_id": str(uuid.uuid4())
-            })
-            
-            # Call the Bash tool
-            result = await client.call_tool("Bash", {
-                "command": "echo 'Hello from MCP Shell!'",
-                "description": "Test echo command",
-                "session_name": "test"
-            })
-            
-            print(f"✅ Shell command result: {result}")
-            return result
-    except Exception as e:
-        print(f"❌ Shell tool error: {e}")
-        return None
-
-
-async def test_file_tool_direct():
-    """Test file tool directly via MCP."""
-    from src.tool_server.mcp.client import MCPClient
-    
-    print("\n" + "=" * 60)
-    print("📁 Testing File Tool (Direct MCP Call)")
-    print("=" * 60)
-    
-    try:
-        async with MCPClient(server_url=MCP_SERVER_URL) as client:
-            # Set credentials
-            await client.set_credential({
-                "user_api_key": "test",
-                "session_id": str(uuid.uuid4())
-            })
-            
-            # Write a test file
-            write_result = await client.call_tool("Write", {
-                "file_path": "/tmp/mcp_test.txt",
-                "content": f"Test file created at {datetime.now()}"
-            })
-            print(f"✅ File write result: {write_result}")
-            
-            # Read the file back
-            read_result = await client.call_tool("Read", {
-                "file_path": "/tmp/mcp_test.txt"
-            })
-            print(f"✅ File read result: {read_result}")
-            
-            return read_result
-    except Exception as e:
-        print(f"❌ File tool error: {e}")
-        return None
-
-
-# ============================================================================
-# Main Test Runner
-# ============================================================================
 
 async def main():
-    """Main test runner."""
-    
-    print("\n" + "=" * 70)
-    print("🚀 MCP Tool Server Live Agent Integration Test")
+    """Main example: create sandbox, write code, run it."""
     print("=" * 70)
-    print(f"   Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-    print(f"   MCP Server: {MCP_SERVER_URL}")
-    print(f"   LLM Provider: {LLM_PROVIDER}")
+    print("🤖 Sandbox Agent Example")
+    print(f"   {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print("=" * 70)
     
-    # Step 1: Test MCP server connection
-    if not await test_mcp_server_connection():
-        print("\n❌ Cannot proceed without MCP server connection")
-        print("\nTo start the MCP server:")
-        print("  cd backend/src/tool_server")
-        print("  python -m uvicorn main:app --port 6060 --reload")
-        return
+    agent = SandboxAgent()
     
-    # Step 2: List available tools
-    tools = await list_available_mcp_tools()
+    try:
+        # Setup
+        print("\n📋 Step 1: Setting up...")
+        if not await agent.setup():
+            return False
+        
+        # Create sandbox
+        print("\n📋 Step 2: Creating sandbox...")
+        if not await agent.create_sandbox():
+            return False
+        
+        # Wait for services
+        print("\n⏳ Waiting for sandbox services...")
+        await asyncio.sleep(5)
+        
+        # Write Python file
+        print("\n📋 Step 3: Writing Python code...")
+        code = '''
+import sys
+import os
+
+print("=" * 50)
+print("Hello from Sandbox Agent!")
+print("=" * 50)
+print(f"Python version: {sys.version}")
+print(f"Working directory: {os.getcwd()}")
+print(f"User: {os.environ.get('USER', 'unknown')}")
+
+# Do some computation
+result = sum(range(1, 101))
+print(f"Sum of 1-100: {result}")
+print("SUCCESS!")
+'''
+        if await agent.write_file('/tmp/agent_demo.py', code):
+            print("   ✅ File written: /tmp/agent_demo.py")
+        else:
+            print("   ❌ Failed to write file")
+            return False
+        
+        # Read it back
+        content = await agent.read_file('/tmp/agent_demo.py')
+        print(f"   ✅ File content length: {len(content)} chars")
+        
+        # Run the code
+        print("\n📋 Step 4: Executing Python code...")
+        output = await agent.run_command('python3 /tmp/agent_demo.py')
+        print(f"\n   Output:\n{output}")
+        
+        # Run some shell commands
+        print("\n📋 Step 5: Running shell commands...")
+        
+        commands = [
+            "uname -a",
+            "python3 --version",
+            "which python3",
+        ]
+        for cmd in commands:
+            output = await agent.run_command(cmd)
+            print(f"   $ {cmd}")
+            print(f"   → {output.strip()}")
+        
+        print("\n" + "=" * 70)
+        print("✅ Example completed successfully!")
+        print("=" * 70)
+        
+        print("\n📋 Available Tools via this API:")
+        print("   • write_file / read_file - File operations")
+        print("   • run_command - Shell execution")
+        print("   • create_sandbox / cleanup - Sandbox lifecycle")
+        print("\n   For full tool list, see: docs/api-contracts/tool-server.md")
+        
+        return True
+        
+    except Exception as e:
+        print(f"\n❌ Error: {e}")
+        import traceback
+        traceback.print_exc()
+        return False
     
-    # Step 3: Test individual tools directly
-    await test_shell_tool_direct()
-    await test_file_tool_direct()
-    
-    # Step 4: Create and run LangChain agent
-    if OPENAI_API_KEY:
-        agent = await create_langchain_agent_with_mcp()
-        if agent:
-            # Run a simple test task
-            await run_agent_test(
-                agent,
-                "List the files in the current directory using bash"
-            )
-    else:
-        print("\n⚠️  Skipping agent test - no OPENAI_API_KEY set")
-    
-    print("\n" + "=" * 70)
-    print("✅ Live Integration Test Complete!")
-    print("=" * 70)
+    finally:
+        await agent.cleanup()
 
 
-if __name__ == "__main__":
-    asyncio.run(main())
+if __name__ == '__main__':
+    success = asyncio.run(main())
+    sys.exit(0 if success else 1)
