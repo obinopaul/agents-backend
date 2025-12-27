@@ -108,6 +108,7 @@ RUN --mount=type=cache,target=/root/.cache/pip \
   pip install -r /tmp/requirements_fixed.txt)
 
 # Copy obfuscated tool_server and PyArmor runtime from build stage
+# The obfuscation script outputs to /final/tool_server and /final/pyarmor_runtime_*
 COPY --from=obfuscator /obfuscate/final/tool_server /app/agents_backend/src/tool_server
 COPY --from=obfuscator /obfuscate/final/pyarmor_runtime_000000 /app/agents_backend/src/pyarmor_runtime_000000
 
@@ -120,11 +121,13 @@ COPY backend/README.md /app/agents_backend/
 RUN mkdir -p /app/agents_backend/src/agents_backend && \
   touch /app/agents_backend/src/agents_backend/__init__.py
 
-# Create symlink for backend.src.tool_server imports to work inside sandbox
+# Create backend.src.tool_server structure for imports to work inside sandbox
 # This allows code using 'from backend.src.tool_server...' to resolve correctly
 # when PYTHONPATH is /app/agents_backend/src
+# NOTE: We use cp -r instead of symlink because importlib.resources.read_text()
+# doesn't follow symlinks when loading resource files like .js
 RUN mkdir -p /app/agents_backend/src/backend/src && \
-  ln -s /app/agents_backend/src/tool_server /app/agents_backend/src/backend/src/tool_server && \
+  cp -r /app/agents_backend/src/tool_server /app/agents_backend/src/backend/src/tool_server && \
   touch /app/agents_backend/src/backend/__init__.py && \
   touch /app/agents_backend/src/backend/src/__init__.py
 

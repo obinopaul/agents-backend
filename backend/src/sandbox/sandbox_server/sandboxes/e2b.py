@@ -103,6 +103,19 @@ class E2BSandbox(BaseSandbox):
         await instance._set_timeout(
             config.timeout_seconds, config.pause_before_timeout_seconds
         )
+        
+        # Start services (MCP server, code-server, etc.)
+        # E2B doesn't run Dockerfile CMD/ENTRYPOINT automatically
+        try:
+            logger.info(f"Starting services in sandbox {sandbox_id}")
+            await sandbox.commands.run(
+                "bash /app/start-services.sh &",
+                timeout=30,
+            )
+        except Exception as e:
+            # Log but don't fail - services may still be starting in background
+            logger.warning(f"Service startup command returned: {e}")
+        
         return instance
 
     @classmethod

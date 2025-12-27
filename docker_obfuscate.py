@@ -5,169 +5,140 @@ Tool Server Obfuscation Script for E2B Sandbox
 This script uses PyArmor to obfuscate the tool_server source code
 before packaging it into the E2B sandbox template.
 
-Purpose:
-- Protect proprietary tool_server implementation
-- Prevent reverse engineering of the agent tools
-- Secure the code deployed to sandbox environments
+Based on the ii-tool obfuscation pattern that correctly handles
+non-Python files like .js resources.
 """
-
 import os
 import shutil
 import subprocess
 import sys
 from pathlib import Path
 
-# Configuration
-SOURCE_DIR = Path("/obfuscate/tool_server")
-OUTPUT_DIR = Path("/obfuscate/final/tool_server")
-RUNTIME_DIR = Path("/obfuscate/final/pyarmor_runtime_000000")
 
-# Directories/files to exclude from obfuscation (leave as plain Python)
-EXCLUDE_PATTERNS = [
-    "__pycache__",
-    "*.pyc",
-    "*.pyo",
-    ".git",
-    ".venv",
-    "venv",
-    "*.egg-info",
-    ".env*",
-]
+def obfuscate_tool_server():
+    src_dir = Path("/obfuscate/tool_server")
+    output_dir = Path("/obfuscate/output")
+    final_dir = Path("/obfuscate/final")
 
+    # Identify large Python files and non-Python files
+    MAX_FILE_SIZE = 32768
+    large_files = []
+    non_python_files = []
 
-def clean_output():
-    """Clean output directories."""
-    if OUTPUT_DIR.exists():
-        shutil.rmtree(OUTPUT_DIR)
-    if RUNTIME_DIR.exists():
-        shutil.rmtree(RUNTIME_DIR)
-    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+    for item in src_dir.rglob("*"):
+        if item.is_file():
+            relative_path = item.relative_to(src_dir)
+            # Skip __pycache__ and venv
+            if "__pycache__" in str(relative_path) or ".venv" in str(relative_path):
+                continue
+            if item.suffix == ".py":
+                if item.stat().st_size > MAX_FILE_SIZE:
+                    large_files.append(item)
+                    print(f"Large Python file will be copied as-is: {relative_path}")
+            else:
+                non_python_files.append(item)
+                print(f"Non-Python file will be preserved: {relative_path}")
 
+    # Remove large files and non-Python files temporarily
+    temp_storage = Path("/obfuscate/temp_storage")
+    temp_storage.mkdir(exist_ok=True)
 
-def copy_non_python_files():
-    """Copy non-Python files directly (configs, etc.)."""
-    for root, dirs, files in os.walk(SOURCE_DIR):
-        # Skip excluded directories
-        dirs[:] = [d for d in dirs if d not in ["__pycache__", ".venv", "venv", ".git"]]
-        
-        for file in files:
-            if not file.endswith(".py"):
-                src_path = Path(root) / file
-                rel_path = src_path.relative_to(SOURCE_DIR)
-                dst_path = OUTPUT_DIR / rel_path
-                dst_path.parent.mkdir(parents=True, exist_ok=True)
-                shutil.copy2(src_path, dst_path)
-                print(f"Copied: {rel_path}")
+    for large_file in large_files:
+        relative_path = large_file.relative_to(src_dir)
+        dest = temp_storage / "large" / relative_path
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        shutil.move(str(large_file), str(dest))
 
+    for non_py_file in non_python_files:
+        relative_path = non_py_file.relative_to(src_dir)
+        dest = temp_storage / "non_python" / relative_path
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        shutil.move(str(non_py_file), str(dest))
 
-def obfuscate_python():
-    """Obfuscate Python files using PyArmor."""
+    # Obfuscate the rest
+    cmd = [
+        "pyarmor", "gen",
+        "--recursive",
+        "--platform", "linux.x86_64",
+        "--output", str(output_dir),
+        str(src_dir)
+    ]
+
     try:
-        # Create list of Python files
-        python_files = list(SOURCE_DIR.rglob("*.py"))
-        python_files = [
-            f for f in python_files 
-            if "__pycache__" not in str(f) 
-            and ".venv" not in str(f)
-            and "venv" not in str(f)
-        ]
-        
-        if not python_files:
-            print("No Python files found to obfuscate")
-            return False
-        
-        print(f"Found {len(python_files)} Python files to obfuscate")
-        
-        # Run PyArmor obfuscation
-        cmd = [
-            "pyarmor", "gen",
-            "--output", str(OUTPUT_DIR),
-            "--recursive",
-            "--platform", "linux.x86_64",
-            str(SOURCE_DIR)
-        ]
-        
         print(f"Running: {' '.join(cmd)}")
-        result = subprocess.run(cmd, capture_output=True, text=True)
-        
-        if result.returncode != 0:
-            print(f"PyArmor error: {result.stderr}")
-            # Fallback: copy files without obfuscation
-            print("Falling back to plain copy...")
-            return copy_plain_python()
-        
-        print("Obfuscation completed successfully")
-        
-        # Move runtime to expected location
-        pyarmor_runtime = OUTPUT_DIR / "pyarmor_runtime_000000"
-        if pyarmor_runtime.exists():
-            shutil.move(str(pyarmor_runtime), str(RUNTIME_DIR))
-            print(f"Moved runtime to {RUNTIME_DIR}")
-        
-        return True
-        
-    except Exception as e:
-        print(f"Obfuscation error: {e}")
-        return copy_plain_python()
+        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+        print("Obfuscation successful!")
+        print(result.stdout)
+
+        # Create final structure with runtime at src level
+        final_dir.mkdir(exist_ok=True)
+
+        # Move obfuscated tool_server
+        obfuscated_tool_server = output_dir / "tool_server"
+        if obfuscated_tool_server.exists():
+            shutil.move(str(obfuscated_tool_server), str(final_dir / "tool_server"))
+            print("Moved obfuscated tool_server to final/tool_server")
+
+        # Move PyArmor runtime to src level (same level as tool_server)
+        for runtime_dir in output_dir.glob("pyarmor_runtime_*"):
+            dest_runtime = final_dir / runtime_dir.name
+            shutil.move(str(runtime_dir), str(dest_runtime))
+            print(f"Moved PyArmor runtime to final/{runtime_dir.name}")
+
+        # Restore large Python files
+        large_storage = temp_storage / "large"
+        if large_storage.exists():
+            for large_file in large_storage.rglob("*.py"):
+                relative_path = large_file.relative_to(large_storage)
+                dest = final_dir / "tool_server" / relative_path
+                dest.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(str(large_file), str(dest))
+                print(f"Restored large Python file: {relative_path}")
+
+        # Restore non-Python files (like .js, .json, fonts, etc.)
+        non_py_storage = temp_storage / "non_python"
+        if non_py_storage.exists():
+            for non_py_file in non_py_storage.rglob("*"):
+                if non_py_file.is_file():
+                    relative_path = non_py_file.relative_to(non_py_storage)
+                    dest = final_dir / "tool_server" / relative_path
+                    dest.parent.mkdir(parents=True, exist_ok=True)
+                    shutil.copy2(str(non_py_file), str(dest))
+                    print(f"Restored non-Python file: {relative_path}")
+
+        print(f"\nFinal structure in {final_dir}:")
+        for item in sorted(final_dir.iterdir()):
+            print(f"  - {item.name}/")
+            if item.name == "tool_server":
+                # Show first few items in tool_server
+                for subitem in sorted(item.iterdir())[:10]:
+                    print(f"      - {subitem.name}")
+
+    except subprocess.CalledProcessError as e:
+        print(f"Obfuscation failed: {e.stderr}")
+        # Fallback: copy files without obfuscation
+        print("\nFalling back to plain copy...")
+        copy_plain(src_dir, final_dir)
 
 
-def copy_plain_python():
-    """Fallback: Copy Python files without obfuscation."""
-    print("Copying Python files without obfuscation...")
-    
-    for root, dirs, files in os.walk(SOURCE_DIR):
-        dirs[:] = [d for d in dirs if d not in ["__pycache__", ".venv", "venv", ".git"]]
-        
-        for file in files:
-            if file.endswith(".py"):
-                src_path = Path(root) / file
-                rel_path = src_path.relative_to(SOURCE_DIR)
-                dst_path = OUTPUT_DIR / rel_path
-                dst_path.parent.mkdir(parents=True, exist_ok=True)
-                shutil.copy2(src_path, dst_path)
-                print(f"Copied (plain): {rel_path}")
+def copy_plain(src_dir: Path, final_dir: Path):
+    """Fallback: Copy all files without obfuscation."""
+    final_dir.mkdir(exist_ok=True)
+    dest = final_dir / "tool_server"
+    if dest.exists():
+        shutil.rmtree(dest)
+    shutil.copytree(
+        src_dir, 
+        dest,
+        ignore=shutil.ignore_patterns("__pycache__", "*.pyc", ".venv", "venv")
+    )
     
     # Create empty runtime directory for compatibility
-    RUNTIME_DIR.mkdir(parents=True, exist_ok=True)
-    (RUNTIME_DIR / "__init__.py").touch()
-    
-    return True
-
-
-def main():
-    """Main obfuscation workflow."""
-    print("=" * 60)
-    print("Tool Server Obfuscation Script")
-    print("=" * 60)
-    
-    if not SOURCE_DIR.exists():
-        print(f"ERROR: Source directory not found: {SOURCE_DIR}")
-        sys.exit(1)
-    
-    print(f"Source: {SOURCE_DIR}")
-    print(f"Output: {OUTPUT_DIR}")
-    
-    # Step 1: Clean output
-    print("\n[1/3] Cleaning output directories...")
-    clean_output()
-    
-    # Step 2: Copy non-Python files
-    print("\n[2/3] Copying non-Python files...")
-    copy_non_python_files()
-    
-    # Step 3: Obfuscate Python files
-    print("\n[3/3] Obfuscating Python files...")
-    success = obfuscate_python()
-    
-    if success:
-        print("\n" + "=" * 60)
-        print("✅ Obfuscation completed successfully")
-        print("=" * 60)
-    else:
-        print("\n" + "=" * 60)
-        print("⚠️ Obfuscation completed with fallback (plain copy)")
-        print("=" * 60)
+    runtime_dir = final_dir / "pyarmor_runtime_000000"
+    runtime_dir.mkdir(exist_ok=True)
+    (runtime_dir / "__init__.py").touch()
+    print("Copied all files without obfuscation (fallback)")
 
 
 if __name__ == "__main__":
-    main()
+    obfuscate_tool_server()

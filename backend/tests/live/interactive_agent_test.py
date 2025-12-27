@@ -193,11 +193,38 @@ class InteractiveAgentTester:
         """Wait for MCP server to become available with retries."""
         start = datetime.now()
         attempt = 0
+        
+        # Try to kickstart services just in case backend didn't start them
+        try:
+            # We use a separate client to run the command since self.client is for REST API
+            # But here we need to use the E2B SDK's Sandbox object if possible. 
+            # However, we only have REST API access here.
+            # So we rely on the backend to have started it.
+            # Wait! We can use E2B SDK directly here if we have the ID!
+            pass 
+        except Exception:
+            pass
+
+        print(f"   ⏳ Waiting for MCP server ({self.mcp_url})...")
         while (datetime.now() - start).seconds < max_wait_seconds:
             attempt += 1
             if await self._check_mcp_health():
                 print(f"   ✅ MCP server is ready (attempt {attempt})")
                 return True
+            
+            # If it's been 5 seconds and still not ready, try to manually start services using E2B SDK
+            # This is a fallback in case the backend server wasn't restarted
+            if attempt == 2:
+                print("   ⚠️ MCP not ready yet. Attempting manual startup via E2B SDK...")
+                try:
+                    from e2b import Sandbox
+                    # Connect to the existing sandbox
+                    sbx = await Sandbox.connect(self.sandbox_id)
+                    await sbx.commands.run("bash /app/start-services.sh &", timeout=5, background=True)
+                    print("   ✅ Manual startup command sent")
+                except Exception as e:
+                    print(f"   ⚠️ Manual startup failed (ignoring): {e}")
+
             # Show progress
             elapsed = (datetime.now() - start).seconds
             print(f"   ⏳ Waiting... ({elapsed}s / {max_wait_seconds}s)", end="\r")
