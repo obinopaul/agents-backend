@@ -1,6 +1,5 @@
 from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Literal, Optional
-from fastapi import FastAPI
 from pydantic import BaseModel
 
 

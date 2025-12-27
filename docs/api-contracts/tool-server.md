@@ -80,27 +80,69 @@ graph TB
 
 ---
 
-## Usage with LangChain
+## LangChain Integration
 
-### Quick Start
+The tool server provides a centralized registry in `backend/src/tool_server/tools/langchain_tools.py` to easily load tools for LangChain agents.
+
+### Tool Registry
+
+Import tools using category-specific functions or the master loader:
+
+```python
+from backend.src.tool_server.tools.langchain_tools import (
+    get_langchain_browser_tools,    # 15 browser tools
+    get_langchain_shell_tools,      # 6 shell tools
+    get_langchain_file_tools,       # 7+ file tools
+    get_langchain_web_tools,        # 6 web tools
+    get_langchain_media_tools,      # 2 media tools
+    get_langchain_agent_tools,      # 1 communication tool
+    get_all_langchain_tools,        # Master loader
+)
+```
+
+### Tool Categories
+
+| Category | Function | Count | Tools Included |
+|----------|----------|-------|----------------|
+| **Browser** | `get_langchain_browser_tools(browser)` | 15 | `click`, `navigate`, `enter_text`, `scroll`, `tab`, `wait`, etc. |
+| **Shell** | `get_langchain_shell_tools(sandbox)` | 6 | `run_command`, `view`, `stop`, `list`, etc. |
+| **File** | `get_langchain_file_tools(sandbox)` | 7 | `read`, `write`, `edit`, `patch`, `grep`, `ast_grep`, etc. |
+| **Web** | `get_langchain_web_tools(creds)` | 6 | `search`, `visit`, `compress`, `image_search`, `read_remote_image` |
+| **Media** | `get_langchain_media_tools(creds)` | 2 | `image_generate`, `video_generate` |
+| **Agent** | `get_langchain_agent_tools()` | 1 | `message_user` (Communicate with UI/User) |
+
+### usage Example
 
 ```python
 from langgraph.prebuilt import create_react_agent
 from backend.src.llms.llm import get_llm
+from backend.src.tool_server.tools.langchain_tools import get_all_langchain_tools
+from backend.src.tool_server.browser.browser import Browser
 
-# Get LLM from backend
-llm = get_llm()
+async def main():
+    # 1. Initialize resources
+    start = time.time()
+    browser = Browser()
+    llm = get_llm()
+    
+    # 2. Load all tools
+    tools = get_all_langchain_tools(
+        workspace_path="/workspace",
+        credential={"session_id": "sess_1", "user_api_key": "sk-..."},
+        sandbox=sandbox_instance,  # Requires active sandbox connection
+        browser=browser,
+        include_web=True,
+    )
+    
+    # 3. Create Agent
+    agent = create_react_agent(llm, tools)
+    
+    # 4. Run Task
+    result = await agent.ainvoke({
+        "messages": [{"role": "user", "content": "Search for 'LangChain' and summarize the top result."}]
+    })
 
-# Create tools (see run_langchain_agent.py for full example)
-tools = [run_shell_command, write_file, read_file, ...]
-
-# Create agent
-agent = create_react_agent(llm, tools)
-
-# Run task
-result = await agent.ainvoke({
-    "messages": [{"role": "user", "content": "Create a Python file..."}]
-})
+    print(result)
 ```
 
 ---
@@ -118,6 +160,7 @@ cd backend/tests/live
 | `test_all_tools.py` | 25 tool tests | ✅ 24/25 |
 | `run_langchain_agent.py` | LangChain agent | ✅ Working |
 | `run_mcp_agent.py` | Sandbox agent | ✅ Working |
+| `interactive_agent_test.py` | Interactive CLI Test | ✅ Implemented |
 
 ### Run Tests
 

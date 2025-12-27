@@ -104,6 +104,13 @@ class ImageSearchTool(BaseTool):
         self,
         tool_input: dict[str, Any],
     ) -> ToolResult:
+        # Check if credential is set for this tool
+        if not self.credential or not self.credential.get('user_api_key'):
+            return ToolResult(
+                llm_content="Image search requires user authentication. The sandbox credential has not been set. Please set credentials via POST /credential endpoint.",
+                is_error=True,
+            )
+        
         query = tool_input["query"]
         aspect_ratio = tool_input.get("aspect_ratio", "all")
         image_type = tool_input.get("image_type", "all")

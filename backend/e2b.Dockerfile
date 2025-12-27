@@ -120,6 +120,14 @@ COPY backend/README.md /app/agents_backend/
 RUN mkdir -p /app/agents_backend/src/agents_backend && \
   touch /app/agents_backend/src/agents_backend/__init__.py
 
+# Create symlink for backend.src.tool_server imports to work inside sandbox
+# This allows code using 'from backend.src.tool_server...' to resolve correctly
+# when PYTHONPATH is /app/agents_backend/src
+RUN mkdir -p /app/agents_backend/src/backend/src && \
+  ln -s /app/agents_backend/src/tool_server /app/agents_backend/src/backend/src/tool_server && \
+  touch /app/agents_backend/src/backend/__init__.py && \
+  touch /app/agents_backend/src/backend/src/__init__.py
+
 # Copy config files for root (build time) and pn user (runtime)
 RUN mkdir -p /root/.codex /home/pn/.codex /home/pn/.claude
 COPY backend/docker/sandbox/template.css /app/template.css

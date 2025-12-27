@@ -136,3 +136,28 @@ def get_sandbox_tools(workspace_path: str, credential: Dict):
     ]
 
     return tools
+
+
+# LangChain Integration - Factory function for LangChain-compatible tools
+def get_langchain_tools(workspace_path: str, credential: Dict):
+    """Get all sandbox tools as LangChain-compatible tools.
+    
+    This is the primary entry point for using tools with LangChain agents.
+    
+    Args:
+        workspace_path: Path to the workspace directory in the sandbox
+        credential: Credential dictionary for web/media tools
+        
+    Returns:
+        List of LangChain-compatible tools ready for agent use
+        
+    Example:
+        >>> from backend.src.tool_server.tools.manager import get_langchain_tools
+        >>> tools = get_langchain_tools("/home/user/workspace", {"TAVILY_API_KEY": "..."})
+        >>> from langgraph.prebuilt import create_react_agent
+        >>> agent = create_react_agent(llm, tools)
+    """
+    from backend.src.tool_server.tools.langchain_adapter import adapt_tools_for_langchain
+    
+    base_tools = get_sandbox_tools(workspace_path, credential)
+    return adapt_tools_for_langchain(base_tools)

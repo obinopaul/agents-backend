@@ -46,7 +46,7 @@ class SandboxConfig(BaseModel):
         # E2B settings
         # Try to find Daytona and E2B keys in settings or env
         data.setdefault("e2b_api_key", getattr(settings, "E2B_API_KEY", None) or os.getenv("E2B_API_KEY"))
-        data.setdefault("e2b_template_id", getattr(settings, "E2B_TEMPLATE_ID", "base") or os.getenv("E2B_TEMPLATE_ID", "base"))
+        data.setdefault("e2b_template_id", getattr(settings, "E2B_TEMPLATE_ID", "vg6mdf4wgu5qoijamwb5") or os.getenv("E2B_TEMPLATE_ID", "vg6mdf4wgu5qoijamwb5"))
         data.setdefault("daytona_api_key", getattr(settings, "DAYTONA_API_KEY", None) or os.getenv("DAYTONA_API_KEY"))
         data.setdefault("daytona_server_url", getattr(settings, "DAYTONA_SERVER_URL", "https://app.daytona.io/api") or os.getenv("DAYTONA_SERVER_URL", "https://app.daytona.io/api"))
         data.setdefault("daytona_target", getattr(settings, "DAYTONA_TARGET", "us") or os.getenv("DAYTONA_TARGET", "us"))

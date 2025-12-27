@@ -1,7 +1,6 @@
 import httpx
 import base64
 import json
-import magic
 from typing import Any
 from backend.src.tool_server.tools.base import BaseTool, ToolResult, ImageContent, FileURLContent
 
@@ -74,7 +73,20 @@ class ReadRemoteImageTool(BaseTool):
                 response.raise_for_status()
                 
                 image_data = response.content
-                mime_type = magic.from_buffer(image_data, mime=True)
+                
+                # Check mime type using magic (lazy import to avoid Windows hang)
+                try:
+                    import magic
+                    mime_type = magic.from_buffer(image_data, mime=True)
+                except ImportError:
+                    # Fallback if magic is not installed or fails
+                    import mimetypes
+                    # Try to guess from URL
+                    mime_type, _ = mimetypes.guess_type(url)
+                    if not mime_type:
+                        # Fallback to header content-type
+                        mime_type = content_type or "application/octet-stream"
+                
                 if mime_type not in SUPPORTED_MIME_TYPES:
                     return ToolResult(
                         llm_content=f"Error: The image format {mime_type} is not supported. Supported formats: {', '.join(SUPPORTED_MIME_TYPES)}",

@@ -91,6 +91,13 @@ class ImageGenerateTool(BaseTool):
         self,
         tool_input: dict[str, Any],
     ) -> ToolResult:
+        # Check if credential is set for this tool
+        if not self.credential or not self.credential.get('user_api_key'):
+            return ToolResult(
+                llm_content="Image generation requires user authentication. The sandbox credential has not been set. Please set credentials via POST /credential endpoint.",
+                is_error=True,
+            )
+        
         output_path = tool_input["output_path"]
         
         # Validate output path is absolute and within workspace

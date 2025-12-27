@@ -50,6 +50,13 @@ class WebSearchTool(BaseTool):
         self,
         tool_input: dict[str, Any],
     ) -> ToolResult:
+        # Check if credential is set for this tool
+        if not self.credential or not self.credential.get('user_api_key'):
+            return ToolResult(
+                llm_content="Web search requires user authentication. The sandbox credential has not been set. Please set credentials via POST /credential endpoint.",
+                is_error=True,
+            )
+        
         query = tool_input["query"]
         
         tool_server_url = get_tool_server_url()

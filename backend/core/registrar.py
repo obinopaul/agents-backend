@@ -46,6 +46,10 @@ async def register_init(app: FastAPI) -> AsyncGenerator[None, None]:
     :param app: FastAPI 应用实例
     :return:
     """
+    # Load all database models for SQLAlchemy table creation
+    from backend import load_all_models
+    load_all_models()
+    
     # 创建数据库表
     await create_tables()
 

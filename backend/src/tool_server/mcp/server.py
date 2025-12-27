@@ -3,6 +3,7 @@ import json
 import httpx
 import asyncio
 import subprocess
+import uuid
 from typing import Dict, Optional
 from mcp.types import ToolAnnotations
 from fastmcp import FastMCP
@@ -44,8 +45,45 @@ def get_codex_url():
     return _codex_url
 
 
-async def create_mcp(workspace_dir: str, custom_mcp_config: Dict = None):
+async def create_mcp(workspace_dir: str, custom_mcp_config: Dict = None, port: int = 6060):
     main_server = FastMCP()
+    
+    # Helper function to register all tools
+    async def register_all_tools(credential: Dict):
+        """Register all sandbox tools with the MCP server.
+        
+        Args:
+            credential: Dict with user_api_key and session_id
+                       (can be None/empty for non-credentialed tools)
+        """
+        from backend.src.tool_server.tools.manager import get_sandbox_tools
+        
+        tools = get_sandbox_tools(
+            workspace_path=workspace_dir,
+            credential=credential,
+        )
+        registered_count = 0
+        for tool in tools:
+            try:
+                main_server.tool(
+                    tool.execute_mcp_wrapper,
+                    name=tool.name,
+                    description=tool.description,
+                    annotations=ToolAnnotations(
+                        title=tool.display_name,
+                        readOnlyHint=tool.read_only,
+                    ),
+                )
+                # Set parameters for the tool
+                _mcp_tool = await main_server._tool_manager.get_tool(tool.name)
+                _mcp_tool.parameters = tool.input_schema
+                registered_count += 1
+                print(f"Registered tool: {tool.name}")
+            except Exception as e:
+                print(f"Warning: Failed to register tool {tool.name}: {e}")
+        
+        print(f"Total tools registered: {registered_count}/{len(tools)}")
+        return registered_count
 
     @main_server.custom_route("/health", methods=["GET"])
     async def health(request):
@@ -203,6 +241,25 @@ async def create_mcp(workspace_dir: str, custom_mcp_config: Dict = None):
         proxy = FastMCP.as_proxy(ProxyClient(custom_mcp_config))
         main_server.mount(proxy, prefix="mcp")
 
+    # AUTO-REGISTER ALL TOOLS AT STARTUP
+    # Tools are registered immediately with a default/empty credential.
+    # Shell/file/browser tools work immediately; web/media tools will
+    # fail gracefully until credential is set via POST /credential.
+    print("\n=== Auto-registering tools at startup ===")
+    default_credential = {
+        "user_api_key": None,  # Will be set by frontend via POST /credential
+        "session_id": str(uuid.uuid4()),  # Generate unique session ID
+    }
+    set_current_credential(default_credential)
+    
+    # Set tool server URL to self for internal tool calls
+    internal_tool_server_url = os.getenv("TOOL_SERVER_URL", f"http://localhost:{port}")
+    set_tool_server_url_singleton(internal_tool_server_url)
+    print(f"Tool server URL: {internal_tool_server_url}")
+    
+    await register_all_tools(default_credential)
+    print("=== Tool registration complete ===\n")
+
     return main_server
 
 
@@ -230,7 +287,7 @@ async def main():
             custom_mcp_config = json.load(f)
 
     mcp = await create_mcp(
-        workspace_dir=workspace_dir, custom_mcp_config=custom_mcp_config
+        workspace_dir=workspace_dir, custom_mcp_config=custom_mcp_config, port=args.port
     )
     await mcp.run_async(transport="http", host="0.0.0.0", port=args.port)
 

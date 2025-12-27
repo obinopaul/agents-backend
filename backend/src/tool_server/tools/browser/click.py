@@ -1,14 +1,28 @@
-import asyncio
+"""
+Browser Click Tool
 
+Provides browser click functionality for AI agents, with both
+BaseTool (for MCP) and LangChain-compatible interfaces.
+"""
+
+import asyncio
 from typing import Any, Optional
+
 from backend.src.tool_server.browser.browser import Browser
 from backend.src.tool_server.tools.base import BaseTool, ToolResult, ImageContent, TextContent
 
 
 class BrowserClickTool(BaseTool):
+    """
+    Click on an element on the current browser page.
+    
+    This tool clicks at specific coordinates (x, y) on the browser page,
+    optionally performing a double-click. Returns a screenshot after the click.
+    """
+    
     name = "browser_click"
     display_name = "Browser Click"
-    description = "Click on an element on the current browser page"
+    description = "Click on an element on the current browser page at specified coordinates"
     input_schema = {
         "type": "object",
         "properties": {
@@ -31,16 +45,19 @@ class BrowserClickTool(BaseTool):
     read_only = False
 
     def __init__(self, browser: Browser):
+        """Initialize with a Browser instance."""
         self.browser = browser
 
     async def execute(
         self,
         tool_input: dict[str, Any],
     ) -> ToolResult:
+        """Execute a click action at specified coordinates."""
         try:
             coordinate_x = tool_input.get("coordinate_x")
             coordinate_y = tool_input.get("coordinate_y")
             double_click = tool_input.get("double_click", False)
+            
             if not coordinate_x or not coordinate_y:
                 return ToolResult(
                     llm_content="Must provide both coordinate_x and coordinate_y to click on an element",
@@ -89,6 +106,7 @@ class BrowserClickTool(BaseTool):
         coordinate_y: int,
         double_click: bool = False,
     ):
+        """MCP wrapper for tool execution."""
         return await self._mcp_wrapper(
             tool_input={
                 "coordinate_x": coordinate_x,
@@ -96,3 +114,33 @@ class BrowserClickTool(BaseTool):
                 "double_click": double_click,
             }
         )
+
+
+# =============================================================================
+# LangChain Integration
+# =============================================================================
+
+def create_langchain_browser_click_tool(browser: Browser):
+    """
+    Create a LangChain-compatible Browser Click Tool.
+    
+    This factory function wraps BrowserClickTool using the standard 
+    LangChainToolAdapter for seamless integration with LangChain agents.
+    
+    Args:
+        browser: Browser instance for page interactions
+        
+    Returns:
+        A LangChain BaseTool compatible with LangGraph and ReAct agents
+        
+    Example:
+        >>> from backend.src.tool_server.tools.browser.click import create_langchain_browser_click_tool
+        >>> tool = create_langchain_browser_click_tool(browser)
+        >>> agent = create_react_agent(llm, [tool])
+    """
+    from backend.src.tool_server.tools.langchain_adapter import LangChainToolAdapter
+    return LangChainToolAdapter.from_base_tool(BrowserClickTool(browser))
+
+
+# Alias for simpler imports
+LangChainBrowserClickTool = create_langchain_browser_click_tool
