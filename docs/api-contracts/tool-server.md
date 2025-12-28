@@ -161,6 +161,7 @@ cd backend/tests/live
 | `run_langchain_agent.py` | LangChain agent | ✅ Working |
 | `run_mcp_agent.py` | Sandbox agent | ✅ Working |
 | `interactive_agent_test.py` | Interactive CLI Test | ✅ Implemented |
+| `test_custom_mcp_client.py` | Custom MCPClient with LangChain | ✅ Implemented |
 
 ### Run Tests
 

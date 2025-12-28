@@ -14,6 +14,8 @@ This directory contains detailed reference documentation for the Agents Backend 
 | [Agentic AI System](agentic-ai.md) | LangGraph architecture, RAG pipeline, LLM providers |
 | [PTC Module](ptc-module.md) | Programmatic Tool Calling with MCP integration |
 | [Sandbox Guide](sandbox-guide.md) | Dual sandbox architecture (local & cloud) |
+| [Environment Variables](environment-variables.md) | Complete `.env` configuration reference |
+| [Plugins](plugins.md) | OAuth2, Email, Config, Notice, Dict, Code Generator |
 
 ---
 
