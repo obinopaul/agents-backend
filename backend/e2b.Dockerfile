@@ -151,10 +151,24 @@ COPY backend/docker/sandbox/start-services.sh /app/start-services.sh
 COPY backend/docker/sandbox/entrypoint.sh /app/entrypoint.sh
 RUN chmod +x /app/start-services.sh /app/entrypoint.sh
 
-# Fix ownership for pn user - give pn access to everything it needs
+# Fix ownership and permissions for multi-user access
+# Architecture:
+#   - 'pn' (uid=1000): Base image user, runs MCP server and code-server
+#   - 'user' (uid=1001): E2B's default user for SDK commands (sandbox.commands.run)
+# E2B sets HOME=/home/user, so npm cache goes to /home/user/.npm (correct)
+# But 'user' needs to access /home/pn/.bun for bun commands
+# This is safe because each E2B sandbox is completely isolated per-user
 RUN chown -R pn:pn /home/pn /app /workspace && \
   chmod -R 755 /app && \
-  chmod -R 755 /home/pn/.claude
+  chmod -R 755 /home/pn/.claude && \
+  # CRITICAL: Make /home/pn accessible so 'user' can access bun
+  chmod 755 /home/pn && \
+  # Make bun accessible to all users
+  chmod -R 755 /home/pn/.bun && \
+  # Make workspace writable by all users
+  chmod 777 /workspace && \
+  # Create and configure home directory for E2B's 'user' (uid=1001)
+  mkdir -p /home/user && chown 1001:1001 /home/user && chmod 755 /home/user
 
 # Set environment for pn user
 ENV HOME=/home/pn

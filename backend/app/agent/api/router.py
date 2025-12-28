@@ -12,6 +12,7 @@ Endpoints include:
 - /generation/* - Content generation (podcast, PPT, prose, prompt enhancement)
 - /tts - Text-to-speech synthesis
 - /mcp/* - MCP server management
+- /user-settings/mcp/* - User MCP tool configurations (Codex, Claude Code)
 - /rag/* - RAG resource management
 - /config - Agent configuration
 - /credits/* - User credit balance and usage
@@ -25,6 +26,7 @@ from backend.app.agent.api.v1.config import router as config_router
 from backend.app.agent.api.v1.credits import router as credits_router
 from backend.app.agent.api.v1.generation import router as generation_router
 from backend.app.agent.api.v1.mcp import router as mcp_router
+from backend.app.agent.api.v1.mcp_settings import router as mcp_settings_router
 from backend.app.agent.api.v1.rag import router as rag_router
 from backend.app.agent.api.v1.tts import router as tts_router
 from backend.app.agent.api.v1.sandbox import router as sandbox_router
@@ -39,10 +41,12 @@ v1.include_router(config_router, prefix='/config', tags=['Agent Configuration'])
 v1.include_router(credits_router, tags=['Agent Credits'])
 v1.include_router(generation_router, prefix='/generation', tags=['Agent Generation'])
 v1.include_router(mcp_router, prefix='/mcp', tags=['Agent MCP'])
+v1.include_router(mcp_settings_router, tags=['User MCP Settings'])
 v1.include_router(rag_router, prefix='/rag', tags=['Agent RAG'])
 v1.include_router(tts_router, prefix='/tts', tags=['Agent TTS'])
 v1.include_router(sandbox_router, prefix='/sandboxes', tags=['Agent Sandbox'])
 v1.include_router(slides_router, prefix='/sandboxes', tags=['Agent Slides'])
 
 __all__ = ['v1']
+
 

@@ -17,7 +17,9 @@ shopt -s checkwinsize
 export TERM="xterm-256color"
 
 # Add bun and Python venv to PATH
-export PATH="/home/pn/.bun/bin:/app/ii_agent/.venv/bin:$PATH"
+export PATH="/home/pn/.bun/bin:/app/agents_backend/.venv/bin:$PATH"
+# Set npm cache to shared directory
+export npm_config_cache=/home/pn/.npm
 
 # make less more friendly for non-text input files, see lesspipe(1)
 [ -x /usr/bin/lesspipe ] && eval "$(SHELL=/bin/sh lesspipe)"

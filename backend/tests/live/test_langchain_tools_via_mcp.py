@@ -101,7 +101,7 @@ class LangChainToolTester:
             
             mcp_client = MultiServerMCPClient({
                 "sandbox": {
-                    "url": f"{self.mcp_url}/mcp/",
+                    "url": f"{self.mcp_url}/mcp",
                     "transport": "http"
                 },
             })

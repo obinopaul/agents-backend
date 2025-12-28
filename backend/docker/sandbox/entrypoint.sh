@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-export PATH="/home/pn/.bun/bin:/app/ii_agent/.venv/bin:$PATH"
+export PATH="/home/pn/.bun/bin:/app/agents_backend/.venv/bin:$PATH"
 
 # If running as root, use gosu to switch to pn user
 if [ "$(id -u)" = "0" ]; then

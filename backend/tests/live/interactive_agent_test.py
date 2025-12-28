@@ -29,6 +29,11 @@ import uuid
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
+# Fix Windows encoding issues with emojis
+if sys.platform == 'win32':
+    sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+    sys.stderr.reconfigure(encoding='utf-8', errors='replace')
+
 # Add project root to path
 sys.path.insert(0, os.getcwd())
 
@@ -243,7 +248,7 @@ class InteractiveAgentTester:
             # Connect to MCP server inside the sandbox
             self.mcp_client = MultiServerMCPClient({
                 "sandbox": {
-                    "url": f"{self.mcp_url}/mcp/",
+                    "url": f"{self.mcp_url}/mcp",
                     "transport": "http"
                 },
             })

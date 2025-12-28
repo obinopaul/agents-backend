@@ -11,8 +11,10 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 from backend.common.model import MappedBase
 # Import Sandbox model to register it with metadata
 from backend.src.sandbox.sandbox_server.db.model import Sandbox
-# Import Agent models (APIKey, SessionMetrics) for credit system
-from backend.app.agent.model.agent_models import APIKey, SessionMetrics
+# Import Agent models (APIKey, SessionMetrics, MCPSetting) for credit system
+from backend.app.agent.model import APIKey, SessionMetrics, MCPSetting
+# Import Admin models (User) - required for foreign key resolution
+from backend.app.admin.model import User
 from backend.core import path_conf
 from backend.database.db import SQLALCHEMY_DATABASE_URL
 

@@ -10,6 +10,8 @@ fi
 # Set up environment
 export HOME=/home/pn
 export PATH="/home/pn/.bun/bin:/app/agents_backend/.venv/bin:$PATH"
+# Set npm cache to a directory that's writable by all users
+export npm_config_cache=/home/pn/.npm
 
 # Production configuration
 MCP_SERVER_PORT=${MCP_SERVER_PORT:-6060}
@@ -20,6 +22,15 @@ RETRY_DELAY=2
 # Create workspace directory if it doesn't exist
 mkdir -p /workspace
 cd /workspace
+
+# Runtime permission fix for multi-user access
+# E2B runs SDK commands as 'user' (uid=1001), but services run as 'pn' (uid=1000)
+# E2B sets HOME=/home/user, so npm cache uses /home/user/.npm (correct)
+# But 'user' needs to access /home/pn/.bun for bun commands
+chmod 777 /workspace 2>/dev/null || true
+chmod 755 /home/pn 2>/dev/null || true
+chmod -R 755 /home/pn/.bun 2>/dev/null || true
+mkdir -p /home/user 2>/dev/null && chmod 755 /home/user 2>/dev/null || true
 
 # Function to check if a service is running
 check_service() {
