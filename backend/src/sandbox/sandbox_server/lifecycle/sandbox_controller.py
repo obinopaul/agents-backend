@@ -77,7 +77,7 @@ class SandboxController:
         
         # Build metadata dict, filtering out None values (E2B API rejects null values)
         metadata = {
-            "ii_sandbox_id": sandbox_id,
+            "sandbox_id": sandbox_id,
             "user_id": user_id,
         }
         if sandbox_template_id:

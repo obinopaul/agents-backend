@@ -50,7 +50,7 @@ fi
 
 # Start the server using uvicorn
 echo "Starting server..."
-exec uvicorn ii_sandbox_server.main:app \
+exec uvicorn backend.src.sandbox.sandbox_server.main:app \
   --host "$SERVER_HOST" \
   --port "$SERVER_PORT" \
   --reload \

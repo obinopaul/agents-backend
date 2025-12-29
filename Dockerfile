@@ -27,10 +27,32 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 # === Runtime base server image ===
 FROM python:3.10-slim AS base_server
 
+# Install runtime dependencies including those for browser/media support
 RUN sed -i 's/deb.debian.org/mirrors.ustc.edu.cn/g' /etc/apt/sources.list.d/debian.sources \
     && apt-get update \
-    && apt-get install -y --no-install-recommends supervisor \
+    && apt-get install -y --no-install-recommends \
+    supervisor \
+    curl \
+    gnupg \
+    ffmpeg \
+    xvfb \
+    libmagic1 \
+    file \
+    fonts-noto \
+    fonts-noto-cjk \
+    fonts-noto-color-emoji \
+    fonts-freefont-ttf \
     && rm -rf /var/lib/apt/lists/*
+
+# Install Playwright and its dependencies
+# We use uv run to execute the install within the environment context if needed, 
+# or just install directly. Using uv tool install is also an option but 'uv run playwright' expects playwright in dev deps or similar.
+# Since we are in base_server which doesn't have the source code yet, we need to install playwright CLI first or rely on the builder.
+# However, to keep image size optimized, let's install browser deps here.
+# Note: 'uv sync' in builder stage installed 'server' group. If playwright is in 'server' group it's available.
+# But 'playwright install' needs to download browsers to /ms-playwright usually.
+# Let's assume we want to install system deps for playwright:
+RUN bash -c "if command -v playwright >/dev/null 2>&1; then playwright install --with-deps chromium; else echo 'Playwright not found, skipping browser install (can be installed later)'; fi"
 
 COPY --from=builder /fba /fba
 

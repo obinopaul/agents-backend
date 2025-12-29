@@ -13,7 +13,7 @@ class SandboxServerConfig(BaseModel):
     host: str = Field(default="0.0.0.0", description="Server host")
     port: int = Field(default=8100, description="Server port")
     database_url: str = Field(
-        default="postgresql://postgres:postgres@localhost:5432/ii_sandbox",
+        default="postgresql://postgres:postgres@localhost:5432/fba",
         description="Database URL"
     )
 

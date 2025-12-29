@@ -66,7 +66,23 @@ cp backend/.env.example backend/.env
 
 # 3️⃣ Start everything with one command
 docker-compose up -d --build
+
+# 4️⃣ Verify the database is created (runs Alembic migrations)
+docker-compose exec fba_server bash -c "cd /fba/backend && alembic upgrade head"
+
+# 5️⃣ Test the setup (optional but recommended)
+python backend/tests/live/interactive_agent_test.py
 ```
+
+> **Note:** The `fba` PostgreSQL database is automatically created by Docker. All tables (users, agents, sandboxes, etc.) are created on first startup via SQLAlchemy.
+
+| Service | URL |
+|---------|-----|
+| Backend API | http://localhost:8001 |
+| Swagger UI | http://localhost:8001/docs |
+| Celery Flower | http://localhost:8555 |
+
+---
 
 ### Option 2: Local Development
 
@@ -77,8 +93,14 @@ pip install -r requirements.txt
 # 2️⃣ Start PostgreSQL & Redis
 docker-compose up -d fba_postgres fba_redis
 
+# 3️⃣ Run database migrations
 cd backend && alembic upgrade head
+
+# 4️⃣ Start the server
 python -m uvicorn backend.main:app --reload --host 0.0.0.0 --port 8000
+
+# 5️⃣ Test the setup (in a new terminal)
+python backend/tests/live/interactive_agent_test.py
 ```
 
 ---
@@ -119,6 +141,24 @@ fba run --host 0.0.0.0 --port 8000
 📖 **Full API Reference:** See [`docs/guides/fastapi-backend.md`](docs/guides/fastapi-backend.md) for detailed endpoint documentation.
 
 ---
+
+### 📚 Documentation Reference
+
+| Guide | Description |
+|-------|-------------|
+| [`docs/guides/admin-api.md`](docs/guides/admin-api.md) | Admin API endpoints and middleware |
+| [`docs/guides/api-endpoints.md`](docs/guides/api-endpoints.md) | API endpoints and middleware |
+| [`docs/guides/cli-reference.md`](docs/guides/cli-reference.md) | CLI commands and options |
+| [`docs/guides/fastapi-backend.md`](docs/guides/fastapi-backend.md) | FastAPI endpoints & middleware |
+| [`docs/guides/agentic-ai.md`](docs/guides/agentic-ai.md) | LangGraph agent architecture |
+| [`docs/guides/sandbox-guide.md`](docs/guides/sandbox-guide.md) | Sandbox execution environments |
+| [`docs/api-contracts/sandbox-server.md`](docs/api-contracts/sandbox-server.md) | Sandbox execution API Guide |
+| [`docs/guides/environment-variables.md`](docs/guides/environment-variables.md) | All environment variables |
+| [`docs/guides/plugins.md`](docs/guides/plugins.md) | Plugin system (OAuth2, Email, etc.) |
+| [`docs/guides/ptc-module.md`](docs/guides/ptc-module.md) | Programmatic Tool Calling |
+| [`docs/api-contracts/database.md`](docs/api-contracts/database.md) | Database schema & tables |
+| [`docs/api-contracts/tool-server.md`](docs/api-contracts/tool-server.md) | Tool Server API |
+| [`docs/api-contracts/e2b-sandbox.md`](docs/api-contracts/e2b-sandbox.md) | E2B Sandbox API |
 
 ## 🎬 Demo
 
