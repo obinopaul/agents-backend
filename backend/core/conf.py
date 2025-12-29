@@ -214,7 +214,7 @@ class Settings(BaseSettings):
     PLUGIN_REDIS_PREFIX: str = 'agents_backend:plugin'
 
     # I18n 配置
-    I18N_DEFAULT_LANGUAGE: str = 'zh-CN'
+    I18N_DEFAULT_LANGUAGE: str = 'en-US'   # zh-CN
 
     ##################################################
     # [ App ] task
