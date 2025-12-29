@@ -68,13 +68,13 @@ cp backend/.env.example backend/.env
 docker-compose up -d --build
 
 # 4️⃣ Verify the database is created (runs Alembic migrations)
-docker-compose exec fba_server bash -c "cd /fba/backend && alembic upgrade head"
+docker-compose exec agents_backend_server bash -c "cd /agents_backend/backend && alembic upgrade head"
 
 # 5️⃣ Test the setup (optional but recommended)
 python backend/tests/live/interactive_agent_test.py
 ```
 
-> **Note:** The `fba` PostgreSQL database is automatically created by Docker. All tables (users, agents, sandboxes, etc.) are created on first startup via SQLAlchemy.
+> **Note:** The `agents_backend` PostgreSQL database is automatically created by Docker. All tables (users, agents, sandboxes, etc.) are created on first startup via SQLAlchemy.
 
 | Service | URL |
 |---------|-----|
@@ -91,7 +91,7 @@ python backend/tests/live/interactive_agent_test.py
 pip install -r requirements.txt
 
 # 2️⃣ Start PostgreSQL & Redis
-docker-compose up -d fba_postgres fba_redis
+docker-compose up -d agents_backend_postgres agents_backend_redis
 
 # 3️⃣ Run database migrations
 cd backend && alembic upgrade head
@@ -105,17 +105,17 @@ python backend/tests/live/interactive_agent_test.py
 
 ---
 
-### Option 3: FBA CLI (Prototyping & Testing)
+### Option 3: Agents Backend CLI (Prototyping & Testing)
 
-Test all backend functionalities **without starting the server** using the FBA CLI.
+Test all backend functionalities **without starting the server** using the Agents Backend (`agents-backend`) CLI.
 
 ```bash
 # Install & view commands
 pip install -r requirements.txt
-fba --help
+agents-backend --help
 
 # Quick test: Run the Deep Research Agent interactively
-fba agent
+agents-backend agent
 ```
 
 This launches an interactive session where you select a language, ask a question, and watch the agent research and generate a report.
@@ -129,7 +129,7 @@ This launches an interactive session where you select a language, ask a question
 Start the full FastAPI server for production deployment:
 
 ```bash
-fba run --host 0.0.0.0 --port 8000
+agents-backend run --host 0.0.0.0 --port 8000
 ```
 
 | Service | URL |

@@ -121,8 +121,36 @@ def register_app() -> FastAPI:
     register_router(app)
     register_page(app)
     register_exception(app)
+    register_health_endpoint(app)
 
     return app
+
+
+def register_health_endpoint(app: FastAPI) -> None:
+    """
+    Register health check endpoint for monitoring and load balancers.
+    
+    :param app: FastAPI application instance
+    :return:
+    """
+    from datetime import datetime, timezone
+    
+    @app.get("/health", tags=["Health"])
+    async def health_check():
+        """
+        Health check endpoint.
+        
+        Returns basic health status of the API including:
+        - Status: 'healthy' if the API is operational
+        - Timestamp: Current UTC time
+        - Version: API version
+        """
+        return {
+            "status": "healthy",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "version": __version__,
+            "service": "agents-backend"
+        }
 
 
 def register_logger() -> None:

@@ -66,7 +66,7 @@ async def init() -> None:
     else:
         panel_content.append('无', style='dim')
 
-    console.print(Panel(panel_content, title=f'fba v{__version__} 初始化', border_style='cyan', padding=(1, 2)))
+    console.print(Panel(panel_content, title=f'agents-backend v{__version__} 初始化', border_style='cyan', padding=(1, 2)))
     ok = Prompt.ask(
         '即将[red]重建数据库表[/red]并[red]执行所有 SQL 脚本[/red]，确认继续吗？', choices=['y', 'n'], default='n'
     )
@@ -89,7 +89,7 @@ async def init() -> None:
                 console.print(f'正在执行：{sql_script}', style='white')
                 await execute_sql_scripts(sql_script, is_init=True)
             console.print('初始化成功', style='green')
-            console.print('\n快试试 [bold cyan]fba run[/bold cyan] 启动服务吧~')
+            console.print('\n快试试 [bold cyan]agents-backend run[/bold cyan] 启动服务吧~')
         except Exception as e:
             raise cappa.Exit(f'初始化失败：{e}', code=1)
     else:
@@ -128,7 +128,7 @@ def run(host: str, port: int, reload: bool, workers: int) -> None:  # noqa: FBT0
     panel_content.append('\n🌐 架构官方文档: ', style='bold magenta')
     panel_content.append('https://fastapi-practices.github.io/fastapi_best_architecture_docs/')
 
-    console.print(Panel(panel_content, title=f'fba v{__version__}', border_style='purple', padding=(1, 2)))
+    console.print(Panel(panel_content, title=f'agents-backend v{__version__}', border_style='purple', padding=(1, 2)))
     granian.Granian(
         target='backend.main:app',
         interface='asgi',
@@ -252,7 +252,7 @@ async def import_table(
         async with async_db_session.begin() as db:
             await gen_service.import_business_and_model(db=db, obj=obj)
         console.log('代码生成业务和模型列导入成功', style='bold green')
-        console.log('\n快试试 [bold cyan]fba codegen[/bold cyan] 生成代码吧~')
+        console.log('\n快试试 [bold cyan]agents-backend codegen[/bold cyan] 生成代码吧~')
     except Exception as e:
         raise cappa.Exit(e.msg if isinstance(e, BaseExceptionError) else str(e), code=1)
 
@@ -296,7 +296,7 @@ async def generate() -> None:
     console.print(Text('\n详情请查看：'), Text(str(gen_path), style='bold magenta'))
 
 
-@cappa.command(help='初始化 fba 项目', default_long=True)
+@cappa.command(help='初始化 agents-backend 项目', default_long=True)
 @dataclass
 class Init:
     async def __call__(self) -> None:
@@ -431,7 +431,7 @@ class Import:
         await import_table(self.app, self.table_schema, self.table_name)
 
 
-@cappa.command(name='codegen', help='代码生成（体验完整功能，请自行部署 fba vben 前端工程）', default_long=True)
+@cappa.command(name='codegen', help='代码生成（体验完整功能，请自行部署 agents-backend vben 前端工程）', default_long=True)
 @dataclass
 class CodeGenerator:
     subcmd: cappa.Subcommands[Import | None] = None
@@ -494,7 +494,7 @@ class Agent:
         )
 
 
-@cappa.command(help='一个高效的 fba 命令行界面', default_long=True)
+@cappa.command(help='一个高效的 agents-backend 命令行界面', default_long=True)
 @dataclass
 class FbaCli:
     sql: Annotated[

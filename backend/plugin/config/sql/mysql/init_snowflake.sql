@@ -3,7 +3,7 @@ values
 (2069061886627938304, '状态', 'EMAIL', 'EMAIL_STATUS', '1', false, null, now(), null),
 (2069061886627938305, '服务器地址', 'EMAIL', 'EMAIL_HOST', 'smtp.qq.com', false, null, now(), null),
 (2069061886627938306, '服务器端口', 'EMAIL', 'EMAIL_PORT', '465', false, null, now(), null),
-(2069061886627938307, '邮箱账号', 'EMAIL', 'EMAIL_USERNAME', 'fba@qq.com', false, null, now(), null),
+(2069061886627938307, '邮箱账号', 'EMAIL', 'EMAIL_USERNAME', 'admin@example.com', false, null, now(), null),
 (2069061886627938308, '邮箱密码', 'EMAIL', 'EMAIL_PASSWORD', '', false, null, now(), null),
 (2069061886627938309, 'SSL 加密', 'EMAIL', 'EMAIL_SSL', 'true', false, null, now(), null),
 (2069061886627938310, '状态', 'USER_SECURITY', 'USER_SECURITY_CONFIG_STATUS', '1', false, null, now(), null),

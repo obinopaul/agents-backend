@@ -1,0 +1,578 @@
+#1 [internal] load local bake definitions
+#1 reading from stdin 692B done
+#1 DONE 0.0s
+
+#2 [internal] load build definition from Dockerfile
+#2 transferring dockerfile: 3.58kB 0.0s done
+#2 DONE 0.0s
+
+#3 [internal] load metadata for ghcr.io/astral-sh/uv:python3.10-bookworm-slim
+#3 ...
+
+#4 [internal] load metadata for docker.io/library/python:3.10-slim
+#4 DONE 0.7s
+
+#3 [internal] load metadata for ghcr.io/astral-sh/uv:python3.10-bookworm-slim
+#3 DONE 1.0s
+
+#5 [internal] load .dockerignore
+#5 transferring context: 125B done
+#5 DONE 0.0s
+
+#6 [base_server 1/7] FROM docker.io/library/python:3.10-slim@sha256:fb1feae978f1729094eb0405e5f9564e55b2b3b24db3261d30ba4f22c5001a8a
+#6 resolve docker.io/library/python:3.10-slim@sha256:fb1feae978f1729094eb0405e5f9564e55b2b3b24db3261d30ba4f22c5001a8a 0.0s done
+#6 DONE 0.0s
+
+#7 [builder 1/6] FROM ghcr.io/astral-sh/uv:python3.10-bookworm-slim@sha256:d46b3cdb0bec865ca435b233c9b5d7d04c095ab8adf58b043828d92fc6bffd39
+#7 resolve ghcr.io/astral-sh/uv:python3.10-bookworm-slim@sha256:d46b3cdb0bec865ca435b233c9b5d7d04c095ab8adf58b043828d92fc6bffd39 0.0s done
+#7 DONE 0.0s
+
+#8 [internal] load build context
+#8 transferring context: 503.71kB 0.5s done
+#8 DONE 0.5s
+
+#9 [builder 2/6] RUN sed -i 's/deb.debian.org/mirrors.ustc.edu.cn/g' /etc/apt/sources.list.d/debian.sources     && apt-get update     && apt-get install -y --no-install-recommends gcc python3-dev     && rm -rf /var/lib/apt/lists/*
+#9 CACHED
+
+#10 [builder 3/6] COPY . /fba
+#10 DONE 1.8s
+
+#11 [builder 4/6] WORKDIR /fba
+#11 DONE 0.1s
+
+#12 [builder 5/6] RUN --mount=type=cache,target=/root/.cache/uv     uv sync --frozen --no-default-groups --group server
+#12 0.710    Building agents-backend @ file:///fba
+#12 2.397 Downloading asyncpg (2.7MiB)
+#12 2.506 Downloading cryptography (4.3MiB)
+#12 2.507 Downloading fast-captcha (1.2MiB)
+#12 2.510 Downloading granian (3.2MiB)
+#12 2.514 Downloading sqlalchemy (3.1MiB)
+#12 2.523 Downloading asyncmy (4.9MiB)
+#12 2.527 Downloading dulwich (1.3MiB)
+#12 2.527 Downloading gevent (2.1MiB)
+#12 2.789 Downloading pillow (6.7MiB)
+#12 2.994 Downloading psycopg-binary (4.2MiB)
+#12 3.047 Downloading pydantic-core (2.0MiB)
+#12 3.328 Downloading pygments (1.2MiB)
+#12 3.715 Downloading uvloop (3.5MiB)
+#12 5.712  Downloaded fast-captcha
+#12 5.895  Downloaded dulwich
+#12 6.004  Downloaded pygments
+#12 6.027       Built agents-backend @ file:///fba
+#12 6.722  Downloaded pydantic-core
+#12 6.758  Downloaded gevent
+#12 6.946  Downloaded asyncpg
+#12 7.545  Downloaded sqlalchemy
+#12 7.740  Downloaded granian
+#12 7.957  Downloaded asyncmy
+#12 8.118  Downloaded cryptography
+#12 8.168  Downloaded psycopg-binary
+#12 8.264  Downloaded uvloop
+#12 8.498  Downloaded pillow
+#12 8.499 Prepared 118 packages in 7.81s
+#12 8.755 Installed 118 packages in 255ms
+#12 10.78 Bytecode compiled 4401 files in 2.02s
+#12 10.78  + agents-backend==1.11.2 (from file:///fba)
+#12 10.78  + aio-pika==9.5.8
+#12 10.78  + aiormq==6.9.2
+#12 10.78  + alembic==1.17.2
+#12 10.78  + amqp==5.3.1
+#12 10.78  + annotated-doc==0.0.4
+#12 10.78  + annotated-types==0.7.0
+#12 10.78  + anyio==4.12.0
+#12 10.78  + asgiref==3.11.0
+#12 10.78  + async-timeout==5.0.1
+#12 10.78  + asyncmy==0.2.10
+#12 10.78  + asyncpg==0.31.0
+#12 10.78  + bcrypt==5.0.0
+#12 10.78  + bidict==0.23.1
+#12 10.78  + billiard==4.2.4
+#12 10.78  + cappa==0.30.4
+#12 10.78  + celery==5.6.0
+#12 10.78  + celery-aio-pool==0.1.0rc8
+#12 10.78  + certifi==2025.11.12
+#12 10.78  + cffi==2.0.0
+#12 10.78  + click==8.3.1
+#12 10.78  + click-didyoumean==0.3.1
+#12 10.78  + click-plugins==1.1.1.2
+#12 10.78  + click-repl==0.3.0
+#12 10.78  + cryptography==46.0.3
+#12 10.78  + dnspython==2.8.0
+#12 10.78  + dulwich==0.24.10
+#12 10.78  + ecdsa==0.19.1
+#12 10.78  + email-validator==2.3.0
+#12 10.78  + exceptiongroup==1.3.1
+#12 10.78  + fast-captcha==0.3.2
+#12 10.78  + fastapi==0.123.5
+#12 10.78  + fastapi-cli==0.0.16
+#12 10.78  + fastapi-limiter==0.1.6
+#12 10.78  + fastapi-pagination==0.15.0
+#12 10.78  + flower==2.0.1
+#12 10.78  + gevent==25.9.1
+#12 10.78  + granian==2.6.0
+#12 10.78  + greenlet==3.2.4
+#12 10.78  + h11==0.16.0
+#12 10.78  + hiredis==3.3.0
+#12 10.78  + httpcore==1.0.9
+#12 10.78  + httptools==0.7.1
+#12 10.78  + httpx==0.28.1
+#12 10.78  + humanize==4.14.0
+#12 10.78  + idna==3.11
+#12 10.78  + ip2loc==1.0.0
+#12 10.78  + itsdangerous==2.2.0
+#12 10.78  + jinja2==3.1.6
+#12 10.78  + kombu==5.6.1
+#12 10.78  + loguru==0.7.3
+#12 10.78  + mako==1.3.10
+#12 10.78  + markdown-it-py==4.0.0
+#12 10.78  + markupsafe==3.0.3
+#12 10.78  + mdurl==0.1.2
+#12 10.78  + msgspec==0.20.0
+#12 10.78  + multidict==6.7.0
+#12 10.78  + packaging==25.0
+#12 10.78  + pamqp==3.3.0
+#12 10.78  + pillow==12.0.0
+#12 10.78  + prometheus-client==0.23.1
+#12 10.78  + prompt-toolkit==3.0.52
+#12 10.78  + propcache==0.4.1
+#12 10.78  + psutil==7.1.3
+#12 10.78  + psycopg==3.2.10
+#12 10.78  + psycopg-binary==3.2.10
+#12 10.78  + pwdlib==0.3.0
+#12 10.78  + pyasn1==0.6.1
+#12 10.78  + pycparser==2.23
+#12 10.78  + pydantic==2.12.5
+#12 10.78  + pydantic-core==2.41.5
+#12 10.78  + pydantic-settings==2.12.0
+#12 10.78  + pygments==2.19.2
+#12 10.78  + pymysql==1.1.2
+#12 10.78  + python-dateutil==2.9.0.post0
+#12 10.78  + python-dotenv==1.2.1
+#12 10.78  + python-engineio==4.12.3
+#12 10.78  + python-jose==3.5.0
+#12 10.78  + python-multipart==0.0.20
+#12 10.78  + python-socketio==5.15.0
+#12 10.78  + pytz==2025.2
+#12 10.78  + pyyaml==6.0.3
+#12 10.78  + redis==7.1.0
+#12 10.78  + rich==14.2.0
+#12 10.78  + rich-toolkit==0.17.0
+#12 10.78  + rsa==4.9.1
+#12 10.78  + rtoml==0.13.0
+#12 10.78  + shellingham==1.5.4
+#12 10.78  + simple-websocket==1.1.0
+#12 10.78  + six==1.17.0
+#12 10.78  + sqlalchemy==2.0.44
+#12 10.78  + sqlalchemy-crud-plus==1.13.1
+#12 10.78  + sqlparse==0.5.4
+#12 10.78  + starlette==0.50.0
+#12 10.78  + starlette-context==0.4.0
+#12 10.78  + tomli==2.3.0
+#12 10.78  + tornado==6.5.2
+#12 10.78  + type-lens==0.2.6
+#12 10.78  + typer==0.20.0
+#12 10.78  + typing-extensions==4.15.0
+#12 10.78  + typing-inspection==0.4.2
+#12 10.78  + tzdata==2025.2
+#12 10.78  + tzlocal==5.3.1
+#12 10.78  + ua-parser==1.0.1
+#12 10.78  + ua-parser-builtins==0.18.0.post1
+#12 10.78  + urllib3==2.5.0
+#12 10.78  + user-agents==2.2.0
+#12 10.78  + uvicorn==0.38.0
+#12 10.78  + uvloop==0.22.1
+#12 10.79  + vine==5.1.0
+#12 10.79  + wait-for-it==2.3.0
+#12 10.79  + watchfiles==1.1.1
+#12 10.79  + wcwidth==0.2.14
+#12 10.79  + websockets==15.0.1
+#12 10.79  + wsproto==1.3.2
+#12 10.79  + yarl==1.22.0
+#12 10.79  + zope-event==6.1
+#12 10.79  + zope-interface==8.1.1
+#12 DONE 11.9s
+
+#13 [builder 6/6] RUN --mount=type=cache,target=/root/.cache/pip     pip install --no-cache-dir -r /fba/requirements.txt
+#13 1.341 Ignoring colorama: markers 'sys_platform == "win32"' don't match your environment
+#13 1.343 Ignoring win32-setctime: markers 'sys_platform == "win32"' don't match your environment
+#13 1.347 Requirement already satisfied: alembic==1.17.2 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 4)) (1.17.2)
+#13 1.350 Requirement already satisfied: amqp==5.3.1 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 6)) (5.3.1)
+#13 1.353 Requirement already satisfied: annotated-doc==0.0.4 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 8)) (0.0.4)
+#13 1.355 Requirement already satisfied: annotated-types==0.7.0 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 10)) (0.7.0)
+#13 1.356 Requirement already satisfied: anyio==4.12.0 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 12)) (4.12.0)
+#13 1.357 Requirement already satisfied: asgiref==3.11.0 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 17)) (3.11.0)
+#13 1.358 Requirement already satisfied: async-timeout==5.0.1 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 19)) (5.0.1)
+#13 1.359 Requirement already satisfied: asyncmy==0.2.10 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 23)) (0.2.10)
+#13 1.360 Requirement already satisfied: asyncpg==0.31.0 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 25)) (0.31.0)
+#13 1.362 Requirement already satisfied: bcrypt==5.0.0 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 27)) (5.0.0)
+#13 1.363 Requirement already satisfied: bidict==0.23.1 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 29)) (0.23.1)
+#13 1.364 Requirement already satisfied: billiard==4.2.4 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 31)) (4.2.4)
+#13 1.365 Requirement already satisfied: cappa==0.30.4 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 33)) (0.30.4)
+#13 1.367 Requirement already satisfied: celery==5.6.0 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 35)) (5.6.0)
+#13 1.370 Requirement already satisfied: celery-aio-pool==0.1.0rc8 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 40)) (0.1.0rc8)
+#13 1.372 Requirement already satisfied: certifi==2025.11.12 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 42)) (2025.11.12)
+#13 1.373 Requirement already satisfied: cffi==2.0.0 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 46)) (2.0.0)
+#13 1.375 Requirement already satisfied: click==8.3.1 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 50)) (8.3.1)
+#13 1.376 Requirement already satisfied: click-didyoumean==0.3.1 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 60)) (0.3.1)
+#13 1.377 Requirement already satisfied: click-plugins==1.1.1.2 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 62)) (1.1.1.2)
+#13 1.379 Requirement already satisfied: click-repl==0.3.0 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 64)) (0.3.0)
+#13 1.380 Requirement already satisfied: cryptography==46.0.3 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 72)) (46.0.3)
+#13 1.380 Requirement already satisfied: dnspython==2.8.0 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 74)) (2.8.0)
+#13 1.381 Requirement already satisfied: dulwich==0.24.10 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 76)) (0.24.10)
+#13 1.382 Requirement already satisfied: ecdsa==0.19.1 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 78)) (0.19.1)
+#13 1.384 Requirement already satisfied: email-validator==2.3.0 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 80)) (2.3.0)
+#13 1.385 Requirement already satisfied: exceptiongroup==1.3.1 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 82)) (1.3.1)
+#13 1.386 Requirement already satisfied: fast-captcha==0.3.2 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 87)) (0.3.2)
+#13 1.387 Requirement already satisfied: fastapi==0.123.5 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 89)) (0.123.5)
+#13 1.389 Requirement already satisfied: fastapi-cli==0.0.16 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 94)) (0.0.16)
+#13 1.392 Requirement already satisfied: fastapi-limiter==0.1.6 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 96)) (0.1.6)
+#13 1.394 Requirement already satisfied: fastapi-pagination==0.15.0 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 98)) (0.15.0)
+#13 1.397 Requirement already satisfied: flower==2.0.1 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 100)) (2.0.1)
+#13 1.399 Requirement already satisfied: gevent==25.9.1 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 102)) (25.9.1)
+#13 1.400 Requirement already satisfied: granian==2.6.0 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 104)) (2.6.0)
+#13 1.401 Requirement already satisfied: greenlet==3.2.4 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 106)) (3.2.4)
+#13 1.402 Requirement already satisfied: h11==0.16.0 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 110)) (0.16.0)
+#13 1.404 Requirement already satisfied: hiredis==3.3.0 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 115)) (3.3.0)
+#13 1.405 Requirement already satisfied: httpcore==1.0.9 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 117)) (1.0.9)
+#13 1.406 Requirement already satisfied: httptools==0.7.1 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 119)) (0.7.1)
+#13 1.407 Requirement already satisfied: httpx==0.28.1 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 121)) (0.28.1)
+#13 1.408 Requirement already satisfied: humanize==4.14.0 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 123)) (4.14.0)
+#13 1.410 Requirement already satisfied: idna==3.11 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 125)) (3.11)
+#13 1.584 Collecting iniconfig==2.3.0
+#13 1.801   Downloading iniconfig-2.3.0-py3-none-any.whl (7.5 kB)
+#13 1.806 Requirement already satisfied: ip2loc==1.0.0 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 132)) (1.0.0)
+#13 1.807 Requirement already satisfied: itsdangerous==2.2.0 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 134)) (2.2.0)
+#13 1.809 Requirement already satisfied: jinja2==3.1.6 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 136)) (3.1.6)
+#13 1.810 Requirement already satisfied: kombu==5.6.1 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 140)) (5.6.1)
+#13 1.812 Requirement already satisfied: loguru==0.7.3 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 142)) (0.7.3)
+#13 1.813 Requirement already satisfied: mako==1.3.10 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 144)) (1.3.10)
+#13 1.815 Requirement already satisfied: markdown-it-py==4.0.0 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 146)) (4.0.0)
+#13 1.817 Requirement already satisfied: markupsafe==3.0.3 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 148)) (3.0.3)
+#13 1.818 Requirement already satisfied: mdurl==0.1.2 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 152)) (0.1.2)
+#13 1.819 Requirement already satisfied: msgspec==0.20.0 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 154)) (0.20.0)
+#13 1.820 Requirement already satisfied: packaging==25.0 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 156)) (25.0)
+#13 1.821 Requirement already satisfied: pillow==12.0.0 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 160)) (12.0.0)
+#13 1.869 Collecting pluggy==1.6.0
+#13 1.897   Downloading pluggy-1.6.0-py3-none-any.whl (20 kB)
+#13 2.151 Collecting prek==0.2.19
+#13 2.181   Downloading prek-0.2.19-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (4.9 MB)
+#13 2.454      ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü 4.9/4.9 MB 18.3 MB/s eta 0:00:00
+#13 2.463 Requirement already satisfied: prometheus-client==0.23.1 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 165)) (0.23.1)
+#13 2.465 Requirement already satisfied: prompt-toolkit==3.0.52 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 167)) (3.0.52)
+#13 2.466 Requirement already satisfied: psutil==7.1.3 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 169)) (7.1.3)
+#13 2.470 Requirement already satisfied: psycopg==3.2.10 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 171)) (3.2.10)
+#13 2.471 Requirement already satisfied: psycopg-binary==3.2.10 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 173)) (3.2.10)
+#13 2.473 Requirement already satisfied: pwdlib==0.3.0 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 175)) (0.3.0)
+#13 2.474 Requirement already satisfied: pyasn1==0.6.1 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 177)) (0.6.1)
+#13 2.476 Requirement already satisfied: pycparser==2.23 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 181)) (2.23)
+#13 2.477 Requirement already satisfied: pydantic==2.12.5 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 183)) (2.12.5)
+#13 2.479 Requirement already satisfied: pydantic-core==2.41.5 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 190)) (2.41.5)
+#13 2.481 Requirement already satisfied: pydantic-settings==2.12.0 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 192)) (2.12.0)
+#13 2.482 Requirement already satisfied: pygments==2.19.2 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 194)) (2.19.2)
+#13 2.484 Requirement already satisfied: pymysql==1.1.2 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 198)) (1.1.2)
+#13 2.642 Collecting pytest==9.0.1
+#13 2.669   Downloading pytest-9.0.1-py3-none-any.whl (373 kB)
+#13 2.750      ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü 373.7/373.7 kB 4.7 MB/s eta 0:00:00
+#13 2.825 Collecting pytest-sugar==1.1.1
+#13 2.848   Downloading pytest_sugar-1.1.1-py3-none-any.whl (11 kB)
+#13 2.852 Requirement already satisfied: python-dateutil==2.9.0.post0 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 203)) (2.9.0.post0)
+#13 2.853 Requirement already satisfied: python-dotenv==1.2.1 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 205)) (1.2.1)
+#13 2.854 Requirement already satisfied: python-engineio==4.12.3 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 209)) (4.12.3)
+#13 2.856 Requirement already satisfied: python-jose==3.5.0 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 211)) (3.5.0)
+#13 2.857 Requirement already satisfied: python-multipart==0.0.20 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 213)) (0.0.20)
+#13 2.859 Requirement already satisfied: python-socketio==5.15.0 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 215)) (5.15.0)
+#13 2.860 Requirement already satisfied: pytz==2025.2 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 217)) (2025.2)
+#13 2.862 Requirement already satisfied: pyyaml==6.0.3 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 219)) (6.0.3)
+#13 2.864 Requirement already satisfied: redis==7.1.0 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 221)) (7.1.0)
+#13 2.865 Requirement already satisfied: rich==14.2.0 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 225)) (14.2.0)
+#13 2.867 Requirement already satisfied: rich-toolkit==0.17.0 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 230)) (0.17.0)
+#13 2.869 Requirement already satisfied: rsa==4.9.1 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 232)) (4.9.1)
+#13 2.870 Requirement already satisfied: rtoml==0.13.0 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 234)) (0.13.0)
+#13 2.871 Requirement already satisfied: shellingham==1.5.4 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 236)) (1.5.4)
+#13 2.873 Requirement already satisfied: simple-websocket==1.1.0 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 238)) (1.1.0)
+#13 2.874 Requirement already satisfied: six==1.17.0 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 240)) (1.17.0)
+#13 2.875 Requirement already satisfied: sqlalchemy==2.0.44 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 244)) (2.0.44)
+#13 2.877 Requirement already satisfied: sqlalchemy-crud-plus==1.13.1 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 249)) (1.13.1)
+#13 2.878 Requirement already satisfied: sqlparse==0.5.4 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 251)) (0.5.4)
+#13 2.879 Requirement already satisfied: starlette==0.50.0 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 253)) (0.50.0)
+#13 2.880 Requirement already satisfied: starlette-context==0.4.0 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 257)) (0.4.0)
+#13 2.925 Collecting termcolor==3.2.0
+#13 2.950   Downloading termcolor-3.2.0-py3-none-any.whl (7.7 kB)
+#13 2.954 Requirement already satisfied: tomli==2.3.0 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 261)) (2.3.0)
+#13 2.955 Requirement already satisfied: tornado==6.5.2 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 266)) (6.5.2)
+#13 2.956 Requirement already satisfied: type-lens==0.2.6 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 268)) (0.2.6)
+#13 2.957 Requirement already satisfied: typer==0.20.0 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 270)) (0.20.0)
+#13 2.959 Requirement already satisfied: typing-extensions==4.15.0 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 272)) (4.15.0)
+#13 2.961 Requirement already satisfied: typing-inspection==0.4.2 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 293)) (0.4.2)
+#13 2.963 Requirement already satisfied: tzdata==2025.2 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 297)) (2025.2)
+#13 2.965 Requirement already satisfied: tzlocal==5.3.1 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 302)) (5.3.1)
+#13 2.968 Requirement already satisfied: ua-parser==1.0.1 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 304)) (1.0.1)
+#13 2.969 Requirement already satisfied: ua-parser-builtins==0.18.0.post1 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 306)) (0.18.0.post1)
+#13 2.971 Requirement already satisfied: urllib3==2.5.0 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 308)) (2.5.0)
+#13 2.972 Requirement already satisfied: user-agents==2.2.0 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 310)) (2.2.0)
+#13 2.974 Requirement already satisfied: uvicorn==0.38.0 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 312)) (0.38.0)
+#13 2.975 Requirement already satisfied: uvloop==0.22.1 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 316)) (0.22.1)
+#13 2.976 Requirement already satisfied: vine==5.1.0 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 318)) (5.1.0)
+#13 2.978 Requirement already satisfied: watchfiles==1.1.1 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 323)) (1.1.1)
+#13 2.979 Requirement already satisfied: wcwidth==0.2.14 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 325)) (0.2.14)
+#13 3.011 Requirement already satisfied: websockets==15.0.1 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 327)) (15.0.1)
+#13 3.013 Requirement already satisfied: wsproto==1.3.2 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 331)) (1.3.2)
+#13 3.014 Requirement already satisfied: zope-event==6.1 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 333)) (6.1)
+#13 3.015 Requirement already satisfied: zope-interface==8.1.1 in /usr/local/lib/python3.10/site-packages (from -r /fba/requirements.txt (line 335)) (8.1.1)
+#13 3.319 Collecting langchain>=1.2.0
+#13 3.346   Downloading langchain-1.2.0-py3-none-any.whl (102 kB)
+#13 3.360      ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü 102.8/102.8 kB 9.9 MB/s eta 0:00:00
+#13 3.494 Collecting langgraph>=1.0.5
+#13 3.520   Downloading langgraph-1.0.5-py3-none-any.whl (157 kB)
+#13 3.550      ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü 157.1/157.1 kB 5.5 MB/s eta 0:00:00
+#13 3.648 Collecting langchain-openai>=1.1.6
+#13 3.674   Downloading langchain_openai-1.1.6-py3-none-any.whl (84 kB)
+#13 3.678      ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü 84.7/84.7 kB 56.8 MB/s eta 0:00:00
+#13 3.726 Collecting langchain-huggingface>=1.2.0
+#13 3.754   Downloading langchain_huggingface-1.2.0-py3-none-any.whl (30 kB)
+#13 3.812 Collecting langchain-ollama>=1.0.1
+#13 3.838   Downloading langchain_ollama-1.0.1-py3-none-any.whl (29 kB)
+#13 3.916 Collecting langchain-anthropic>=1.3.0
+#13 3.943   Downloading langchain_anthropic-1.3.0-py3-none-any.whl (45 kB)
+#13 3.947      ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü 45.7/45.7 kB 82.0 MB/s eta 0:00:00
+#13 4.023 Collecting langchain-community>=0.4.1
+#13 4.054   Downloading langchain_community-0.4.1-py3-none-any.whl (2.5 MB)
+#13 4.237      ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü 2.5/2.5 MB 14.0 MB/s eta 0:00:00
+#13 4.400 Collecting langchain-core>=1.2.4
+#13 4.429   Downloading langchain_core-1.2.5-py3-none-any.whl (484 kB)
+#13 4.453      ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü 484.9/484.9 kB 23.3 MB/s eta 0:00:00
+#13 4.504 Collecting langchain-text-splitters>=1.1.0
+#13 4.529   Downloading langchain_text_splitters-1.1.0-py3-none-any.whl (34 kB)
+#13 4.766 Collecting langsmith>=0.1.0
+#13 4.790   Downloading langsmith-0.5.1-py3-none-any.whl (275 kB)
+#13 4.803      ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü 275.5/275.5 kB 30.2 MB/s eta 0:00:00
+#13 4.852 Collecting psycopg-pool>=3.2.0
+#13 4.880   Downloading psycopg_pool-3.3.0-py3-none-any.whl (39 kB)
+#13 4.966 Collecting volcengine>=1.0.0
+#13 4.997   Downloading volcengine-1.0.212.tar.gz (396 kB)
+#13 5.020      ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü 396.5/396.5 kB 20.8 MB/s eta 0:00:00
+#13 5.490   Preparing metadata (setup.py): started
+#13 5.848   Preparing metadata (setup.py): finished with status 'done'
+#13 5.905 Collecting beautifulsoup4>=4.12.0
+#13 5.931   Downloading beautifulsoup4-4.14.3-py3-none-any.whl (107 kB)
+#13 5.938      ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü 107.7/107.7 kB 26.7 MB/s eta 0:00:00
+#13 5.997 Collecting tavily-python>=0.7.17
+#13 6.023   Downloading tavily_python-0.7.17-py3-none-any.whl (18 kB)
+#13 6.138 Collecting pymilvus>=2.6.5
+#13 6.168   Downloading pymilvus-2.6.5-py3-none-any.whl (280 kB)
+#13 6.180      ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü 280.8/280.8 kB 36.0 MB/s eta 0:00:00
+#13 6.286 Collecting qdrant-client>=1.16.2
+#13 6.313   Downloading qdrant_client-1.16.2-py3-none-any.whl (377 kB)
+#13 6.332      ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü 377.2/377.2 kB 24.4 MB/s eta 0:00:00
+#13 6.374 Collecting grandalf>=0.8
+#13 6.399   Downloading grandalf-0.8-py3-none-any.whl (41 kB)
+#13 6.403      ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü 41.8/41.8 kB 99.0 MB/s eta 0:00:00
+#13 6.440 Collecting python-pptx>=1.0.2
+#13 6.467   Downloading python_pptx-1.0.2-py3-none-any.whl (472 kB)
+#13 6.495      ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü 472.8/472.8 kB 21.4 MB/s eta 0:00:00
+#13 6.543 Collecting python-docx>=1.2.0
+#13 6.571   Downloading python_docx-1.2.0-py3-none-any.whl (252 kB)
+#13 6.583      ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü 253.0/253.0 kB 35.6 MB/s eta 0:00:00
+#13 7.703 Collecting regex>=2025.11.3
+#13 7.730   Downloading regex-2025.11.3-cp310-cp310-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (791 kB)
+#13 7.766      ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü 791.7/791.7 kB 23.7 MB/s eta 0:00:00
+#13 7.807 Collecting rank-bm25>=0.2.2
+#13 7.832   Downloading rank_bm25-0.2.2-py3-none-any.whl (8.6 kB)
+#13 8.521 Collecting numpy>=2.2.6
+#13 8.546   Downloading numpy-2.2.6-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (16.8 MB)
+#13 9.188      ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü 16.8/16.8 MB 26.6 MB/s eta 0:00:00
+#13 9.328 Collecting e2b-code-interpreter>=2.4.1
+#13 9.354   Downloading e2b_code_interpreter-2.4.1-py3-none-any.whl (13 kB)
+#13 9.410 Collecting tenacity>=9.1.2
+#13 9.436   Downloading tenacity-9.1.2-py3-none-any.whl (28 kB)
+#13 9.479 Collecting aiosqlite>=0.22.0
+#13 9.505   Downloading aiosqlite-0.22.1-py3-none-any.whl (17 kB)
+#13 9.617 Collecting daytona>=0.127.0
+#13 9.644   Downloading daytona-0.128.1-py3-none-any.whl (144 kB)
+#13 9.650      ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü 144.7/144.7 kB 53.5 MB/s eta 0:00:00
+#13 9.708 Collecting structlog>=25.5.0
+#13 9.732   Downloading structlog-25.5.0-py3-none-any.whl (72 kB)
+#13 9.738      ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü 72.5/72.5 kB 42.9 MB/s eta 0:00:00
+#13 9.784 Collecting aiofiles==24.1.0
+#13 9.809   Downloading aiofiles-24.1.0-py3-none-any.whl (15 kB)
+#13 10.63 Collecting boto3>=1.42.14
+#13 10.66   Downloading boto3-1.42.17-py3-none-any.whl (140 kB)
+#13 10.67      ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü 140.6/140.6 kB 29.4 MB/s eta 0:00:00
+#13 10.71 Collecting oss2>=2.19.1
+#13 10.74   Downloading oss2-2.19.1.tar.gz (298 kB)
+#13 10.75      ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü 298.8/298.8 kB 30.1 MB/s eta 0:00:00
+#13 10.82   Preparing metadata (setup.py): started
+#13 11.10   Preparing metadata (setup.py): finished with status 'done'
+#13 12.83 Collecting aiohttp>=3.13.2
+#13 12.86   Downloading aiohttp-3.13.2-cp310-cp310-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (1.7 MB)
+#13 12.92      ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü 1.7/1.7 MB 31.3 MB/s eta 0:00:00
+#13 12.97 Collecting ddgs>=9.10.0
+#13 12.99   Downloading ddgs-9.10.0-py3-none-any.whl (40 kB)
+#13 13.00      ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü 40.3/40.3 kB 116.6 MB/s eta 0:00:00
+#13 13.08 Collecting requests>=2.32.5
+#13 13.11   Downloading requests-2.32.5-py3-none-any.whl (64 kB)
+#13 13.11      ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü 64.7/64.7 kB 116.3 MB/s eta 0:00:00
+#13 13.28 Collecting fastmcp>=2.14.1
+#13 13.31   Downloading fastmcp-2.14.1-py3-none-any.whl (412 kB)
+#13 13.32      ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü 412.2/412.2 kB 34.3 MB/s eta 0:00:00
+#13 13.38 Collecting mcp>=1.25.0
+#13 13.40   Downloading mcp-1.25.0-py3-none-any.whl (233 kB)
+#13 13.41      ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü 233.1/233.1 kB 33.1 MB/s eta 0:00:00
+#13 13.58 Collecting playwright>=1.57.0
+#13 13.61   Downloading playwright-1.57.0-py3-none-manylinux1_x86_64.whl (46.0 MB)
+#13 15.31      ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü 46.0/46.0 MB 25.9 MB/s eta 0:00:00
+#13 15.60 Collecting openai>=2.14.0
+#13 15.63   Downloading openai-2.14.0-py3-none-any.whl (1.1 MB)
+#13 15.66      ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü 1.1/1.1 MB 34.5 MB/s eta 0:00:00
+#13 16.12 Collecting protobuf==5.29.5
+#13 16.15   Downloading protobuf-5.29.5-cp38-abi3-manylinux2014_x86_64.whl (319 kB)
+#13 16.17      ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü 319.9/319.9 kB 27.0 MB/s eta 0:00:00
+#13 17.87 Collecting grpcio==1.67.1
+#13 17.89   Downloading grpcio-1.67.1-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (5.9 MB)
+#13 18.10      ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü 5.9/5.9 MB 29.2 MB/s eta 0:00:00
+#13 18.20 Collecting grpcio-status==1.67.1
+#13 18.23   Downloading grpcio_status-1.67.1-py3-none-any.whl (14 kB)
+#13 18.29 Collecting proto-plus==1.26.1
+#13 18.32   Downloading proto_plus-1.26.1-py3-none-any.whl (50 kB)
+#13 18.32      ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü 50.2/50.2 kB 89.6 MB/s eta 0:00:00
+#13 18.44 Collecting google-api-core==2.27.0
+#13 18.47   Downloading google_api_core-2.27.0-py3-none-any.whl (167 kB)
+#13 18.47      ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü 167.1/167.1 kB 49.4 MB/s eta 0:00:00
+#13 18.53 Collecting googleapis-common-protos==1.66.0
+#13 18.55   Downloading googleapis_common_protos-1.66.0-py2.py3-none-any.whl (221 kB)
+#13 18.56      ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü 221.7/221.7 kB 45.9 MB/s eta 0:00:00
+#13 18.69 Collecting google-cloud-storage==2.18.2
+#13 18.72   Downloading google_cloud_storage-2.18.2-py2.py3-none-any.whl (130 kB)
+#13 18.73      ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü 130.5/130.5 kB 16.8 MB/s eta 0:00:00
+#13 18.79 Collecting gcloud-aio-storage==9.6.1
+#13 18.82   Downloading gcloud_aio_storage-9.6.1-py3-none-any.whl (17 kB)
+#13 18.87 Collecting backoff==2.0.1
+#13 18.91   Downloading backoff-2.0.1-py3-none-any.whl (14 kB)
+#13 18.96 Collecting vertexai==1.71.1
+#13 18.99   Downloading vertexai-1.71.1-py3-none-any.whl (7.3 kB)
+#13 19.17 Collecting google-crc32c==1.7.1
+#13 19.20   Downloading google_crc32c-1.7.1-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (38 kB)
+#13 19.27 Collecting google-genai>=1.56.0
+#13 19.30   Downloading google_genai-1.56.0-py3-none-any.whl (426 kB)
+#13 19.32      ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü 426.6/426.6 kB 33.6 MB/s eta 0:00:00
+#13 19.94 Collecting lxml>=6.0.2
+#13 19.97   Downloading lxml-6.0.2-cp310-cp310-manylinux_2_26_x86_64.manylinux_2_28_x86_64.whl (5.3 MB)
+#13 20.15      ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü 5.3/5.3 MB 29.1 MB/s eta 0:00:00
+#13 20.28 Collecting duckduckgo-search>=8.1.1
+#13 20.31   Downloading duckduckgo_search-8.1.1-py3-none-any.whl (18 kB)
+#13 20.78 Collecting pymupdf>=1.26.7
+#13 20.80   Downloading pymupdf-1.26.7-cp310-abi3-manylinux_2_28_x86_64.whl (24.1 MB)
+#13 21.64      ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü 24.1/24.1 MB 29.2 MB/s eta 0:00:00
+#13 21.74 Collecting pypdf>=6.5.0
+#13 21.77   Downloading pypdf-6.5.0-py3-none-any.whl (329 kB)
+#13 21.78      ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü 329.6/329.6 kB 42.0 MB/s eta 0:00:00
+#13 21.84 Collecting PyPDF2>=3.0.1
+#13 21.86   Downloading pypdf2-3.0.1-py3-none-any.whl (232 kB)
+#13 21.89      ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü 232.6/232.6 kB 9.1 MB/s eta 0:00:00
+#13 21.94 Collecting python-magic>=0.4.27
+#13 21.97   Downloading python_magic-0.4.27-py2.py3-none-any.whl (13 kB)
+#13 22.26 Collecting libtmux>=0.28.0
+#13 22.29   Downloading libtmux-0.53.0-py3-none-any.whl (77 kB)
+#13 22.30      ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü 77.6/77.6 kB 62.6 MB/s eta 0:00:00
+#13 22.43 Collecting langchain-experimental>=0.3.4
+#13 22.46   Downloading langchain_experimental-0.4.1-py3-none-any.whl (210 kB)
+#13 22.47      ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü 210.1/210.1 kB 33.6 MB/s eta 0:00:00
+#13 22.52 Collecting readabilipy>=0.3.0
+#13 22.55   Downloading readabilipy-0.3.0-py3-none-any.whl (22 kB)
+#13 22.58 Collecting socksio>=1.0.0
+#13 22.61   Downloading socksio-1.0.0-py3-none-any.whl (12 kB)
+#13 22.65 Collecting markdownify>=1.1.0
+#13 22.68   Downloading markdownify-1.2.2-py3-none-any.whl (15 kB)
+#13 22.77 Collecting sse-starlette>=1.6.5
+#13 22.80   Downloading sse_starlette-3.1.1-py3-none-any.whl (12 kB)
+#13 23.13 Collecting pandas>=2.2.3
+#13 23.16   Downloading pandas-2.3.3-cp310-cp310-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl (12.8 MB)
+#13 23.59      ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü 12.8/12.8 MB 32.3 MB/s eta 0:00:00
+#13 23.69 Collecting yfinance>=0.2.54
+#13 23.72   Downloading yfinance-1.0-py2.py3-none-any.whl (127 kB)
+#13 23.72      ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü 127.1/127.1 kB 98.1 MB/s eta 0:00:00
+#13 24.76 Collecting litellm>=1.63.11
+#13 24.78   Downloading litellm-1.80.11-py3-none-any.whl (11.5 MB)
+#13 25.23      ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü 11.5/11.5 MB 26.3 MB/s eta 0:00:00
+#13 25.43 Collecting json-repair>=0.7.0
+#13 25.47   Downloading json_repair-0.54.3-py3-none-any.whl (29 kB)
+#13 25.51 Collecting inquirerpy>=0.3.4
+#13 25.54   Downloading InquirerPy-0.3.4-py3-none-any.whl (67 kB)
+#13 25.54      ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü 67.7/67.7 kB 49.4 MB/s eta 0:00:00
+#13 25.59 Collecting arxiv>=2.2.0
+#13 25.65   Downloading arxiv-2.3.1-py3-none-any.whl (11 kB)
+#13 25.69 Collecting langchain-mcp-adapters>=0.0.9
+#13 25.72   Downloading langchain_mcp_adapters-0.2.1-py3-none-any.whl (22 kB)
+#13 25.76 Collecting langchain-deepseek>=0.1.3
+#13 25.81   Downloading langchain_deepseek-1.0.1-py3-none-any.whl (8.3 kB)
+#13 25.88 Collecting langchain-google-genai>=2.0.6
+#13 25.91   Downloading langchain_google_genai-4.1.2-py3-none-any.whl (65 kB)
+#13 25.91      ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü 65.6/65.6 kB 114.6 MB/s eta 0:00:00
+#13 25.95 Collecting wikipedia>=1.4.0
+#13 25.97   Downloading wikipedia-1.4.0.tar.gz (27 kB)
+#13 25.99   Preparing metadata (setup.py): started
+#13 26.24   Preparing metadata (setup.py): finished with status 'done'
+#13 26.29 Collecting langchain-tavily>=0.2.15
+#13 26.32   Downloading langchain_tavily-0.2.15-py3-none-any.whl (30 kB)
+#13 26.36 Collecting langgraph-checkpoint-mongodb>=0.1.4
+#13 26.39   Downloading langgraph_checkpoint_mongodb-0.3.0-py3-none-any.whl (7.8 kB)
+#13 26.47 Collecting langgraph-checkpoint-postgres==2.0.21
+#13 26.49   Downloading langgraph_checkpoint_postgres-2.0.21-py3-none-any.whl (39 kB)
+#13 26.55 Collecting langchain-milvus>=0.2.1
+#13 26.57   Downloading langchain_milvus-0.3.2-py3-none-any.whl (38 kB)
+#13 26.63 Collecting langchain-qdrant>=0.2.0
+#13 26.66   Downloading langchain_qdrant-1.1.0-py3-none-any.whl (24 kB)
+#13 26.73 Collecting pytest-cov>=4.1.0
+#13 26.75   Downloading pytest_cov-7.0.0-py3-none-any.whl (22 kB)
+#13 26.81 Collecting pytest-asyncio>=1.0.0
+#13 26.84   Downloading pytest_asyncio-1.3.0-py3-none-any.whl (15 kB)
+#13 26.89 Collecting asyncpg-stubs>=0.30.2
+#13 26.92   Downloading asyncpg_stubs-0.31.1-py3-none-any.whl (27 kB)
+#13 26.96 Collecting mongomock>=4.3.0
+#13 26.98   Downloading mongomock-4.3.0-py2.py3-none-any.whl (64 kB)
+#13 26.99      ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü 64.9/64.9 kB 122.6 MB/s eta 0:00:00
+#13 27.04 Collecting pytest-postgresql>=7.0.2
+#13 27.07   Downloading pytest_postgresql-7.0.2-py3-none-any.whl (41 kB)
+#13 27.08      ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü 41.4/41.4 kB 108.0 MB/s eta 0:00:00
+#13 27.12 Collecting alibabacloud_oss_v2>=1.2.1
+#13 27.15   Downloading alibabacloud_oss_v2-1.2.2-py3-none-any.whl (263 kB)
+#13 27.16      ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü 263.5/263.5 kB 35.5 MB/s eta 0:00:00
+#13 27.21 Collecting agent_sandbox>=0.0.19
+#13 27.24   Downloading agent_sandbox-0.0.19-py2.py3-none-any.whl (152 kB)
+#13 27.25      ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü 152.3/152.3 kB 32.2 MB/s eta 0:00:00
+#13 27.33 ERROR: Ignored the following versions that require a different python version: 0.0.1 Requires-Python <4.0,>=3.11; 0.0.1 Requires-Python >=3.11; 0.0.10 Requires-Python <4.0,>=3.11; 0.0.11 Requires-Python <4.0,>=3.11; 0.0.11rc1 Requires-Python <4.0,>=3.11; 0.0.12rc1 Requires-Python <4.0,>=3.11; 0.0.12rc2 Requires-Python <4.0,>=3.11; 0.0.12rc3 Requires-Python <4.0,>=3.11; 0.0.2 Requires-Python <4.0,>=3.11; 0.0.2 Requires-Python >=3.11; 0.0.3 Requires-Python <4.0,>=3.11; 0.0.4 Requires-Python <4.0,>=3.11; 0.0.5 Requires-Python <4.0,>=3.11; 0.0.5rc0 Requires-Python <4.0,>=3.11; 0.0.5rc1 Requires-Python <4.0,>=3.11; 0.0.5rc2 Requires-Python <4.0,>=3.11; 0.0.5rc3 Requires-Python <4.0,>=3.11; 0.0.5rc4 Requires-Python <4.0,>=3.11; 0.0.6 Requires-Python <4.0,>=3.11; 0.0.6rc1 Requires-Python <4.0,>=3.11; 0.0.6rc2 Requires-Python <4.0,>=3.11; 0.0.6rc3 Requires-Python <4.0,>=3.11; 0.0.7 Requires-Python <4.0,>=3.11; 0.0.8 Requires-Python <4.0,>=3.11; 0.0.9 Requires-Python <4.0,>=3.11; 0.1.0 Requires-Python <4.0,>=3.11; 0.1.1 Requires-Python <4.0,>=3.11; 0.1.2 Requires-Python <4.0,>=3.11; 0.1.3 Requires-Python <4.0,>=3.11; 0.1.4 Requires-Python <4.0,>=3.11; 0.1.5rc1 Requires-Python <4.0,>=3.11; 0.1.5rc2 Requires-Python <4.0,>=3.11; 0.2.0 Requires-Python <4.0,>=3.11; 0.2.1 Requires-Python <4.0,>=3.11; 0.2.1rc1 Requires-Python <4.0,>=3.11; 0.2.1rc2 Requires-Python <4.0,>=3.11; 0.2.2 Requires-Python <4.0,>=3.11; 0.2.3 Requires-Python <4.0,>=3.11; 0.2.4 Requires-Python <4.0,>=3.11; 0.2.5 Requires-Python <4.0,>=3.11; 0.2.6 Requires-Python <4.0,>=3.11; 0.2.7 Requires-Python <4.0,>=3.11; 0.2.8 Requires-Python <4.0,>=3.11; 0.3.0 Requires-Python <4.0,>=3.11; 0.3.1 Requires-Python <4.0,>=3.11; 2.3.0 Requires-Python >=3.11; 2.3.1 Requires-Python >=3.11; 2.3.2 Requires-Python >=3.11; 2.3.3 Requires-Python >=3.11; 2.3.4 Requires-Python >=3.11; 2.3.5 Requires-Python >=3.11; 2.4.0 Requires-Python >=3.11; 2.4.0rc1 Requires-Python >=3.11; 3.0.0rc0 Requires-Python >=3.11; 3.0.0rc1 Requires-Python >=3.11
+#13 27.33 ERROR: Could not find a version that satisfies the requirement deepagents>=0.3.0 (from versions: none)
+#13 27.33 ERROR: No matching distribution found for deepagents>=0.3.0
+#13 27.64 
+#13 27.64 [notice] A new release of pip is available: 23.0.1 -> 25.3
+#13 27.64 [notice] To update, run: pip install --upgrade pip
+#13 ERROR: process "/bin/sh -c pip install --no-cache-dir -r /fba/requirements.txt" did not complete successfully: exit code: 1
+------
+ > [builder 6/6] RUN --mount=type=cache,target=/root/.cache/pip     pip install --no-cache-dir -r /fba/requirements.txt:
+27.16      ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü 263.5/263.5 kB 35.5 MB/s eta 0:00:00
+27.21 Collecting agent_sandbox>=0.0.19
+27.24   Downloading agent_sandbox-0.0.19-py2.py3-none-any.whl (152 kB)
+27.25      ΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöüΓöü 152.3/152.3 kB 32.2 MB/s eta 0:00:00
+27.33 ERROR: Ignored the following versions that require a different python version: 0.0.1 Requires-Python <4.0,>=3.11; 0.0.1 Requires-Python >=3.11; 0.0.10 Requires-Python <4.0,>=3.11; 0.0.11 Requires-Python <4.0,>=3.11; 0.0.11rc1 Requires-Python <4.0,>=3.11; 0.0.12rc1 Requires-Python <4.0,>=3.11; 0.0.12rc2 Requires-Python <4.0,>=3.11; 0.0.12rc3 Requires-Python <4.0,>=3.11; 0.0.2 Requires-Python <4.0,>=3.11; 0.0.2 Requires-Python >=3.11; 0.0.3 Requires-Python <4.0,>=3.11; 0.0.4 Requires-Python <4.0,>=3.11; 0.0.5 Requires-Python <4.0,>=3.11; 0.0.5rc0 Requires-Python <4.0,>=3.11; 0.0.5rc1 Requires-Python <4.0,>=3.11; 0.0.5rc2 Requires-Python <4.0,>=3.11; 0.0.5rc3 Requires-Python <4.0,>=3.11; 0.0.5rc4 Requires-Python <4.0,>=3.11; 0.0.6 Requires-Python <4.0,>=3.11; 0.0.6rc1 Requires-Python <4.0,>=3.11; 0.0.6rc2 Requires-Python <4.0,>=3.11; 0.0.6rc3 Requires-Python <4.0,>=3.11; 0.0.7 Requires-Python <4.0,>=3.11; 0.0.8 Requires-Python <4.0,>=3.11; 0.0.9 Requires-Python <4.0,>=3.11; 0.1.0 Requires-Python <4.0,>=3.11; 0.1.1 Requires-Python <4.0,>=3.11; 0.1.2 Requires-Python <4.0,>=3.11; 0.1.3 Requires-Python <4.0,>=3.11; 0.1.4 Requires-Python <4.0,>=3.11; 0.1.5rc1 Requires-Python <4.0,>=3.11; 0.1.5rc2 Requires-Python <4.0,>=3.11; 0.2.0 Requires-Python <4.0,>=3.11; 0.2.1 Requires-Python <4.0,>=3.11; 0.2.1rc1 Requires-Python <4.0,>=3.11; 0.2.1rc2 Requires-Python <4.0,>=3.11; 0.2.2 Requires-Python <4.0,>=3.11; 0.2.3 Requires-Python <4.0,>=3.11; 0.2.4 Requires-Python <4.0,>=3.11; 0.2.5 Requires-Python <4.0,>=3.11; 0.2.6 Requires-Python <4.0,>=3.11; 0.2.7 Requires-Python <4.0,>=3.11; 0.2.8 Requires-Python <4.0,>=3.11; 0.3.0 Requires-Python <4.0,>=3.11; 0.3.1 Requires-Python <4.0,>=3.11; 2.3.0 Requires-Python >=3.11; 2.3.1 Requires-Python >=3.11; 2.3.2 Requires-Python >=3.11; 2.3.3 Requires-Python >=3.11; 2.3.4 Requires-Python >=3.11; 2.3.5 Requires-Python >=3.11; 2.4.0 Requires-Python >=3.11; 2.4.0rc1 Requires-Python >=3.11; 3.0.0rc0 Requires-Python >=3.11; 3.0.0rc1 Requires-Python >=3.11
+27.33 ERROR: Could not find a version that satisfies the requirement deepagents>=0.3.0 (from versions: none)
+27.33 ERROR: No matching distribution found for deepagents>=0.3.0
+27.64 
+27.64 [notice] A new release of pip is available: 23.0.1 -> 25.3
+27.64 [notice] To update, run: pip install --upgrade pip
+------
+Dockerfile:28
+
+--------------------
+
+  27 |     # Install additional dependencies from requirements.txt (agent dependencies)
+
+  28 | >>> RUN --mount=type=cache,target=/root/.cache/pip \
+
+  29 | >>>     pip install --no-cache-dir -r /fba/requirements.txt
+
+  30 |     
+
+--------------------
+
+failed to solve: process "/bin/sh -c pip install --no-cache-dir -r /fba/requirements.txt" did not complete successfully: exit code: 1
+

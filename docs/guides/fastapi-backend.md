@@ -215,6 +215,6 @@ curl -X POST http://localhost:8000/api/v1/admin/auth/login \
 
 ## Related Documentation
 
-- [CLI Reference](cli-reference.md) - FBA CLI commands
+- [CLI Reference](cli-reference.md) - Agents Backend CLI commands
 - [Agentic AI System](agentic-ai.md) - LangGraph and agent details
 - [Main README](../../README.md) - Project overview

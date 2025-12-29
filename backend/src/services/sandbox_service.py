@@ -47,23 +47,48 @@ class SandboxService:
     async def get_or_create_sandbox(
         self, 
         user_id: str, 
+        session_id: Optional[str] = None,
         template_id: Optional[str] = None,
         write_mcp_credentials: bool = True
     ) -> BaseSandbox:
         """
-        Get an existing sandbox or create a new one for the user.
+        Get an existing sandbox for the session or create a new one.
+        
+        This implements the II-Agent pattern:
+        1. If session_id provided, check if session already has a linked sandbox
+        2. If sandbox exists and is running, connect to it (reuse)
+        3. If no sandbox, create a new one and link it to the session
         
         :param user_id: User ID
+        :param session_id: Optional session ID (for session-based sandbox reuse)
         :param template_id: Optional sandbox template ID
         :param write_mcp_credentials: If True, write user's MCP credentials to sandbox
         :return: Sandbox instance
         """
+        from backend.src.sandbox.sandbox_server.db.manager import Sandboxes
+        
+        # STEP 1: If session_id provided, check if session already has a sandbox
+        if session_id:
+            existing_sandbox = await Sandboxes.get_sandbox_for_session(session_id)
+            if existing_sandbox:
+                log.info(f"Reusing existing sandbox {existing_sandbox.id} for session {session_id}")
+                # Connect to existing sandbox
+                sandbox = await self.controller.connect(existing_sandbox.id)
+                return sandbox
+        
+        # STEP 2: No existing sandbox - create a new one
+        log.info(f"Creating new sandbox for user {user_id}" + (f" (session {session_id})" if session_id else ""))
         sandbox = await self.controller.create_sandbox(
             user_id=user_id, 
             sandbox_template_id=template_id
         )
         
-        # Write MCP credentials if enabled
+        # STEP 3: Link sandbox to session for future reuse
+        if session_id:
+            await Sandboxes.update_session_sandbox(session_id, sandbox.sandbox_id)
+            log.info(f"Linked sandbox {sandbox.sandbox_id} to session {session_id}")
+        
+        # STEP 4: Write MCP credentials if enabled
         if write_mcp_credentials:
             await self._write_mcp_credentials(user_id, sandbox)
         

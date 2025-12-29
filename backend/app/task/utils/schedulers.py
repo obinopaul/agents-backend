@@ -36,7 +36,7 @@ DEFAULT_MAX_INTERVAL = 5  # seconds
 # 计划锁时长，避免重复创建
 DEFAULT_MAX_LOCK_TIMEOUT = DEFAULT_MAX_INTERVAL * 5  # seconds
 
-logger = get_logger('fba.schedulers')
+logger = get_logger('agents_backend.schedulers')
 
 
 class ModelEntry(ScheduleEntry):

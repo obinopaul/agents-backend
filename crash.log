@@ -1,0 +1,1037 @@
+[INFO] Starting granian (main PID: 16)
+[INFO] Listening at: http://0.0.0.0:8001
+[INFO] Spawning worker-1 with PID: 17
+2025-12-30 00:28:45.280 | INFO     | - | 检测插件依赖...
+2025-12-30 00:28:45.280 | INFO     | - | 插件准备就绪 - 6/6 0:00:11
+2025-12-30 00:28:45.280 | INFO     | - | 启动服务...
+/usr/local/lib/python3.11/site-packages/langchain_tavily/tavily_research.py:97: UserWarning: Field name "output_schema" in "TavilyResearch" shadows an attribute in parent "BaseTool"
+  class TavilyResearch(BaseTool):  # type: ignore[override, override]
+/usr/local/lib/python3.11/site-packages/langchain_tavily/tavily_research.py:97: UserWarning: Field name "stream" in "TavilyResearch" shadows an attribute in parent "BaseTool"
+  class TavilyResearch(BaseTool):  # type: ignore[override, override]
+[32m2025-12-29 16:29:03.046[0m | [33m[1mWARNING [0m | [36m-[0m | [33m[1mCheckpoint saver is disabled[0m
+[32m2025-12-29 16:29:04.828[0m | [31m[1mERROR   [0m | [36m-[0m | [31m[1mFailed to initialize SandboxService: 1 validation error for SandboxConfig
+  Value error, E2B API key is required. Set E2B_API_KEY environment variable [type=value_error, input_value={'provider_type': 'e2b', ..._network_enabled': True}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/value_error[0m
+[32m2025-12-29 16:29:04.831[0m | [31m[1mERROR   [0m | [36m-[0m | [31m[1mTraceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 694, in lifespan
+    async with self.lifespan_context(app) as maybe_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi_pagination/api.py", line 349, in lifespan
+    async with _original_lifespan_context(app) as maybe_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi/routing.py", line 205, in merged_lifespan
+    async with original_context(app) as maybe_original_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/fba/backend/core/registrar.py", line 73, in register_init
+    await sandbox_service.initialize()
+  File "/fba/backend/src/services/sandbox_service.py", line 33, in initialize
+    config = SandboxConfig()
+             ^^^^^^^^^^^^^^^
+  File "/fba/backend/src/sandbox/sandbox_server/config.py", line 59, in __init__
+    super().__init__(**data)
+  File "/usr/local/lib/python3.11/site-packages/pydantic/main.py", line 250, in __init__
+    validated_self = self.__pydantic_validator__.validate_python(data, self_instance=self)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+pydantic_core._pydantic_core.ValidationError: 1 validation error for SandboxConfig
+  Value error, E2B API key is required. Set E2B_API_KEY environment variable [type=value_error, input_value={'provider_type': 'e2b', ..._network_enabled': True}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/value_error
+[0m
+[32m2025-12-29 16:29:04.832[0m | [31m[1mERROR   [0m | [36m-[0m | [31m[1mASGI lifespan startup failed[0m
+[ERROR] Unexpected exit from worker-1
+[INFO] Shutting down granian
+[INFO] Starting granian (main PID: 45)
+[INFO] Listening at: http://0.0.0.0:8001
+[INFO] Spawning worker-1 with PID: 46
+2025-12-30 00:29:15.290 | INFO     | - | 检测插件依赖...
+2025-12-30 00:29:15.290 | INFO     | - | 插件准备就绪 - 6/6 0:00:00
+2025-12-30 00:29:15.290 | INFO     | - | 启动服务...
+/usr/local/lib/python3.11/site-packages/langchain_tavily/tavily_research.py:97: UserWarning: Field name "output_schema" in "TavilyResearch" shadows an attribute in parent "BaseTool"
+  class TavilyResearch(BaseTool):  # type: ignore[override, override]
+/usr/local/lib/python3.11/site-packages/langchain_tavily/tavily_research.py:97: UserWarning: Field name "stream" in "TavilyResearch" shadows an attribute in parent "BaseTool"
+  class TavilyResearch(BaseTool):  # type: ignore[override, override]
+[32m2025-12-29 16:29:20.781[0m | [33m[1mWARNING [0m | [36m-[0m | [33m[1mCheckpoint saver is disabled[0m
+[32m2025-12-29 16:29:22.079[0m | [31m[1mERROR   [0m | [36m-[0m | [31m[1mFailed to initialize SandboxService: 1 validation error for SandboxConfig
+  Value error, E2B API key is required. Set E2B_API_KEY environment variable [type=value_error, input_value={'provider_type': 'e2b', ..._network_enabled': True}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/value_error[0m
+[32m2025-12-29 16:29:22.083[0m | [31m[1mERROR   [0m | [36m-[0m | [31m[1mTraceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 694, in lifespan
+    async with self.lifespan_context(app) as maybe_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi_pagination/api.py", line 349, in lifespan
+    async with _original_lifespan_context(app) as maybe_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi/routing.py", line 205, in merged_lifespan
+    async with original_context(app) as maybe_original_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/fba/backend/core/registrar.py", line 73, in register_init
+    await sandbox_service.initialize()
+  File "/fba/backend/src/services/sandbox_service.py", line 33, in initialize
+    config = SandboxConfig()
+             ^^^^^^^^^^^^^^^
+  File "/fba/backend/src/sandbox/sandbox_server/config.py", line 59, in __init__
+    super().__init__(**data)
+  File "/usr/local/lib/python3.11/site-packages/pydantic/main.py", line 250, in __init__
+    validated_self = self.__pydantic_validator__.validate_python(data, self_instance=self)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+pydantic_core._pydantic_core.ValidationError: 1 validation error for SandboxConfig
+  Value error, E2B API key is required. Set E2B_API_KEY environment variable [type=value_error, input_value={'provider_type': 'e2b', ..._network_enabled': True}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/value_error
+[0m
+[32m2025-12-29 16:29:22.084[0m | [31m[1mERROR   [0m | [36m-[0m | [31m[1mASGI lifespan startup failed[0m
+[ERROR] Unexpected exit from worker-1
+[INFO] Shutting down granian
+[INFO] Starting granian (main PID: 66)
+[INFO] Listening at: http://0.0.0.0:8001
+[INFO] Spawning worker-1 with PID: 67
+2025-12-30 00:29:32.290 | INFO     | - | 检测插件依赖...
+2025-12-30 00:29:32.290 | INFO     | - | 插件准备就绪 - 6/6 0:00:00
+2025-12-30 00:29:32.290 | INFO     | - | 启动服务...
+/usr/local/lib/python3.11/site-packages/langchain_tavily/tavily_research.py:97: UserWarning: Field name "output_schema" in "TavilyResearch" shadows an attribute in parent "BaseTool"
+  class TavilyResearch(BaseTool):  # type: ignore[override, override]
+/usr/local/lib/python3.11/site-packages/langchain_tavily/tavily_research.py:97: UserWarning: Field name "stream" in "TavilyResearch" shadows an attribute in parent "BaseTool"
+  class TavilyResearch(BaseTool):  # type: ignore[override, override]
+[32m2025-12-29 16:29:37.027[0m | [33m[1mWARNING [0m | [36m-[0m | [33m[1mCheckpoint saver is disabled[0m
+[32m2025-12-29 16:29:38.324[0m | [31m[1mERROR   [0m | [36m-[0m | [31m[1mFailed to initialize SandboxService: 1 validation error for SandboxConfig
+  Value error, E2B API key is required. Set E2B_API_KEY environment variable [type=value_error, input_value={'provider_type': 'e2b', ..._network_enabled': True}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/value_error[0m
+[32m2025-12-29 16:29:38.327[0m | [31m[1mERROR   [0m | [36m-[0m | [31m[1mTraceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 694, in lifespan
+    async with self.lifespan_context(app) as maybe_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi_pagination/api.py", line 349, in lifespan
+    async with _original_lifespan_context(app) as maybe_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi/routing.py", line 205, in merged_lifespan
+    async with original_context(app) as maybe_original_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/fba/backend/core/registrar.py", line 73, in register_init
+    await sandbox_service.initialize()
+  File "/fba/backend/src/services/sandbox_service.py", line 33, in initialize
+    config = SandboxConfig()
+             ^^^^^^^^^^^^^^^
+  File "/fba/backend/src/sandbox/sandbox_server/config.py", line 59, in __init__
+    super().__init__(**data)
+  File "/usr/local/lib/python3.11/site-packages/pydantic/main.py", line 250, in __init__
+    validated_self = self.__pydantic_validator__.validate_python(data, self_instance=self)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+pydantic_core._pydantic_core.ValidationError: 1 validation error for SandboxConfig
+  Value error, E2B API key is required. Set E2B_API_KEY environment variable [type=value_error, input_value={'provider_type': 'e2b', ..._network_enabled': True}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/value_error
+[0m
+[32m2025-12-29 16:29:38.327[0m | [31m[1mERROR   [0m | [36m-[0m | [31m[1mASGI lifespan startup failed[0m
+[ERROR] Unexpected exit from worker-1
+[INFO] Shutting down granian
+[INFO] Starting granian (main PID: 87)
+[INFO] Listening at: http://0.0.0.0:8001
+[INFO] Spawning worker-1 with PID: 88
+2025-12-30 00:29:49.290 | INFO     | - | 检测插件依赖...
+2025-12-30 00:29:49.290 | INFO     | - | 插件准备就绪 - 6/6 0:00:00
+2025-12-30 00:29:49.290 | INFO     | - | 启动服务...
+/usr/local/lib/python3.11/site-packages/langchain_tavily/tavily_research.py:97: UserWarning: Field name "output_schema" in "TavilyResearch" shadows an attribute in parent "BaseTool"
+  class TavilyResearch(BaseTool):  # type: ignore[override, override]
+/usr/local/lib/python3.11/site-packages/langchain_tavily/tavily_research.py:97: UserWarning: Field name "stream" in "TavilyResearch" shadows an attribute in parent "BaseTool"
+  class TavilyResearch(BaseTool):  # type: ignore[override, override]
+[32m2025-12-29 16:29:53.436[0m | [33m[1mWARNING [0m | [36m-[0m | [33m[1mCheckpoint saver is disabled[0m
+[32m2025-12-29 16:29:54.798[0m | [31m[1mERROR   [0m | [36m-[0m | [31m[1mFailed to initialize SandboxService: 1 validation error for SandboxConfig
+  Value error, E2B API key is required. Set E2B_API_KEY environment variable [type=value_error, input_value={'provider_type': 'e2b', ..._network_enabled': True}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/value_error[0m
+[32m2025-12-29 16:29:54.801[0m | [31m[1mERROR   [0m | [36m-[0m | [31m[1mTraceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 694, in lifespan
+    async with self.lifespan_context(app) as maybe_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi_pagination/api.py", line 349, in lifespan
+    async with _original_lifespan_context(app) as maybe_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi/routing.py", line 205, in merged_lifespan
+    async with original_context(app) as maybe_original_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/fba/backend/core/registrar.py", line 73, in register_init
+    await sandbox_service.initialize()
+  File "/fba/backend/src/services/sandbox_service.py", line 33, in initialize
+    config = SandboxConfig()
+             ^^^^^^^^^^^^^^^
+  File "/fba/backend/src/sandbox/sandbox_server/config.py", line 59, in __init__
+    super().__init__(**data)
+  File "/usr/local/lib/python3.11/site-packages/pydantic/main.py", line 250, in __init__
+    validated_self = self.__pydantic_validator__.validate_python(data, self_instance=self)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+pydantic_core._pydantic_core.ValidationError: 1 validation error for SandboxConfig
+  Value error, E2B API key is required. Set E2B_API_KEY environment variable [type=value_error, input_value={'provider_type': 'e2b', ..._network_enabled': True}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/value_error
+[0m
+[32m2025-12-29 16:29:54.802[0m | [31m[1mERROR   [0m | [36m-[0m | [31m[1mASGI lifespan startup failed[0m
+[ERROR] Unexpected exit from worker-1
+[INFO] Shutting down granian
+[INFO] Starting granian (main PID: 108)
+[INFO] Listening at: http://0.0.0.0:8001
+[INFO] Spawning worker-1 with PID: 109
+2025-12-30 00:30:05.300 | INFO     | - | 检测插件依赖...
+2025-12-30 00:30:05.300 | INFO     | - | 插件准备就绪 - 6/6 0:00:00
+2025-12-30 00:30:05.300 | INFO     | - | 启动服务...
+/usr/local/lib/python3.11/site-packages/langchain_tavily/tavily_research.py:97: UserWarning: Field name "output_schema" in "TavilyResearch" shadows an attribute in parent "BaseTool"
+  class TavilyResearch(BaseTool):  # type: ignore[override, override]
+/usr/local/lib/python3.11/site-packages/langchain_tavily/tavily_research.py:97: UserWarning: Field name "stream" in "TavilyResearch" shadows an attribute in parent "BaseTool"
+  class TavilyResearch(BaseTool):  # type: ignore[override, override]
+[32m2025-12-29 16:30:10.902[0m | [33m[1mWARNING [0m | [36m-[0m | [33m[1mCheckpoint saver is disabled[0m
+[32m2025-12-29 16:30:12.237[0m | [31m[1mERROR   [0m | [36m-[0m | [31m[1mFailed to initialize SandboxService: 1 validation error for SandboxConfig
+  Value error, E2B API key is required. Set E2B_API_KEY environment variable [type=value_error, input_value={'provider_type': 'e2b', ..._network_enabled': True}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/value_error[0m
+[32m2025-12-29 16:30:12.240[0m | [31m[1mERROR   [0m | [36m-[0m | [31m[1mTraceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 694, in lifespan
+    async with self.lifespan_context(app) as maybe_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi_pagination/api.py", line 349, in lifespan
+    async with _original_lifespan_context(app) as maybe_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi/routing.py", line 205, in merged_lifespan
+    async with original_context(app) as maybe_original_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/fba/backend/core/registrar.py", line 73, in register_init
+    await sandbox_service.initialize()
+  File "/fba/backend/src/services/sandbox_service.py", line 33, in initialize
+    config = SandboxConfig()
+             ^^^^^^^^^^^^^^^
+  File "/fba/backend/src/sandbox/sandbox_server/config.py", line 59, in __init__
+    super().__init__(**data)
+  File "/usr/local/lib/python3.11/site-packages/pydantic/main.py", line 250, in __init__
+    validated_self = self.__pydantic_validator__.validate_python(data, self_instance=self)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+pydantic_core._pydantic_core.ValidationError: 1 validation error for SandboxConfig
+  Value error, E2B API key is required. Set E2B_API_KEY environment variable [type=value_error, input_value={'provider_type': 'e2b', ..._network_enabled': True}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/value_error
+[0m
+[32m2025-12-29 16:30:12.241[0m | [31m[1mERROR   [0m | [36m-[0m | [31m[1mASGI lifespan startup failed[0m
+[ERROR] Unexpected exit from worker-1
+[INFO] Shutting down granian
+[INFO] Starting granian (main PID: 129)
+[INFO] Listening at: http://0.0.0.0:8001
+[INFO] Spawning worker-1 with PID: 130
+2025-12-30 00:30:22.300 | INFO     | - | 检测插件依赖...
+2025-12-30 00:30:22.300 | INFO     | - | 插件准备就绪 - 6/6 0:00:00
+2025-12-30 00:30:22.300 | INFO     | - | 启动服务...
+/usr/local/lib/python3.11/site-packages/langchain_tavily/tavily_research.py:97: UserWarning: Field name "output_schema" in "TavilyResearch" shadows an attribute in parent "BaseTool"
+  class TavilyResearch(BaseTool):  # type: ignore[override, override]
+/usr/local/lib/python3.11/site-packages/langchain_tavily/tavily_research.py:97: UserWarning: Field name "stream" in "TavilyResearch" shadows an attribute in parent "BaseTool"
+  class TavilyResearch(BaseTool):  # type: ignore[override, override]
+[32m2025-12-29 16:30:27.224[0m | [33m[1mWARNING [0m | [36m-[0m | [33m[1mCheckpoint saver is disabled[0m
+[32m2025-12-29 16:30:28.720[0m | [31m[1mERROR   [0m | [36m-[0m | [31m[1mFailed to initialize SandboxService: 1 validation error for SandboxConfig
+  Value error, E2B API key is required. Set E2B_API_KEY environment variable [type=value_error, input_value={'provider_type': 'e2b', ..._network_enabled': True}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/value_error[0m
+[32m2025-12-29 16:30:28.725[0m | [31m[1mERROR   [0m | [36m-[0m | [31m[1mTraceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 694, in lifespan
+    async with self.lifespan_context(app) as maybe_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi_pagination/api.py", line 349, in lifespan
+    async with _original_lifespan_context(app) as maybe_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi/routing.py", line 205, in merged_lifespan
+    async with original_context(app) as maybe_original_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/fba/backend/core/registrar.py", line 73, in register_init
+    await sandbox_service.initialize()
+  File "/fba/backend/src/services/sandbox_service.py", line 33, in initialize
+    config = SandboxConfig()
+             ^^^^^^^^^^^^^^^
+  File "/fba/backend/src/sandbox/sandbox_server/config.py", line 59, in __init__
+    super().__init__(**data)
+  File "/usr/local/lib/python3.11/site-packages/pydantic/main.py", line 250, in __init__
+    validated_self = self.__pydantic_validator__.validate_python(data, self_instance=self)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+pydantic_core._pydantic_core.ValidationError: 1 validation error for SandboxConfig
+  Value error, E2B API key is required. Set E2B_API_KEY environment variable [type=value_error, input_value={'provider_type': 'e2b', ..._network_enabled': True}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/value_error
+[0m
+[32m2025-12-29 16:30:28.725[0m | [31m[1mERROR   [0m | [36m-[0m | [31m[1mASGI lifespan startup failed[0m
+[ERROR] Unexpected exit from worker-1
+[INFO] Shutting down granian
+[INFO] Starting granian (main PID: 150)
+[INFO] Listening at: http://0.0.0.0:8001
+[INFO] Spawning worker-1 with PID: 151
+2025-12-30 00:30:40.300 | INFO     | - | 检测插件依赖...
+2025-12-30 00:30:40.300 | INFO     | - | 插件准备就绪 - 6/6 0:00:00
+2025-12-30 00:30:40.300 | INFO     | - | 启动服务...
+/usr/local/lib/python3.11/site-packages/langchain_tavily/tavily_research.py:97: UserWarning: Field name "output_schema" in "TavilyResearch" shadows an attribute in parent "BaseTool"
+  class TavilyResearch(BaseTool):  # type: ignore[override, override]
+/usr/local/lib/python3.11/site-packages/langchain_tavily/tavily_research.py:97: UserWarning: Field name "stream" in "TavilyResearch" shadows an attribute in parent "BaseTool"
+  class TavilyResearch(BaseTool):  # type: ignore[override, override]
+[32m2025-12-29 16:30:44.516[0m | [33m[1mWARNING [0m | [36m-[0m | [33m[1mCheckpoint saver is disabled[0m
+[32m2025-12-29 16:30:45.767[0m | [31m[1mERROR   [0m | [36m-[0m | [31m[1mFailed to initialize SandboxService: 1 validation error for SandboxConfig
+  Value error, E2B API key is required. Set E2B_API_KEY environment variable [type=value_error, input_value={'provider_type': 'e2b', ..._network_enabled': True}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/value_error[0m
+[32m2025-12-29 16:30:45.771[0m | [31m[1mERROR   [0m | [36m-[0m | [31m[1mTraceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 694, in lifespan
+    async with self.lifespan_context(app) as maybe_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi_pagination/api.py", line 349, in lifespan
+    async with _original_lifespan_context(app) as maybe_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi/routing.py", line 205, in merged_lifespan
+    async with original_context(app) as maybe_original_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/fba/backend/core/registrar.py", line 73, in register_init
+    await sandbox_service.initialize()
+  File "/fba/backend/src/services/sandbox_service.py", line 33, in initialize
+    config = SandboxConfig()
+             ^^^^^^^^^^^^^^^
+  File "/fba/backend/src/sandbox/sandbox_server/config.py", line 59, in __init__
+    super().__init__(**data)
+  File "/usr/local/lib/python3.11/site-packages/pydantic/main.py", line 250, in __init__
+    validated_self = self.__pydantic_validator__.validate_python(data, self_instance=self)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+pydantic_core._pydantic_core.ValidationError: 1 validation error for SandboxConfig
+  Value error, E2B API key is required. Set E2B_API_KEY environment variable [type=value_error, input_value={'provider_type': 'e2b', ..._network_enabled': True}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/value_error
+[0m
+[32m2025-12-29 16:30:45.771[0m | [31m[1mERROR   [0m | [36m-[0m | [31m[1mASGI lifespan startup failed[0m
+[ERROR] Unexpected exit from worker-1
+[INFO] Shutting down granian
+[INFO] Starting granian (main PID: 171)
+[INFO] Listening at: http://0.0.0.0:8001
+[INFO] Spawning worker-1 with PID: 172
+2025-12-30 00:30:56.300 | INFO     | - | 检测插件依赖...
+2025-12-30 00:30:56.300 | INFO     | - | 插件准备就绪 - 6/6 0:00:00
+2025-12-30 00:30:56.300 | INFO     | - | 启动服务...
+/usr/local/lib/python3.11/site-packages/langchain_tavily/tavily_research.py:97: UserWarning: Field name "output_schema" in "TavilyResearch" shadows an attribute in parent "BaseTool"
+  class TavilyResearch(BaseTool):  # type: ignore[override, override]
+/usr/local/lib/python3.11/site-packages/langchain_tavily/tavily_research.py:97: UserWarning: Field name "stream" in "TavilyResearch" shadows an attribute in parent "BaseTool"
+  class TavilyResearch(BaseTool):  # type: ignore[override, override]
+[32m2025-12-29 16:31:00.577[0m | [33m[1mWARNING [0m | [36m-[0m | [33m[1mCheckpoint saver is disabled[0m
+[32m2025-12-29 16:31:01.905[0m | [31m[1mERROR   [0m | [36m-[0m | [31m[1mFailed to initialize SandboxService: 1 validation error for SandboxConfig
+  Value error, E2B API key is required. Set E2B_API_KEY environment variable [type=value_error, input_value={'provider_type': 'e2b', ..._network_enabled': True}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/value_error[0m
+[32m2025-12-29 16:31:01.909[0m | [31m[1mERROR   [0m | [36m-[0m | [31m[1mTraceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 694, in lifespan
+    async with self.lifespan_context(app) as maybe_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi_pagination/api.py", line 349, in lifespan
+    async with _original_lifespan_context(app) as maybe_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi/routing.py", line 205, in merged_lifespan
+    async with original_context(app) as maybe_original_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/fba/backend/core/registrar.py", line 73, in register_init
+    await sandbox_service.initialize()
+  File "/fba/backend/src/services/sandbox_service.py", line 33, in initialize
+    config = SandboxConfig()
+             ^^^^^^^^^^^^^^^
+  File "/fba/backend/src/sandbox/sandbox_server/config.py", line 59, in __init__
+    super().__init__(**data)
+  File "/usr/local/lib/python3.11/site-packages/pydantic/main.py", line 250, in __init__
+    validated_self = self.__pydantic_validator__.validate_python(data, self_instance=self)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+pydantic_core._pydantic_core.ValidationError: 1 validation error for SandboxConfig
+  Value error, E2B API key is required. Set E2B_API_KEY environment variable [type=value_error, input_value={'provider_type': 'e2b', ..._network_enabled': True}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/value_error
+[0m
+[32m2025-12-29 16:31:01.910[0m | [31m[1mERROR   [0m | [36m-[0m | [31m[1mASGI lifespan startup failed[0m
+[ERROR] Unexpected exit from worker-1
+[INFO] Shutting down granian
+[INFO] Starting granian (main PID: 192)
+[INFO] Listening at: http://0.0.0.0:8001
+[INFO] Spawning worker-1 with PID: 193
+2025-12-30 00:31:12.310 | INFO     | - | 检测插件依赖...
+2025-12-30 00:31:12.310 | INFO     | - | 插件准备就绪 - 6/6 0:00:00
+2025-12-30 00:31:12.310 | INFO     | - | 启动服务...
+/usr/local/lib/python3.11/site-packages/langchain_tavily/tavily_research.py:97: UserWarning: Field name "output_schema" in "TavilyResearch" shadows an attribute in parent "BaseTool"
+  class TavilyResearch(BaseTool):  # type: ignore[override, override]
+/usr/local/lib/python3.11/site-packages/langchain_tavily/tavily_research.py:97: UserWarning: Field name "stream" in "TavilyResearch" shadows an attribute in parent "BaseTool"
+  class TavilyResearch(BaseTool):  # type: ignore[override, override]
+[32m2025-12-29 16:31:16.948[0m | [33m[1mWARNING [0m | [36m-[0m | [33m[1mCheckpoint saver is disabled[0m
+[32m2025-12-29 16:31:18.374[0m | [31m[1mERROR   [0m | [36m-[0m | [31m[1mFailed to initialize SandboxService: 1 validation error for SandboxConfig
+  Value error, E2B API key is required. Set E2B_API_KEY environment variable [type=value_error, input_value={'provider_type': 'e2b', ..._network_enabled': True}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/value_error[0m
+[32m2025-12-29 16:31:18.377[0m | [31m[1mERROR   [0m | [36m-[0m | [31m[1mTraceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 694, in lifespan
+    async with self.lifespan_context(app) as maybe_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi_pagination/api.py", line 349, in lifespan
+    async with _original_lifespan_context(app) as maybe_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi/routing.py", line 205, in merged_lifespan
+    async with original_context(app) as maybe_original_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/fba/backend/core/registrar.py", line 73, in register_init
+    await sandbox_service.initialize()
+  File "/fba/backend/src/services/sandbox_service.py", line 33, in initialize
+    config = SandboxConfig()
+             ^^^^^^^^^^^^^^^
+  File "/fba/backend/src/sandbox/sandbox_server/config.py", line 59, in __init__
+    super().__init__(**data)
+  File "/usr/local/lib/python3.11/site-packages/pydantic/main.py", line 250, in __init__
+    validated_self = self.__pydantic_validator__.validate_python(data, self_instance=self)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+pydantic_core._pydantic_core.ValidationError: 1 validation error for SandboxConfig
+  Value error, E2B API key is required. Set E2B_API_KEY environment variable [type=value_error, input_value={'provider_type': 'e2b', ..._network_enabled': True}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/value_error
+[0m
+[32m2025-12-29 16:31:18.378[0m | [31m[1mERROR   [0m | [36m-[0m | [31m[1mASGI lifespan startup failed[0m
+[ERROR] Unexpected exit from worker-1
+[INFO] Shutting down granian
+[INFO] Starting granian (main PID: 213)
+[INFO] Listening at: http://0.0.0.0:8001
+[INFO] Spawning worker-1 with PID: 214
+2025-12-30 00:31:29.310 | INFO     | - | 检测插件依赖...
+2025-12-30 00:31:29.310 | INFO     | - | 插件准备就绪 - 6/6 0:00:00
+2025-12-30 00:31:29.310 | INFO     | - | 启动服务...
+/usr/local/lib/python3.11/site-packages/langchain_tavily/tavily_research.py:97: UserWarning: Field name "output_schema" in "TavilyResearch" shadows an attribute in parent "BaseTool"
+  class TavilyResearch(BaseTool):  # type: ignore[override, override]
+/usr/local/lib/python3.11/site-packages/langchain_tavily/tavily_research.py:97: UserWarning: Field name "stream" in "TavilyResearch" shadows an attribute in parent "BaseTool"
+  class TavilyResearch(BaseTool):  # type: ignore[override, override]
+[32m2025-12-29 16:31:33.639[0m | [33m[1mWARNING [0m | [36m-[0m | [33m[1mCheckpoint saver is disabled[0m
+[32m2025-12-29 16:31:35.027[0m | [31m[1mERROR   [0m | [36m-[0m | [31m[1mFailed to initialize SandboxService: 1 validation error for SandboxConfig
+  Value error, E2B API key is required. Set E2B_API_KEY environment variable [type=value_error, input_value={'provider_type': 'e2b', ..._network_enabled': True}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/value_error[0m
+[32m2025-12-29 16:31:35.030[0m | [31m[1mERROR   [0m | [36m-[0m | [31m[1mTraceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 694, in lifespan
+    async with self.lifespan_context(app) as maybe_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi_pagination/api.py", line 349, in lifespan
+    async with _original_lifespan_context(app) as maybe_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi/routing.py", line 205, in merged_lifespan
+    async with original_context(app) as maybe_original_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/fba/backend/core/registrar.py", line 73, in register_init
+    await sandbox_service.initialize()
+  File "/fba/backend/src/services/sandbox_service.py", line 33, in initialize
+    config = SandboxConfig()
+             ^^^^^^^^^^^^^^^
+  File "/fba/backend/src/sandbox/sandbox_server/config.py", line 59, in __init__
+    super().__init__(**data)
+  File "/usr/local/lib/python3.11/site-packages/pydantic/main.py", line 250, in __init__
+    validated_self = self.__pydantic_validator__.validate_python(data, self_instance=self)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+pydantic_core._pydantic_core.ValidationError: 1 validation error for SandboxConfig
+  Value error, E2B API key is required. Set E2B_API_KEY environment variable [type=value_error, input_value={'provider_type': 'e2b', ..._network_enabled': True}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/value_error
+[0m
+[32m2025-12-29 16:31:35.031[0m | [31m[1mERROR   [0m | [36m-[0m | [31m[1mASGI lifespan startup failed[0m
+[ERROR] Unexpected exit from worker-1
+[INFO] Shutting down granian
+[INFO] Starting granian (main PID: 234)
+[INFO] Listening at: http://0.0.0.0:8001
+[INFO] Spawning worker-1 with PID: 235
+2025-12-30 00:31:45.310 | INFO     | - | 检测插件依赖...
+2025-12-30 00:31:45.310 | INFO     | - | 插件准备就绪 - 6/6 0:00:00
+2025-12-30 00:31:45.310 | INFO     | - | 启动服务...
+/usr/local/lib/python3.11/site-packages/langchain_tavily/tavily_research.py:97: UserWarning: Field name "output_schema" in "TavilyResearch" shadows an attribute in parent "BaseTool"
+  class TavilyResearch(BaseTool):  # type: ignore[override, override]
+/usr/local/lib/python3.11/site-packages/langchain_tavily/tavily_research.py:97: UserWarning: Field name "stream" in "TavilyResearch" shadows an attribute in parent "BaseTool"
+  class TavilyResearch(BaseTool):  # type: ignore[override, override]
+[32m2025-12-29 16:31:49.961[0m | [33m[1mWARNING [0m | [36m-[0m | [33m[1mCheckpoint saver is disabled[0m
+[32m2025-12-29 16:31:51.401[0m | [31m[1mERROR   [0m | [36m-[0m | [31m[1mFailed to initialize SandboxService: 1 validation error for SandboxConfig
+  Value error, E2B API key is required. Set E2B_API_KEY environment variable [type=value_error, input_value={'provider_type': 'e2b', ..._network_enabled': True}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/value_error[0m
+[32m2025-12-29 16:31:51.405[0m | [31m[1mERROR   [0m | [36m-[0m | [31m[1mTraceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 694, in lifespan
+    async with self.lifespan_context(app) as maybe_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi_pagination/api.py", line 349, in lifespan
+    async with _original_lifespan_context(app) as maybe_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi/routing.py", line 205, in merged_lifespan
+    async with original_context(app) as maybe_original_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/fba/backend/core/registrar.py", line 73, in register_init
+    await sandbox_service.initialize()
+  File "/fba/backend/src/services/sandbox_service.py", line 33, in initialize
+    config = SandboxConfig()
+             ^^^^^^^^^^^^^^^
+  File "/fba/backend/src/sandbox/sandbox_server/config.py", line 59, in __init__
+    super().__init__(**data)
+  File "/usr/local/lib/python3.11/site-packages/pydantic/main.py", line 250, in __init__
+    validated_self = self.__pydantic_validator__.validate_python(data, self_instance=self)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+pydantic_core._pydantic_core.ValidationError: 1 validation error for SandboxConfig
+  Value error, E2B API key is required. Set E2B_API_KEY environment variable [type=value_error, input_value={'provider_type': 'e2b', ..._network_enabled': True}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/value_error
+[0m
+[32m2025-12-29 16:31:51.405[0m | [31m[1mERROR   [0m | [36m-[0m | [31m[1mASGI lifespan startup failed[0m
+[ERROR] Unexpected exit from worker-1
+[INFO] Shutting down granian
+[INFO] Starting granian (main PID: 255)
+[INFO] Listening at: http://0.0.0.0:8001
+[INFO] Spawning worker-1 with PID: 256
+2025-12-30 00:32:02.320 | INFO     | - | 检测插件依赖...
+2025-12-30 00:32:02.320 | INFO     | - | 插件准备就绪 - 6/6 0:00:00
+2025-12-30 00:32:02.320 | INFO     | - | 启动服务...
+/usr/local/lib/python3.11/site-packages/langchain_tavily/tavily_research.py:97: UserWarning: Field name "output_schema" in "TavilyResearch" shadows an attribute in parent "BaseTool"
+  class TavilyResearch(BaseTool):  # type: ignore[override, override]
+/usr/local/lib/python3.11/site-packages/langchain_tavily/tavily_research.py:97: UserWarning: Field name "stream" in "TavilyResearch" shadows an attribute in parent "BaseTool"
+  class TavilyResearch(BaseTool):  # type: ignore[override, override]
+[32m2025-12-29 16:32:06.829[0m | [33m[1mWARNING [0m | [36m-[0m | [33m[1mCheckpoint saver is disabled[0m
+[32m2025-12-29 16:32:08.267[0m | [31m[1mERROR   [0m | [36m-[0m | [31m[1mFailed to initialize SandboxService: 1 validation error for SandboxConfig
+  Value error, E2B API key is required. Set E2B_API_KEY environment variable [type=value_error, input_value={'provider_type': 'e2b', ..._network_enabled': True}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/value_error[0m
+[32m2025-12-29 16:32:08.271[0m | [31m[1mERROR   [0m | [36m-[0m | [31m[1mTraceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 694, in lifespan
+    async with self.lifespan_context(app) as maybe_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi_pagination/api.py", line 349, in lifespan
+    async with _original_lifespan_context(app) as maybe_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi/routing.py", line 205, in merged_lifespan
+    async with original_context(app) as maybe_original_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/fba/backend/core/registrar.py", line 73, in register_init
+    await sandbox_service.initialize()
+  File "/fba/backend/src/services/sandbox_service.py", line 33, in initialize
+    config = SandboxConfig()
+             ^^^^^^^^^^^^^^^
+  File "/fba/backend/src/sandbox/sandbox_server/config.py", line 59, in __init__
+    super().__init__(**data)
+  File "/usr/local/lib/python3.11/site-packages/pydantic/main.py", line 250, in __init__
+    validated_self = self.__pydantic_validator__.validate_python(data, self_instance=self)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+pydantic_core._pydantic_core.ValidationError: 1 validation error for SandboxConfig
+  Value error, E2B API key is required. Set E2B_API_KEY environment variable [type=value_error, input_value={'provider_type': 'e2b', ..._network_enabled': True}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/value_error
+[0m
+[32m2025-12-29 16:32:08.272[0m | [31m[1mERROR   [0m | [36m-[0m | [31m[1mASGI lifespan startup failed[0m
+[ERROR] Unexpected exit from worker-1
+[INFO] Shutting down granian
+[INFO] Starting granian (main PID: 276)
+[INFO] Listening at: http://0.0.0.0:8001
+[INFO] Spawning worker-1 with PID: 277
+2025-12-30 00:32:19.320 | INFO     | - | 检测插件依赖...
+2025-12-30 00:32:19.320 | INFO     | - | 插件准备就绪 - 6/6 0:00:00
+2025-12-30 00:32:19.320 | INFO     | - | 启动服务...
+/usr/local/lib/python3.11/site-packages/langchain_tavily/tavily_research.py:97: UserWarning: Field name "output_schema" in "TavilyResearch" shadows an attribute in parent "BaseTool"
+  class TavilyResearch(BaseTool):  # type: ignore[override, override]
+/usr/local/lib/python3.11/site-packages/langchain_tavily/tavily_research.py:97: UserWarning: Field name "stream" in "TavilyResearch" shadows an attribute in parent "BaseTool"
+  class TavilyResearch(BaseTool):  # type: ignore[override, override]
+[32m2025-12-29 16:32:23.680[0m | [33m[1mWARNING [0m | [36m-[0m | [33m[1mCheckpoint saver is disabled[0m
+[32m2025-12-29 16:32:25.054[0m | [31m[1mERROR   [0m | [36m-[0m | [31m[1mFailed to initialize SandboxService: 1 validation error for SandboxConfig
+  Value error, E2B API key is required. Set E2B_API_KEY environment variable [type=value_error, input_value={'provider_type': 'e2b', ..._network_enabled': True}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/value_error[0m
+[32m2025-12-29 16:32:25.058[0m | [31m[1mERROR   [0m | [36m-[0m | [31m[1mTraceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 694, in lifespan
+    async with self.lifespan_context(app) as maybe_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi_pagination/api.py", line 349, in lifespan
+    async with _original_lifespan_context(app) as maybe_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi/routing.py", line 205, in merged_lifespan
+    async with original_context(app) as maybe_original_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/fba/backend/core/registrar.py", line 73, in register_init
+    await sandbox_service.initialize()
+  File "/fba/backend/src/services/sandbox_service.py", line 33, in initialize
+    config = SandboxConfig()
+             ^^^^^^^^^^^^^^^
+  File "/fba/backend/src/sandbox/sandbox_server/config.py", line 59, in __init__
+    super().__init__(**data)
+  File "/usr/local/lib/python3.11/site-packages/pydantic/main.py", line 250, in __init__
+    validated_self = self.__pydantic_validator__.validate_python(data, self_instance=self)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+pydantic_core._pydantic_core.ValidationError: 1 validation error for SandboxConfig
+  Value error, E2B API key is required. Set E2B_API_KEY environment variable [type=value_error, input_value={'provider_type': 'e2b', ..._network_enabled': True}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/value_error
+[0m
+[32m2025-12-29 16:32:25.059[0m | [31m[1mERROR   [0m | [36m-[0m | [31m[1mASGI lifespan startup failed[0m
+[ERROR] Unexpected exit from worker-1
+[INFO] Shutting down granian
+[INFO] Starting granian (main PID: 297)
+[INFO] Listening at: http://0.0.0.0:8001
+[INFO] Spawning worker-1 with PID: 298
+2025-12-30 00:32:35.320 | INFO     | - | 检测插件依赖...
+2025-12-30 00:32:35.320 | INFO     | - | 插件准备就绪 - 6/6 0:00:00
+2025-12-30 00:32:35.320 | INFO     | - | 启动服务...
+/usr/local/lib/python3.11/site-packages/langchain_tavily/tavily_research.py:97: UserWarning: Field name "output_schema" in "TavilyResearch" shadows an attribute in parent "BaseTool"
+  class TavilyResearch(BaseTool):  # type: ignore[override, override]
+/usr/local/lib/python3.11/site-packages/langchain_tavily/tavily_research.py:97: UserWarning: Field name "stream" in "TavilyResearch" shadows an attribute in parent "BaseTool"
+  class TavilyResearch(BaseTool):  # type: ignore[override, override]
+[32m2025-12-29 16:32:39.703[0m | [33m[1mWARNING [0m | [36m-[0m | [33m[1mCheckpoint saver is disabled[0m
+[32m2025-12-29 16:32:41.059[0m | [31m[1mERROR   [0m | [36m-[0m | [31m[1mFailed to initialize SandboxService: 1 validation error for SandboxConfig
+  Value error, E2B API key is required. Set E2B_API_KEY environment variable [type=value_error, input_value={'provider_type': 'e2b', ..._network_enabled': True}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/value_error[0m
+[32m2025-12-29 16:32:41.062[0m | [31m[1mERROR   [0m | [36m-[0m | [31m[1mTraceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 694, in lifespan
+    async with self.lifespan_context(app) as maybe_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi_pagination/api.py", line 349, in lifespan
+    async with _original_lifespan_context(app) as maybe_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi/routing.py", line 205, in merged_lifespan
+    async with original_context(app) as maybe_original_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/fba/backend/core/registrar.py", line 73, in register_init
+    await sandbox_service.initialize()
+  File "/fba/backend/src/services/sandbox_service.py", line 33, in initialize
+    config = SandboxConfig()
+             ^^^^^^^^^^^^^^^
+  File "/fba/backend/src/sandbox/sandbox_server/config.py", line 59, in __init__
+    super().__init__(**data)
+  File "/usr/local/lib/python3.11/site-packages/pydantic/main.py", line 250, in __init__
+    validated_self = self.__pydantic_validator__.validate_python(data, self_instance=self)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+pydantic_core._pydantic_core.ValidationError: 1 validation error for SandboxConfig
+  Value error, E2B API key is required. Set E2B_API_KEY environment variable [type=value_error, input_value={'provider_type': 'e2b', ..._network_enabled': True}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/value_error
+[0m
+[32m2025-12-29 16:32:41.062[0m | [31m[1mERROR   [0m | [36m-[0m | [31m[1mASGI lifespan startup failed[0m
+[ERROR] Unexpected exit from worker-1
+[INFO] Shutting down granian
+[INFO] Starting granian (main PID: 318)
+[INFO] Listening at: http://0.0.0.0:8001
+[INFO] Spawning worker-1 with PID: 319
+2025-12-30 00:32:51.320 | INFO     | - | 检测插件依赖...
+2025-12-30 00:32:51.320 | INFO     | - | 插件准备就绪 - 6/6 0:00:00
+2025-12-30 00:32:51.320 | INFO     | - | 启动服务...
+/usr/local/lib/python3.11/site-packages/langchain_tavily/tavily_research.py:97: UserWarning: Field name "output_schema" in "TavilyResearch" shadows an attribute in parent "BaseTool"
+  class TavilyResearch(BaseTool):  # type: ignore[override, override]
+/usr/local/lib/python3.11/site-packages/langchain_tavily/tavily_research.py:97: UserWarning: Field name "stream" in "TavilyResearch" shadows an attribute in parent "BaseTool"
+  class TavilyResearch(BaseTool):  # type: ignore[override, override]
+[32m2025-12-29 16:32:55.764[0m | [33m[1mWARNING [0m | [36m-[0m | [33m[1mCheckpoint saver is disabled[0m
+[32m2025-12-29 16:32:57.140[0m | [31m[1mERROR   [0m | [36m-[0m | [31m[1mFailed to initialize SandboxService: 1 validation error for SandboxConfig
+  Value error, E2B API key is required. Set E2B_API_KEY environment variable [type=value_error, input_value={'provider_type': 'e2b', ..._network_enabled': True}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/value_error[0m
+[32m2025-12-29 16:32:57.143[0m | [31m[1mERROR   [0m | [36m-[0m | [31m[1mTraceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 694, in lifespan
+    async with self.lifespan_context(app) as maybe_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi_pagination/api.py", line 349, in lifespan
+    async with _original_lifespan_context(app) as maybe_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi/routing.py", line 205, in merged_lifespan
+    async with original_context(app) as maybe_original_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/fba/backend/core/registrar.py", line 73, in register_init
+    await sandbox_service.initialize()
+  File "/fba/backend/src/services/sandbox_service.py", line 33, in initialize
+    config = SandboxConfig()
+             ^^^^^^^^^^^^^^^
+  File "/fba/backend/src/sandbox/sandbox_server/config.py", line 59, in __init__
+    super().__init__(**data)
+  File "/usr/local/lib/python3.11/site-packages/pydantic/main.py", line 250, in __init__
+    validated_self = self.__pydantic_validator__.validate_python(data, self_instance=self)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+pydantic_core._pydantic_core.ValidationError: 1 validation error for SandboxConfig
+  Value error, E2B API key is required. Set E2B_API_KEY environment variable [type=value_error, input_value={'provider_type': 'e2b', ..._network_enabled': True}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/value_error
+[0m
+[32m2025-12-29 16:32:57.143[0m | [31m[1mERROR   [0m | [36m-[0m | [31m[1mASGI lifespan startup failed[0m
+[ERROR] Unexpected exit from worker-1
+[INFO] Shutting down granian
+[INFO] Starting granian (main PID: 339)
+[INFO] Listening at: http://0.0.0.0:8001
+[INFO] Spawning worker-1 with PID: 340
+2025-12-30 00:33:07.330 | INFO     | - | 检测插件依赖...
+2025-12-30 00:33:07.330 | INFO     | - | 插件准备就绪 - 6/6 0:00:00
+2025-12-30 00:33:07.330 | INFO     | - | 启动服务...
+/usr/local/lib/python3.11/site-packages/langchain_tavily/tavily_research.py:97: UserWarning: Field name "output_schema" in "TavilyResearch" shadows an attribute in parent "BaseTool"
+  class TavilyResearch(BaseTool):  # type: ignore[override, override]
+/usr/local/lib/python3.11/site-packages/langchain_tavily/tavily_research.py:97: UserWarning: Field name "stream" in "TavilyResearch" shadows an attribute in parent "BaseTool"
+  class TavilyResearch(BaseTool):  # type: ignore[override, override]
+[32m2025-12-29 16:33:12.359[0m | [33m[1mWARNING [0m | [36m-[0m | [33m[1mCheckpoint saver is disabled[0m
+[32m2025-12-29 16:33:13.664[0m | [31m[1mERROR   [0m | [36m-[0m | [31m[1mFailed to initialize SandboxService: 1 validation error for SandboxConfig
+  Value error, E2B API key is required. Set E2B_API_KEY environment variable [type=value_error, input_value={'provider_type': 'e2b', ..._network_enabled': True}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/value_error[0m
+[32m2025-12-29 16:33:13.668[0m | [31m[1mERROR   [0m | [36m-[0m | [31m[1mTraceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 694, in lifespan
+    async with self.lifespan_context(app) as maybe_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi_pagination/api.py", line 349, in lifespan
+    async with _original_lifespan_context(app) as maybe_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi/routing.py", line 205, in merged_lifespan
+    async with original_context(app) as maybe_original_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/fba/backend/core/registrar.py", line 73, in register_init
+    await sandbox_service.initialize()
+  File "/fba/backend/src/services/sandbox_service.py", line 33, in initialize
+    config = SandboxConfig()
+             ^^^^^^^^^^^^^^^
+  File "/fba/backend/src/sandbox/sandbox_server/config.py", line 59, in __init__
+    super().__init__(**data)
+  File "/usr/local/lib/python3.11/site-packages/pydantic/main.py", line 250, in __init__
+    validated_self = self.__pydantic_validator__.validate_python(data, self_instance=self)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+pydantic_core._pydantic_core.ValidationError: 1 validation error for SandboxConfig
+  Value error, E2B API key is required. Set E2B_API_KEY environment variable [type=value_error, input_value={'provider_type': 'e2b', ..._network_enabled': True}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/value_error
+[0m
+[32m2025-12-29 16:33:13.669[0m | [31m[1mERROR   [0m | [36m-[0m | [31m[1mASGI lifespan startup failed[0m
+[ERROR] Unexpected exit from worker-1
+[INFO] Shutting down granian
+[INFO] Starting granian (main PID: 360)
+[INFO] Listening at: http://0.0.0.0:8001
+[INFO] Spawning worker-1 with PID: 361
+2025-12-30 00:33:24.330 | INFO     | - | 检测插件依赖...
+2025-12-30 00:33:24.330 | INFO     | - | 插件准备就绪 - 6/6 0:00:00
+2025-12-30 00:33:24.330 | INFO     | - | 启动服务...
+/usr/local/lib/python3.11/site-packages/langchain_tavily/tavily_research.py:97: UserWarning: Field name "output_schema" in "TavilyResearch" shadows an attribute in parent "BaseTool"
+  class TavilyResearch(BaseTool):  # type: ignore[override, override]
+/usr/local/lib/python3.11/site-packages/langchain_tavily/tavily_research.py:97: UserWarning: Field name "stream" in "TavilyResearch" shadows an attribute in parent "BaseTool"
+  class TavilyResearch(BaseTool):  # type: ignore[override, override]
+[32m2025-12-29 16:33:28.586[0m | [33m[1mWARNING [0m | [36m-[0m | [33m[1mCheckpoint saver is disabled[0m
+[32m2025-12-29 16:33:30.023[0m | [31m[1mERROR   [0m | [36m-[0m | [31m[1mFailed to initialize SandboxService: 1 validation error for SandboxConfig
+  Value error, E2B API key is required. Set E2B_API_KEY environment variable [type=value_error, input_value={'provider_type': 'e2b', ..._network_enabled': True}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/value_error[0m
+[32m2025-12-29 16:33:30.028[0m | [31m[1mERROR   [0m | [36m-[0m | [31m[1mTraceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 694, in lifespan
+    async with self.lifespan_context(app) as maybe_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi_pagination/api.py", line 349, in lifespan
+    async with _original_lifespan_context(app) as maybe_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi/routing.py", line 205, in merged_lifespan
+    async with original_context(app) as maybe_original_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/fba/backend/core/registrar.py", line 73, in register_init
+    await sandbox_service.initialize()
+  File "/fba/backend/src/services/sandbox_service.py", line 33, in initialize
+    config = SandboxConfig()
+             ^^^^^^^^^^^^^^^
+  File "/fba/backend/src/sandbox/sandbox_server/config.py", line 59, in __init__
+    super().__init__(**data)
+  File "/usr/local/lib/python3.11/site-packages/pydantic/main.py", line 250, in __init__
+    validated_self = self.__pydantic_validator__.validate_python(data, self_instance=self)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+pydantic_core._pydantic_core.ValidationError: 1 validation error for SandboxConfig
+  Value error, E2B API key is required. Set E2B_API_KEY environment variable [type=value_error, input_value={'provider_type': 'e2b', ..._network_enabled': True}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/value_error
+[0m
+[32m2025-12-29 16:33:30.028[0m | [31m[1mERROR   [0m | [36m-[0m | [31m[1mASGI lifespan startup failed[0m
+[ERROR] Unexpected exit from worker-1
+[INFO] Shutting down granian
+[INFO] Starting granian (main PID: 381)
+[INFO] Listening at: http://0.0.0.0:8001
+[INFO] Spawning worker-1 with PID: 382
+2025-12-30 00:33:40.330 | INFO     | - | 检测插件依赖...
+2025-12-30 00:33:40.330 | INFO     | - | 插件准备就绪 - 6/6 0:00:00
+2025-12-30 00:33:40.330 | INFO     | - | 启动服务...
+/usr/local/lib/python3.11/site-packages/langchain_tavily/tavily_research.py:97: UserWarning: Field name "output_schema" in "TavilyResearch" shadows an attribute in parent "BaseTool"
+  class TavilyResearch(BaseTool):  # type: ignore[override, override]
+/usr/local/lib/python3.11/site-packages/langchain_tavily/tavily_research.py:97: UserWarning: Field name "stream" in "TavilyResearch" shadows an attribute in parent "BaseTool"
+  class TavilyResearch(BaseTool):  # type: ignore[override, override]
+[32m2025-12-29 16:33:45.269[0m | [33m[1mWARNING [0m | [36m-[0m | [33m[1mCheckpoint saver is disabled[0m
+[32m2025-12-29 16:33:47.007[0m | [31m[1mERROR   [0m | [36m-[0m | [31m[1mFailed to initialize SandboxService: 1 validation error for SandboxConfig
+  Value error, E2B API key is required. Set E2B_API_KEY environment variable [type=value_error, input_value={'provider_type': 'e2b', ..._network_enabled': True}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/value_error[0m
+[32m2025-12-29 16:33:47.011[0m | [31m[1mERROR   [0m | [36m-[0m | [31m[1mTraceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 694, in lifespan
+    async with self.lifespan_context(app) as maybe_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi_pagination/api.py", line 349, in lifespan
+    async with _original_lifespan_context(app) as maybe_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi/routing.py", line 205, in merged_lifespan
+    async with original_context(app) as maybe_original_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/fba/backend/core/registrar.py", line 73, in register_init
+    await sandbox_service.initialize()
+  File "/fba/backend/src/services/sandbox_service.py", line 33, in initialize
+    config = SandboxConfig()
+             ^^^^^^^^^^^^^^^
+  File "/fba/backend/src/sandbox/sandbox_server/config.py", line 59, in __init__
+    super().__init__(**data)
+  File "/usr/local/lib/python3.11/site-packages/pydantic/main.py", line 250, in __init__
+    validated_self = self.__pydantic_validator__.validate_python(data, self_instance=self)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+pydantic_core._pydantic_core.ValidationError: 1 validation error for SandboxConfig
+  Value error, E2B API key is required. Set E2B_API_KEY environment variable [type=value_error, input_value={'provider_type': 'e2b', ..._network_enabled': True}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/value_error
+[0m
+[32m2025-12-29 16:33:47.012[0m | [31m[1mERROR   [0m | [36m-[0m | [31m[1mASGI lifespan startup failed[0m
+[ERROR] Unexpected exit from worker-1
+[INFO] Shutting down granian
+[INFO] Starting granian (main PID: 402)
+[INFO] Listening at: http://0.0.0.0:8001
+[INFO] Spawning worker-1 with PID: 403
+2025-12-30 00:33:58.330 | INFO     | - | 检测插件依赖...
+2025-12-30 00:33:58.330 | INFO     | - | 插件准备就绪 - 6/6 0:00:00
+2025-12-30 00:33:58.330 | INFO     | - | 启动服务...
+/usr/local/lib/python3.11/site-packages/langchain_tavily/tavily_research.py:97: UserWarning: Field name "output_schema" in "TavilyResearch" shadows an attribute in parent "BaseTool"
+  class TavilyResearch(BaseTool):  # type: ignore[override, override]
+/usr/local/lib/python3.11/site-packages/langchain_tavily/tavily_research.py:97: UserWarning: Field name "stream" in "TavilyResearch" shadows an attribute in parent "BaseTool"
+  class TavilyResearch(BaseTool):  # type: ignore[override, override]
+[32m2025-12-29 16:34:03.929[0m | [33m[1mWARNING [0m | [36m-[0m | [33m[1mCheckpoint saver is disabled[0m
+[32m2025-12-29 16:34:05.490[0m | [31m[1mERROR   [0m | [36m-[0m | [31m[1mFailed to initialize SandboxService: 1 validation error for SandboxConfig
+  Value error, E2B API key is required. Set E2B_API_KEY environment variable [type=value_error, input_value={'provider_type': 'e2b', ..._network_enabled': True}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/value_error[0m
+[32m2025-12-29 16:34:05.495[0m | [31m[1mERROR   [0m | [36m-[0m | [31m[1mTraceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 694, in lifespan
+    async with self.lifespan_context(app) as maybe_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi_pagination/api.py", line 349, in lifespan
+    async with _original_lifespan_context(app) as maybe_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi/routing.py", line 205, in merged_lifespan
+    async with original_context(app) as maybe_original_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/fba/backend/core/registrar.py", line 73, in register_init
+    await sandbox_service.initialize()
+  File "/fba/backend/src/services/sandbox_service.py", line 33, in initialize
+    config = SandboxConfig()
+             ^^^^^^^^^^^^^^^
+  File "/fba/backend/src/sandbox/sandbox_server/config.py", line 59, in __init__
+    super().__init__(**data)
+  File "/usr/local/lib/python3.11/site-packages/pydantic/main.py", line 250, in __init__
+    validated_self = self.__pydantic_validator__.validate_python(data, self_instance=self)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+pydantic_core._pydantic_core.ValidationError: 1 validation error for SandboxConfig
+  Value error, E2B API key is required. Set E2B_API_KEY environment variable [type=value_error, input_value={'provider_type': 'e2b', ..._network_enabled': True}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/value_error
+[0m
+[32m2025-12-29 16:34:05.495[0m | [31m[1mERROR   [0m | [36m-[0m | [31m[1mASGI lifespan startup failed[0m
+[ERROR] Unexpected exit from worker-1
+[INFO] Shutting down granian
+[INFO] Starting granian (main PID: 429)
+[INFO] Listening at: http://0.0.0.0:8001
+[INFO] Spawning worker-1 with PID: 430
+2025-12-30 00:34:17.340 | INFO     | - | 检测插件依赖...
+2025-12-30 00:34:17.340 | INFO     | - | 插件准备就绪 - 6/6 0:00:00
+2025-12-30 00:34:17.340 | INFO     | - | 启动服务...
+/usr/local/lib/python3.11/site-packages/langchain_tavily/tavily_research.py:97: UserWarning: Field name "output_schema" in "TavilyResearch" shadows an attribute in parent "BaseTool"
+  class TavilyResearch(BaseTool):  # type: ignore[override, override]
+/usr/local/lib/python3.11/site-packages/langchain_tavily/tavily_research.py:97: UserWarning: Field name "stream" in "TavilyResearch" shadows an attribute in parent "BaseTool"
+  class TavilyResearch(BaseTool):  # type: ignore[override, override]
+[32m2025-12-29 16:34:21.872[0m | [33m[1mWARNING [0m | [36m-[0m | [33m[1mCheckpoint saver is disabled[0m
+[32m2025-12-29 16:34:23.238[0m | [31m[1mERROR   [0m | [36m-[0m | [31m[1mFailed to initialize SandboxService: 1 validation error for SandboxConfig
+  Value error, E2B API key is required. Set E2B_API_KEY environment variable [type=value_error, input_value={'provider_type': 'e2b', ..._network_enabled': True}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/value_error[0m
+[32m2025-12-29 16:34:23.242[0m | [31m[1mERROR   [0m | [36m-[0m | [31m[1mTraceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 694, in lifespan
+    async with self.lifespan_context(app) as maybe_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi_pagination/api.py", line 349, in lifespan
+    async with _original_lifespan_context(app) as maybe_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi/routing.py", line 205, in merged_lifespan
+    async with original_context(app) as maybe_original_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/fba/backend/core/registrar.py", line 73, in register_init
+    await sandbox_service.initialize()
+  File "/fba/backend/src/services/sandbox_service.py", line 33, in initialize
+    config = SandboxConfig()
+             ^^^^^^^^^^^^^^^
+  File "/fba/backend/src/sandbox/sandbox_server/config.py", line 59, in __init__
+    super().__init__(**data)
+  File "/usr/local/lib/python3.11/site-packages/pydantic/main.py", line 250, in __init__
+    validated_self = self.__pydantic_validator__.validate_python(data, self_instance=self)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+pydantic_core._pydantic_core.ValidationError: 1 validation error for SandboxConfig
+  Value error, E2B API key is required. Set E2B_API_KEY environment variable [type=value_error, input_value={'provider_type': 'e2b', ..._network_enabled': True}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/value_error
+[0m
+[32m2025-12-29 16:34:23.242[0m | [31m[1mERROR   [0m | [36m-[0m | [31m[1mASGI lifespan startup failed[0m
+[ERROR] Unexpected exit from worker-1
+[INFO] Shutting down granian
+[INFO] Starting granian (main PID: 462)
+[INFO] Listening at: http://0.0.0.0:8001
+[INFO] Spawning worker-1 with PID: 463
+2025-12-30 00:34:34.340 | INFO     | - | 检测插件依赖...
+2025-12-30 00:34:34.340 | INFO     | - | 插件准备就绪 - 6/6 0:00:00
+2025-12-30 00:34:34.340 | INFO     | - | 启动服务...
+/usr/local/lib/python3.11/site-packages/langchain_tavily/tavily_research.py:97: UserWarning: Field name "output_schema" in "TavilyResearch" shadows an attribute in parent "BaseTool"
+  class TavilyResearch(BaseTool):  # type: ignore[override, override]
+/usr/local/lib/python3.11/site-packages/langchain_tavily/tavily_research.py:97: UserWarning: Field name "stream" in "TavilyResearch" shadows an attribute in parent "BaseTool"
+  class TavilyResearch(BaseTool):  # type: ignore[override, override]
+[32m2025-12-29 16:34:39.916[0m | [33m[1mWARNING [0m | [36m-[0m | [33m[1mCheckpoint saver is disabled[0m
+[32m2025-12-29 16:34:41.390[0m | [31m[1mERROR   [0m | [36m-[0m | [31m[1mFailed to initialize SandboxService: 1 validation error for SandboxConfig
+  Value error, E2B API key is required. Set E2B_API_KEY environment variable [type=value_error, input_value={'provider_type': 'e2b', ..._network_enabled': True}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/value_error[0m
+[32m2025-12-29 16:34:41.393[0m | [31m[1mERROR   [0m | [36m-[0m | [31m[1mTraceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 694, in lifespan
+    async with self.lifespan_context(app) as maybe_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi_pagination/api.py", line 349, in lifespan
+    async with _original_lifespan_context(app) as maybe_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi/routing.py", line 205, in merged_lifespan
+    async with original_context(app) as maybe_original_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/fba/backend/core/registrar.py", line 73, in register_init
+    await sandbox_service.initialize()
+  File "/fba/backend/src/services/sandbox_service.py", line 33, in initialize
+    config = SandboxConfig()
+             ^^^^^^^^^^^^^^^
+  File "/fba/backend/src/sandbox/sandbox_server/config.py", line 59, in __init__
+    super().__init__(**data)
+  File "/usr/local/lib/python3.11/site-packages/pydantic/main.py", line 250, in __init__
+    validated_self = self.__pydantic_validator__.validate_python(data, self_instance=self)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+pydantic_core._pydantic_core.ValidationError: 1 validation error for SandboxConfig
+  Value error, E2B API key is required. Set E2B_API_KEY environment variable [type=value_error, input_value={'provider_type': 'e2b', ..._network_enabled': True}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/value_error
+[0m
+[32m2025-12-29 16:34:41.394[0m | [31m[1mERROR   [0m | [36m-[0m | [31m[1mASGI lifespan startup failed[0m
+[ERROR] Unexpected exit from worker-1
+[INFO] Shutting down granian
+[INFO] Starting granian (main PID: 496)
+[INFO] Listening at: http://0.0.0.0:8001
+[INFO] Spawning worker-1 with PID: 497
+2025-12-30 00:34:52.340 | INFO     | - | 检测插件依赖...
+2025-12-30 00:34:52.340 | INFO     | - | 插件准备就绪 - 6/6 0:00:00
+2025-12-30 00:34:52.340 | INFO     | - | 启动服务...
+/usr/local/lib/python3.11/site-packages/langchain_tavily/tavily_research.py:97: UserWarning: Field name "output_schema" in "TavilyResearch" shadows an attribute in parent "BaseTool"
+  class TavilyResearch(BaseTool):  # type: ignore[override, override]
+/usr/local/lib/python3.11/site-packages/langchain_tavily/tavily_research.py:97: UserWarning: Field name "stream" in "TavilyResearch" shadows an attribute in parent "BaseTool"
+  class TavilyResearch(BaseTool):  # type: ignore[override, override]
+[32m2025-12-29 16:34:57.094[0m | [33m[1mWARNING [0m | [36m-[0m | [33m[1mCheckpoint saver is disabled[0m
+[32m2025-12-29 16:34:58.401[0m | [31m[1mERROR   [0m | [36m-[0m | [31m[1mFailed to initialize SandboxService: 1 validation error for SandboxConfig
+  Value error, E2B API key is required. Set E2B_API_KEY environment variable [type=value_error, input_value={'provider_type': 'e2b', ..._network_enabled': True}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/value_error[0m
+[32m2025-12-29 16:34:58.404[0m | [31m[1mERROR   [0m | [36m-[0m | [31m[1mTraceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 694, in lifespan
+    async with self.lifespan_context(app) as maybe_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi_pagination/api.py", line 349, in lifespan
+    async with _original_lifespan_context(app) as maybe_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi/routing.py", line 205, in merged_lifespan
+    async with original_context(app) as maybe_original_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/fba/backend/core/registrar.py", line 73, in register_init
+    await sandbox_service.initialize()
+  File "/fba/backend/src/services/sandbox_service.py", line 33, in initialize
+    config = SandboxConfig()
+             ^^^^^^^^^^^^^^^
+  File "/fba/backend/src/sandbox/sandbox_server/config.py", line 59, in __init__
+    super().__init__(**data)
+  File "/usr/local/lib/python3.11/site-packages/pydantic/main.py", line 250, in __init__
+    validated_self = self.__pydantic_validator__.validate_python(data, self_instance=self)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+pydantic_core._pydantic_core.ValidationError: 1 validation error for SandboxConfig
+  Value error, E2B API key is required. Set E2B_API_KEY environment variable [type=value_error, input_value={'provider_type': 'e2b', ..._network_enabled': True}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/value_error
+[0m
+[32m2025-12-29 16:34:58.405[0m | [31m[1mERROR   [0m | [36m-[0m | [31m[1mASGI lifespan startup failed[0m
+[ERROR] Unexpected exit from worker-1
+[INFO] Shutting down granian
+[INFO] Starting granian (main PID: 525)
+[INFO] Listening at: http://0.0.0.0:8001
+[INFO] Spawning worker-1 with PID: 526

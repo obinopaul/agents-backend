@@ -205,5 +205,101 @@ class SandboxTable:
             )
             return result.scalar_one_or_none()
 
+    async def get_running_sandbox_for_user(self, user_id: str) -> Optional[Sandbox]:
+        """Get the most recent running sandbox for a user.
+        
+        This enables sandbox reuse - if user already has a running sandbox,
+        we can connect to it instead of creating a new one.
+
+        Args:
+            user_id: The user ID
+
+        Returns:
+            The most recent running sandbox if found, None otherwise
+        """
+        async with get_db() as db:
+            result = await db.execute(
+                select(Sandbox)
+                .where(
+                    Sandbox.user_id == user_id,
+                    Sandbox.status == "running"
+                )
+                .order_by(Sandbox.created_at.desc())
+                .limit(1)
+            )
+            return result.scalar_one_or_none()
+
+    async def get_sandbox_for_session(self, session_id: str) -> Optional[Sandbox]:
+        """Get the sandbox linked to a specific session via SessionMetrics.
+        
+        This matches II-Agent's session_has_sandbox pattern.
+
+        Args:
+            session_id: The session ID to look up
+
+        Returns:
+            The linked sandbox if found and running, None otherwise
+        """
+        try:
+            # Import here to avoid circular imports
+            from backend.app.agent.model.agent_models import SessionMetrics
+            
+            async with get_db() as db:
+                # First, find the session and get its sandbox_id
+                result = await db.execute(
+                    select(SessionMetrics.sandbox_id)
+                    .where(SessionMetrics.session_id == session_id)
+                )
+                sandbox_id = result.scalar_one_or_none()
+                
+                if not sandbox_id:
+                    return None
+                
+                # Then get the sandbox if it's still running
+                result = await db.execute(
+                    select(Sandbox)
+                    .where(
+                        Sandbox.id == sandbox_id,
+                        Sandbox.status == "running"
+                    )
+                )
+                return result.scalar_one_or_none()
+        except Exception as e:
+            logger.warning(f"Failed to get sandbox for session {session_id}: {e}")
+            return None
+
+    async def update_session_sandbox(self, session_id: str, sandbox_id: str) -> bool:
+        """Link a sandbox to a session by updating SessionMetrics.sandbox_id.
+        
+        This matches II-Agent's update_sandbox_id pattern.
+
+        Args:
+            session_id: The session ID to update
+            sandbox_id: The sandbox ID to link
+
+        Returns:
+            True if updated successfully, False if session not found
+        """
+        try:
+            # Import here to avoid circular imports
+            from backend.app.agent.model.agent_models import SessionMetrics
+            
+            async with get_db() as db:
+                result = await db.execute(
+                    select(SessionMetrics)
+                    .where(SessionMetrics.session_id == session_id)
+                )
+                session_metrics = result.scalar_one_or_none()
+                
+                if session_metrics:
+                    session_metrics.sandbox_id = sandbox_id
+                    await db.flush()
+                    return True
+                return False
+        except Exception as e:
+            logger.warning(f"Failed to update session {session_id} with sandbox {sandbox_id}: {e}")
+            return False
+
 
 Sandboxes = SandboxTable()
+

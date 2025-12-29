@@ -386,7 +386,7 @@ EMAIL_PASSWORD='your-app-password'
 EMAIL_USE_TLS=True
 EMAIL_FROM='noreply@example.com'
 
-EMAIL_CAPTCHA_REDIS_PREFIX='fba:email:captcha'
+EMAIL_CAPTCHA_REDIS_PREFIX='agents_backend:email:captcha'
 EMAIL_CAPTCHA_EXPIRE_SECONDS=300
 ```
 

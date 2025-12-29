@@ -302,7 +302,10 @@ docker-compose logs -f fba_celery_worker
 docker-compose ps
 
 # Check FastAPI health
-curl http://localhost:8000/api/v1/health
+curl http://localhost:8000/health
+
+# Expected response:
+# {"status":"healthy","timestamp":"...","version":"1.11.2","service":"agents-backend"}
 
 # Check RabbitMQ
 curl http://localhost:15672/api/overview

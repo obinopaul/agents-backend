@@ -1,8 +1,8 @@
 <div align="center">
 
-<img alt="Logo 包含了 FBA 三个字母抽象结合，形成了一个类似从地面扩散投影上来的闪电" width="320" src="https://wu-clan.github.io/picx-images-hosting/logo/fba.png">
+<img alt="Logo 包含了 Agents Backend 抽象结合" width="320" src="https://wu-clan.github.io/picx-images-hosting/logo/fba.png">
 
-# FastAPI Best Architecture
+# Agents Backend
 
 企业级后端架构解决方案
 
@@ -31,7 +31,7 @@ mvc 架构作为常规设计模式，在 python web 中也很常见，但是三�
 
 但请注意，我们并没有传统的多应用程序结构（django、springBoot...），如果您不喜欢这种模式，可以使用模板对其进行随意改造！
 
-| 工作流程 | java           | fastapi_best_architecture |
+| 工作流程 | java           | agents_backend |
 |------|----------------|---------------------------|
 | 视图   | controller     | api                       |
 | 数据传输 | dto            | schema                    |

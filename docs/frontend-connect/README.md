@@ -16,6 +16,7 @@ This guide covers how to connect your frontend application to the backend APIs f
 | **MCP Configuration** | [mcp-settings-api.md](./mcp-settings-api.md) | `/api/v1/agent/user-settings` |
 | **Sandbox Management** | [sandbox-api.md](./sandbox-api.md) | `/api/v1/agent/sandboxes` |
 | **Agent Chat Streaming** | [chat-api.md](./chat-api.md) | `/api/v1/agent/chat` |
+| **Agent with Sandbox** | [agent-api.md](./agent-api.md) | `/api/v1/agent/agent` |
 
 ---
 

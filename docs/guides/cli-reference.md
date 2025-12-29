@@ -1,6 +1,6 @@
-# FBA CLI Reference
+# Agents Backend CLI Reference
 
-The FBA CLI is a powerful command-line tool for managing and testing all Agents Backend functionality.
+The Agents Backend CLI (`agents-backend`) is a powerful command-line tool for managing and testing all Agents Backend functionality.
 
 ## Installation
 
@@ -8,11 +8,11 @@ The FBA CLI is a powerful command-line tool for managing and testing all Agents 
 # Install dependencies
 pip install -r requirements.txt
 
-# The fba command becomes available after installing the package
+# The agents-backend command becomes available after installing the package
 pip install -e .
 
 # Verify installation
-fba --help
+agents-backend --help
 ```
 
 ---
@@ -23,11 +23,11 @@ fba --help
 
 | Command | Description | Example |
 |---------|-------------|---------|
-| `fba run` | Start the FastAPI server | `fba run --host 0.0.0.0 --port 8000` |
-| `fba run --no-reload` | Production mode (no auto-reload) | `fba run --no-reload --workers 4` |
-| `fba init` | Initialize database (drop & recreate tables, run SQL scripts) | `fba init` |
-| `fba agent` | Run the Deep Research Agent interactively | `fba agent --debug` |
-| `fba --sql <path>` | Execute a SQL script in a transaction | `fba --sql ./scripts/init.sql` |
+| `agents-backend run` | Start the FastAPI server | `agents-backend run --host 0.0.0.0 --port 8000` |
+| `agents-backend run --no-reload` | Production mode (no auto-reload) | `agents-backend run --no-reload --workers 4` |
+| `agents-backend init` | Initialize database (drop & recreate tables, run SQL scripts) | `agents-backend init` |
+| `agents-backend agent` | Run the Deep Research Agent interactively | `agents-backend agent --debug` |
+| `agents-backend --sql <path>` | Execute a SQL script in a transaction | `agents-backend --sql ./scripts/init.sql` |
 
 ### Agent Command Options
 
@@ -53,16 +53,16 @@ fba --help
 
 | Command | Description | Example |
 |---------|-------------|---------|
-| `fba celery worker` | Start Celery background worker | `fba celery worker -l info` |
-| `fba celery beat` | Start Celery scheduler | `fba celery beat -l info` |
-| `fba celery flower` | Start Celery monitoring UI | `fba celery flower --port 8555` |
+| `agents-backend celery worker` | Start Celery background worker | `agents-backend celery worker -l info` |
+| `agents-backend celery beat` | Start Celery scheduler | `agents-backend celery beat -l info` |
+| `agents-backend celery flower` | Start Celery monitoring UI | `agents-backend celery flower --port 8555` |
 
 ### Code Generation
 
 | Command | Description |
 |---------|-------------|
-| `fba codegen` | Generate CRUD code from database tables (interactive) |
-| `fba codegen import` | Import table schema for code generation |
+| `agents-backend codegen` | Generate CRUD code from database tables (interactive) |
+| `agents-backend codegen import` | Import table schema for code generation |
 
 ---
 

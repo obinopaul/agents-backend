@@ -181,15 +181,15 @@ pip install -r requirements-dev.txt  # if available
 #### Step 4: Verify Installation
 
 ```bash
-# Check that FBA CLI is available
-fba --help
+# Check that Agents Backend CLI is available
+agents-backend --help
 ```
 
 Expected output:
 ```
-Usage: fba [OPTIONS] COMMAND [ARGS]...
+Usage: agents-backend [OPTIONS] COMMAND [ARGS]...
 
-  FastAPI Best Architecture CLI
+  Agents Backend CLI
 
 Options:
   --help  Show this message and exit.
@@ -324,14 +324,14 @@ MYSQL_HOST=localhost
 MYSQL_PORT=3306
 MYSQL_USER=root
 MYSQL_PASSWORD=your_secure_password
-MYSQL_DATABASE=fba
+MYSQL_DATABASE=agents_backend
 
 # PostgreSQL Settings (if using PostgreSQL)
 POSTGRES_HOST=localhost
 POSTGRES_PORT=5432
 POSTGRES_USER=postgres
 POSTGRES_PASSWORD=your_secure_password
-POSTGRES_DATABASE=fba
+POSTGRES_DATABASE=agents_backend
 
 # Primary key generation mode: autoincrement or snowflake
 DB_PK_MODE=snowflake
@@ -452,11 +452,11 @@ TAVILY_API_KEY=tvly-...
 
 ```sql
 -- Create database
-CREATE DATABASE fba CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE DATABASE agents_backend CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- Create user (optional, for non-root access)
-CREATE USER 'fba_user'@'localhost' IDENTIFIED BY 'your_password';
-GRANT ALL PRIVILEGES ON fba.* TO 'fba_user'@'localhost';
+CREATE USER 'agents_backend_user'@'localhost' IDENTIFIED BY 'your_password';
+GRANT ALL PRIVILEGES ON agents_backend.* TO 'agents_backend_user'@'localhost';
 FLUSH PRIVILEGES;
 ```
 
@@ -464,11 +464,11 @@ FLUSH PRIVILEGES;
 
 ```sql
 -- Create database
-CREATE DATABASE fba WITH ENCODING 'UTF8';
+CREATE DATABASE agents_backend WITH ENCODING 'UTF8';
 
 -- Create user (optional)
-CREATE USER fba_user WITH PASSWORD 'your_password';
-GRANT ALL PRIVILEGES ON DATABASE fba TO fba_user;
+CREATE USER agents_backend_user WITH PASSWORD 'your_password';
+GRANT ALL PRIVILEGES ON DATABASE agents_backend TO agents_backend_user;
 ```
 
 ### Redis Configuration
@@ -486,11 +486,11 @@ redis-cli CONFIG SET requirepass "your_redis_password"
 
 ## Database Initialization
 
-### Using FBA CLI
+### Using Agents Backend CLI
 
 ```bash
 # Initialize database (creates tables and runs seed data)
-fba init
+agents-backend init
 
 # This command will:
 # 1. Create all SQLAlchemy model tables
@@ -506,7 +506,7 @@ fba init
 │                    DATABASE INITIALIZATION                       │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                  │
-│  $ fba init                                                     │
+│  $ agents-backend init                                          │
 │      │                                                          │
 │      ▼                                                          │
 │  ┌──────────────────────────────────────────────────────────┐   │
@@ -560,8 +560,8 @@ fba init
 ### Development Mode
 
 ```bash
-# Using FBA CLI (recommended)
-fba run
+# Using Agents Backend CLI (recommended)
+agents-backend run
 
 # Or using uvicorn directly (for debugging)
 python backend/run.py
@@ -584,13 +584,13 @@ granian --interface asgi --host 0.0.0.0 --port 8000 --workers 4 backend.main:app
 
 ```bash
 # Terminal 1: Start Celery worker
-fba celery-worker
+agents-backend celery-worker
 
 # Terminal 2: Start Celery beat (scheduler)
-fba celery-beat
+agents-backend celery-beat
 
 # Terminal 3: Start Flower (optional, for monitoring)
-fba celery-flower
+agents-backend celery-flower
 ```
 
 ### Service Architecture
@@ -602,7 +602,7 @@ fba celery-flower
 │                                                                  │
 │  Terminal 1:                Terminal 2:              Terminal 3: │
 │  ┌──────────────┐           ┌──────────────┐        ┌──────────┐│
-│  │  fba run     │           │ celery-worker│        │ celery-  ││
+│  │agents-backend run│       │ celery-worker│        │ celery-  ││
 │  │              │           │              │        │ beat     ││
 │  │ FastAPI      │           │ Task         │        │          ││
 │  │ Server       │           │ Executor     │        │ Scheduler││
@@ -635,11 +635,18 @@ Open your browser and navigate to:
 ### 2. Health Check Endpoint
 
 ```bash
-curl http://localhost:8000/api/v1/health
+curl http://localhost:8000/health
 
 # Expected response:
-# {"status": "healthy", "timestamp": "2024-01-01T00:00:00Z"}
+{
+  "status": "healthy",
+  "timestamp": "2025-12-29T13:20:08.419998+00:00",
+  "version": "1.11.2",
+  "service": "agents-backend"
+}
 ```
+
+> **Note**: The `/health` endpoint is available at the root path (not under `/api/v1`) for easy load balancer and monitoring integration.
 
 ### 3. Test Authentication
 
@@ -675,10 +682,10 @@ redis-cli keys "*"
 
 ```bash
 # MySQL
-mysql -u root -p fba -e "SHOW TABLES;"
+mysql -u root -p agents_backend -e "SHOW TABLES;"
 
 # PostgreSQL
-psql -U postgres fba -c "\dt"
+psql -U postgres agents_backend -c "\dt"
 ```
 
 ---
@@ -755,7 +762,7 @@ lsof -i :8000
 kill -9 <PID>
 
 # Or use different port
-fba run --port 8001
+agents-backend run --port 8001
 ```
 
 ### Issue 5: Permission Denied (Windows)

@@ -11,6 +11,32 @@ http://localhost:8000/api/v1
 
 ---
 
+## Health Check
+
+The `/health` endpoint is available at the root path (not under `/api/v1`) for easy integration with load balancers and monitoring systems.
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/health` | System health check |
+
+### Health Check Example
+
+```bash
+curl http://localhost:8000/health
+```
+
+**Response:**
+```json
+{
+  "status": "healthy",
+  "timestamp": "2025-12-29T13:20:08.419998+00:00",
+  "version": "1.11.2",
+  "service": "agents-backend"
+}
+```
+
+---
+
 ## Authentication
 
 Most endpoints require JWT authentication:
@@ -22,6 +48,7 @@ Authorization: Bearer <access_token>
 
 ## Router Structure
 
+
 ```
 /api/v1
 ├── /admin    (Admin & Auth)
@@ -30,7 +57,8 @@ Authorization: Bearer <access_token>
 │   ├── /log/*
 │   └── /monitor/*
 ├── /agent    (Agent AI)
-│   ├── /chat/*
+│   ├── /chat/*       ← Simple chat (no sandbox)
+│   ├── /agent/*      ← Agent with sandbox (NEW)
 │   ├── /generation/*
 │   ├── /mcp/*
 │   ├── /user-settings/mcp/*

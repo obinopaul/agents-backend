@@ -7,7 +7,7 @@ from backend.common.model import MappedBase, TimeZone
 from backend.utils.timezone import timezone
 
 """
-重写 celery.backends.database.models 内部所有模型，适配 fba 创建表和 alembic 迁移
+重写 celery.backends.database.models 内部所有模型，适配 agents-backend 创建表和 alembic 迁移
 """
 
 

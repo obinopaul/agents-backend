@@ -383,7 +383,7 @@ oss2>=2.19.1  # Alibaba Cloud OSS storage (optional)
 # uvicorn>=0.40.0
 pydantic>=2.12.5
 pydantic-settings>=2.12.0
-pathlib>=1.0.1
+# pathlib>=1.0.1  # Not needed - built into Python 3.4+
 
 # --- Database ---
 # sqlalchemy>=2.0.45

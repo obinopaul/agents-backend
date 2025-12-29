@@ -84,6 +84,14 @@ class SessionMetrics(Base):
         comment='LLM model name used'
     )
     
+    # Sandbox linked to this session (for session-based sandbox reuse)
+    sandbox_id: Mapped[str | None] = mapped_column(
+        sa.String(64),
+        default=None,
+        index=True,
+        comment='Linked sandbox ID for this session'
+    )
+    
     # Credit tracking (negative values = consumption)
     credits: Mapped[float] = mapped_column(
         sa.Float, 

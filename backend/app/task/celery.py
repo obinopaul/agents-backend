@@ -38,7 +38,7 @@ def init_celery() -> celery.Celery:
 
     # https://docs.celeryq.dev/en/stable/userguide/configuration.html
     app = celery.Celery(
-        'fba_celery',
+        'agents_backend_celery',
         broker_url=broker_url,
         broker_connection_retry_on_startup=True,
         result_backend=result_backend,

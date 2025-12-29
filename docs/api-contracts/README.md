@@ -76,6 +76,7 @@ When running `fba run`, the following endpoints become available:
 | Endpoint | Method | Description |
 |----------|--------|-------------|
 | `/chat/stream` | POST | Streaming multi-agent chat (SSE) |
+| `/agent/stream` | POST | **Agent with sandbox tools (SSE)** |
 | `/chat/models` | GET | List available LLM models |
 | `/sandbox/create` | POST | Create sandbox instance |
 | `/sandbox/{id}/status` | GET | Get sandbox status |
@@ -86,9 +87,11 @@ When running `fba run`, the following endpoints become available:
 | `/tts` | POST | Text-to-speech |
 
 📖 See individual endpoint documentation:
+- [Agent API (with Sandbox)](./agent-api.md)
 - [Chat API](./chat-api.md)
 - [Sandbox API](./sandbox-api.md)
 - [RAG API](./rag-api.md)
+
 
 ### Admin Module (`/api/v1/admin`)
 

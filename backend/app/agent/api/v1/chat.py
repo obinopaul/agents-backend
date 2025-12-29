@@ -19,7 +19,7 @@ from uuid import uuid4
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import Response, StreamingResponse
 from langchain_core.messages import AIMessageChunk, BaseMessage, ToolMessage
-from langgraph.checkpoint.mongodb import AsyncMongoDBSaver
+from langgraph.checkpoint.mongodb import MongoDBSaver
 from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
 from langgraph.store.memory import InMemoryStore
 from langgraph.types import Command
@@ -491,7 +491,7 @@ async def _astream_workflow_generator(
 
         elif checkpoint_url.startswith("mongodb://"):
             logger.info(f"[{safe_thread_id}] Starting async mongodb checkpointer")
-            async with AsyncMongoDBSaver.from_conn_string(checkpoint_url) as checkpointer:
+            async with MongoDBSaver.from_conn_string(checkpoint_url) as checkpointer:
                 _graph.checkpointer = checkpointer
                 _graph.store = _in_memory_store
                 async for event in _stream_graph_events(
