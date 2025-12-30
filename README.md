@@ -70,7 +70,11 @@ docker-compose up -d --build
 # 4️⃣ Verify the database is created (runs Alembic migrations)
 docker-compose exec agents_backend_server bash -c "cd /agents_backend/backend && alembic upgrade head"
 
-# 5️⃣ Test the setup (optional but recommended)
+# 5️⃣ Create a test user for login (required for authentication)
+python backend/tests/create_test_user.py
+# Default credentials: sandbox_test / TestPass123!
+
+# 6️⃣ Test the setup (optional but recommended)
 python backend/tests/live/interactive_agent_test.py
 ```
 
@@ -159,6 +163,7 @@ agents-backend run --host 0.0.0.0 --port 8000
 | [`docs/api-contracts/database.md`](docs/api-contracts/database.md) | Database schema & tables |
 | [`docs/api-contracts/tool-server.md`](docs/api-contracts/tool-server.md) | Tool Server API |
 | [`docs/api-contracts/e2b-sandbox.md`](docs/api-contracts/e2b-sandbox.md) | E2B Sandbox API |
+| [`docs/guides/standalone-scripts.md`](docs/guides/standalone-scripts.md) | Writing standalone Python scripts |
 
 ## 🎬 Demo
 

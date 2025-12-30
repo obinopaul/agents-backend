@@ -163,6 +163,8 @@ cd backend/tests/live
 | `interactive_agent_test.py` | Interactive CLI Test | ✅ Implemented |
 | `test_custom_mcp_client.py` | Custom MCPClient with LangChain | ✅ Implemented |
 | `sandbox_lifecycle_deepdive.py` | Sandbox lifecycle deep dive | ✅ Implemented |
+| `debug_sandbox.py` | Debug sandbox | ✅ Implemented |
+| `test_agent_endpoints.py` | Agent endpoints | ✅ Implemented |
 
 ### Run Tests
 

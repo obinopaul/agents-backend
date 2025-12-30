@@ -1,0 +1,55 @@
+[*] Waiting 300 seconds for agents_backend_postgres:5432
+INFO  [alembic.runtime.migration] Context impl PostgresqlImpl.
+[+] agents_backend_postgres:5432 is available after 0 seconds
+[*] Waiting 300 seconds for agents_backend_redis:6379
+[+] agents_backend_redis:6379 is available after 0 seconds
+INFO  [alembic.runtime.migration] Will assume transactional DDL.
+2025-12-29 23:45:28,768 INFO Included extra file "/etc/supervisor/conf.d/agents_backend_server.conf" during parsing
+2025-12-29 23:45:28,768 INFO Set uid to user 0 succeeded
+2025-12-29 23:45:28,772 INFO RPC interface 'supervisor' initialized
+2025-12-29 23:45:28,772 CRIT Server 'unix_http_server' running without any HTTP authentication checking
+2025-12-29 23:45:28,773 INFO supervisord started with pid 16
+2025-12-29 23:45:29,777 INFO spawned: 'agents_backend_server' with pid 17
+2025-12-29 23:45:30,976 INFO success: agents_backend_server entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+[*] Waiting 300 seconds for agents_backend_postgres:5432
+[+] agents_backend_postgres:5432 is available after 0 seconds
+[*] Waiting 300 seconds for agents_backend_redis:6379
+[+] agents_backend_redis:6379 is available after 0 seconds
+INFO  [alembic.runtime.migration] Context impl PostgresqlImpl.
+INFO  [alembic.runtime.migration] Will assume transactional DDL.
+2025-12-29 23:52:14,965 INFO Included extra file "/etc/supervisor/conf.d/agents_backend_server.conf" during parsing
+2025-12-29 23:52:14,965 INFO Set uid to user 0 succeeded
+Unlinking stale socket /tmp/supervisor.sock
+2025-12-29 23:52:15,272 INFO RPC interface 'supervisor' initialized
+2025-12-29 23:52:15,272 CRIT Server 'unix_http_server' running without any HTTP authentication checking
+2025-12-29 23:52:15,273 INFO supervisord started with pid 16
+2025-12-29 23:52:16,277 INFO spawned: 'agents_backend_server' with pid 17
+2025-12-29 23:52:17,480 INFO success: agents_backend_server entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+[*] Waiting 300 seconds for agents_backend_postgres:5432
+[+] agents_backend_postgres:5432 is available after 0 seconds
+[*] Waiting 300 seconds for agents_backend_redis:6379
+[+] agents_backend_redis:6379 is available after 0 seconds
+INFO  [alembic.runtime.migration] Context impl PostgresqlImpl.
+INFO  [alembic.runtime.migration] Will assume transactional DDL.
+2025-12-29 23:59:59,664 INFO Included extra file "/etc/supervisor/conf.d/agents_backend_server.conf" during parsing
+2025-12-29 23:59:59,664 INFO Set uid to user 0 succeeded
+Unlinking stale socket /tmp/supervisor.sock
+2025-12-29 23:59:59,972 INFO RPC interface 'supervisor' initialized
+2025-12-29 23:59:59,972 CRIT Server 'unix_http_server' running without any HTTP authentication checking
+2025-12-29 23:59:59,973 INFO supervisord started with pid 16
+2025-12-30 00:00:00,976 INFO spawned: 'agents_backend_server' with pid 17
+2025-12-30 00:00:02,282 INFO success: agents_backend_server entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+[*] Waiting 300 seconds for agents_backend_postgres:5432
+INFO  [alembic.runtime.migration] Context impl PostgresqlImpl.
+[+] agents_backend_postgres:5432 is available after 0 seconds
+[*] Waiting 300 seconds for agents_backend_redis:6379
+[+] agents_backend_redis:6379 is available after 0 seconds
+INFO  [alembic.runtime.migration] Will assume transactional DDL.
+Unlinking stale socket /tmp/supervisor.sock
+2025-12-30 00:15:43,167 INFO Included extra file "/etc/supervisor/conf.d/agents_backend_server.conf" during parsing
+2025-12-30 00:15:43,167 INFO Set uid to user 0 succeeded
+2025-12-30 00:15:43,474 INFO RPC interface 'supervisor' initialized
+2025-12-30 00:15:43,474 CRIT Server 'unix_http_server' running without any HTTP authentication checking
+2025-12-30 00:15:43,475 INFO supervisord started with pid 16
+2025-12-30 00:15:44,479 INFO spawned: 'agents_backend_server' with pid 17
+2025-12-30 00:15:45,679 INFO success: agents_backend_server entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)

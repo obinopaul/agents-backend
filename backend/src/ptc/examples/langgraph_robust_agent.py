@@ -35,7 +35,12 @@ from dotenv import load_dotenv
 from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
 from langchain_core.tools import BaseTool
 from langchain_openai import ChatOpenAI
-from langgraph.checkpoint.memory import MemorySaver
+
+# Import PostgreSQL checkpointer for production use
+# Note: This example can also work with MemorySaver for standalone testing:
+#   from langgraph.checkpoint.memory import MemorySaver
+#   checkpointer = MemorySaver()
+from langgraph.checkpoint.postgres import PostgresSaver
 
 # Load environment variables
 load_dotenv()
@@ -262,12 +267,23 @@ async def run_interactive_cli():
         # Create LLM
         llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
         
-        # Create memory for conversation persistence
-        checkpointer = MemorySaver()
+        # Create checkpointer for conversation persistence
+        # For production, use PostgreSQL:
+        db_url = os.getenv("LANGGRAPH_CHECKPOINT_DB_URL", "")
+        if db_url:
+            # Use PostgreSQL for production persistence
+            checkpointer = PostgresSaver.from_conn_string(db_url)
+            print("   ✓ Using PostgreSQL checkpointer")
+        else:
+            # For standalone testing without database, use in-memory
+            # Note: This loses state on restart
+            from langgraph.checkpoint.memory import MemorySaver
+            checkpointer = MemorySaver()
+            print("   ⚠ Using in-memory checkpointer (set LANGGRAPH_CHECKPOINT_DB_URL for persistence)")
         
-        # Build agent with memory
+        # Build agent with checkpointer
         agent = build_react_agent(llm, tools, checkpointer)
-        print("   ✓ Agent ready with memory")
+        print("   ✓ Agent ready with checkpointer")
         
         # Session config for conversation persistence
         session_config = {"configurable": {"thread_id": "ptc-session-1"}}

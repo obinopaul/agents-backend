@@ -5,13 +5,14 @@
 Graph Builder for the multi-agent template.
 
 Constructs the LangGraph StateGraph with all nodes and edges.
+The graph is compiled WITHOUT a checkpointer - PostgreSQL checkpointer
+is injected at runtime by checkpointer_manager.
 """
 
 import logging
 from typing import Optional
 
 from langgraph.checkpoint.base import BaseCheckpointSaver
-from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START, StateGraph
 
 from backend.src.agent_template.state import TemplateState
@@ -95,19 +96,17 @@ def build_graph():
     return builder.compile()
 
 
-def build_graph_with_memory(checkpointer: Optional[BaseCheckpointSaver] = None):
+def build_graph_with_checkpointer(checkpointer: BaseCheckpointSaver):
     """
-    Build and compile the agent workflow graph with memory/persistence.
+    Build and compile the agent workflow graph with a checkpointer.
     
     Args:
-        checkpointer: Optional custom checkpointer. If None, uses MemorySaver.
+        checkpointer: The checkpointer for state persistence (required).
+            Use checkpointer_manager.get_checkpointer() to get the PostgreSQL checkpointer.
         
     Returns:
         CompiledGraph: The compiled graph with checkpointing enabled
     """
-    if checkpointer is None:
-        checkpointer = MemorySaver()
-    
     builder = _build_base_graph()
     return builder.compile(checkpointer=checkpointer)
 

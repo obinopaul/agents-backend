@@ -115,44 +115,56 @@ class SessionSandboxManager:
                 log.error(f"SessionSandboxManager: {error_msg}")
                 raise self._creation_error
     
-    async def ensure_mcp_ready(self, timeout: int = 30) -> bool:
+    async def ensure_mcp_ready(self, timeout: int = 60, mcp_url: str = None) -> bool:
         """
         Ensure MCP server is ready in the sandbox.
         
         This should be called before using MCP-dependent tools.
+        Uses similar polling approach as test_custom_mcp_client.py.
         
         Args:
             timeout: Maximum seconds to wait for MCP health
+            mcp_url: Optional pre-exposed MCP URL (if not provided, will expose port)
             
         Returns:
             bool: True if MCP is ready, False if timeout
         """
         if self._sandbox is None:
+            log.warning("SessionSandboxManager: Cannot check MCP - sandbox is None")
             return False
         
         try:
             import httpx
-            mcp_url = await self._sandbox.expose_port(6060)
+            from datetime import datetime
+            
+            # Use provided URL or expose port
+            if not mcp_url:
+                mcp_url = await self._sandbox.expose_port(6060)
+            
+            log.info(f"SessionSandboxManager: Waiting for MCP at {mcp_url}/health (max {timeout}s)")
+            
+            start = datetime.now()
+            poll_interval = 5  # Poll every 5 seconds like working tests
             
             async with httpx.AsyncClient() as client:
-                for attempt in range(timeout):
+                while (datetime.now() - start).seconds < timeout:
+                    elapsed = (datetime.now() - start).seconds
                     try:
                         resp = await client.get(
                             f"{mcp_url}/health",
-                            timeout=2.0
+                            timeout=10.0  # Longer timeout for slow networks
                         )
                         if resp.status_code == 200:
-                            log.info("SessionSandboxManager: MCP server is ready")
+                            log.info(f"SessionSandboxManager: MCP ready after {elapsed}s")
                             return True
-                    except Exception:
-                        pass
+                        else:
+                            log.debug(f"SessionSandboxManager: MCP returned {resp.status_code}")
+                    except Exception as e:
+                        log.debug(f"SessionSandboxManager: MCP not ready ({elapsed}s): {type(e).__name__}")
                     
-                    if attempt < timeout - 1:
-                        await asyncio.sleep(1)
+                    await asyncio.sleep(poll_interval)
             
-            log.warning(
-                f"SessionSandboxManager: MCP not ready after {timeout}s"
-            )
+            log.warning(f"SessionSandboxManager: MCP not ready after {timeout}s")
             return False
             
         except Exception as e:

@@ -15,7 +15,7 @@ Usage:
     result = graph.invoke({"task": "Analyze this data..."})
     
     # With persistence
-    graph = build_graph_with_memory()
+    graph = build_graph_with_checkpointer(checkpointer)
     
     # Embedded as a node
     from backend.src.agent_template import template_agent_node
@@ -25,12 +25,12 @@ from backend.src.agent_template.state import TemplateState
 from backend.src.agent_template.config import AgentConfig
 from backend.src.agent_template.graph.builder import (
     build_graph,
-    build_graph_with_memory,
+    build_graph_with_checkpointer,
 )
 
 __all__ = [
     "TemplateState",
     "AgentConfig",
     "build_graph",
-    "build_graph_with_memory",
+    "build_graph_with_checkpointer",
 ]

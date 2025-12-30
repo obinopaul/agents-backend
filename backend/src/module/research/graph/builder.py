@@ -1,4 +1,14 @@
-from langgraph.checkpoint.memory import MemorySaver
+# Copyright (c) 2025
+# SPDX-License-Identifier: MIT
+
+"""
+Research Module LangGraph Builder.
+
+This module builds the research workflow graph with multi-agent coordination.
+The graph is compiled without a checkpointer - PostgreSQL checkpointer is
+injected at runtime by checkpointer_manager.
+"""
+
 from langgraph.graph import END, START, StateGraph
 
 from backend.src.prompts.planner_model import StepType
@@ -67,22 +77,16 @@ def _build_base_graph():
     return builder
 
 
-def build_graph_with_memory():
-    """Build and return the agent workflow graph with memory."""
-    # use persistent memory to save conversation history
-    # TODO: be compatible with SQLite / PostgreSQL
-    memory = MemorySaver()
-
-    # build state graph
-    builder = _build_base_graph()
-    return builder.compile(checkpointer=memory)
-
-
 def build_graph():
-    """Build and return the agent workflow graph without memory."""
-    # build state graph
+    """
+    Build and return the research workflow graph.
+    
+    The graph is compiled WITHOUT a checkpointer. PostgreSQL checkpointer
+    is injected at runtime by checkpointer_manager.
+    """
     builder = _build_base_graph()
     return builder.compile()
 
 
+# Pre-compiled graph instance
 graph = build_graph()

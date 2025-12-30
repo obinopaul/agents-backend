@@ -99,16 +99,18 @@ def test_build_base_graph_adds_nodes_and_edges(MockStateGraph):
 
 
 @patch("src.graph.builder._build_base_graph")
-@patch("src.graph.builder.MemorySaver")
-def test_build_graph_with_memory_uses_memory(MockMemorySaver, mock_build_base_graph):
+def test_build_graph_compiles_without_checkpointer(mock_build_base_graph):
+    """Test that build_graph() compiles the graph without a checkpointer.
+    
+    The PostgreSQL checkpointer is injected at runtime by checkpointer_manager,
+    not at graph build time.
+    """
     mock_builder = MagicMock()
     mock_build_base_graph.return_value = mock_builder
-    mock_memory = MagicMock()
-    MockMemorySaver.return_value = mock_memory
 
-    builder_mod.build_graph_with_memory()
+    builder_mod.build_graph()
 
-    mock_builder.compile.assert_called_once_with(checkpointer=mock_memory)
+    mock_builder.compile.assert_called_once_with()
 
 
 @patch("src.graph.builder._build_base_graph")

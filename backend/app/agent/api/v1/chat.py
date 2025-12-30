@@ -7,6 +7,9 @@ Agent Chat API endpoints.
 This module provides the streaming chat endpoint for AI agent conversations,
 with full JWT authentication, request validation, and production-grade
 error handling.
+
+Uses PostgreSQL for graph state checkpointing via the centralized
+checkpointer_manager.
 """
 
 import asyncio
@@ -16,21 +19,18 @@ import logging
 from typing import Annotated, Any, List, Optional
 from uuid import uuid4
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.responses import Response, StreamingResponse
 from langchain_core.messages import AIMessageChunk, BaseMessage, ToolMessage
-from langgraph.checkpoint.mongodb import MongoDBSaver
-from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
-from langgraph.store.memory import InMemoryStore
 from langgraph.types import Command
 from pydantic import BaseModel, Field
-from psycopg_pool import AsyncConnectionPool
 
-from backend.common.security.jwt import DependsJwtAuth
+from backend.common.security.jwt import DependsJwtAuth, get_token, jwt_decode
 from backend.core.conf import settings
 from backend.src.config.configuration import Configuration
-from backend.src.graph.builder import build_graph_with_memory
+from backend.src.graph.builder import graph
 from backend.src.graph.checkpoint import chat_stream_message
+from backend.src.graph.checkpointer import checkpointer_manager
 from backend.src.graph.utils import (
     build_clarified_topic_from_history,
     reconstruct_clarification_history,
@@ -49,9 +49,9 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
-# Singleton instances for agent graph and memory store
-_in_memory_store = InMemoryStore()
-_graph = build_graph_with_memory()
+# Singleton graph instance
+# The PostgreSQL checkpointer is injected at runtime by checkpointer_manager
+_graph = graph
 
 INTERNAL_SERVER_ERROR_DETAIL = "Internal Server Error"
 
@@ -465,44 +465,11 @@ async def _astream_workflow_generator(
         "recursion_limit": _get_recursion_limit(),
     }
 
-    # Determine checkpoint configuration
-    checkpoint_enabled = settings.LANGGRAPH_CHECKPOINT_ENABLED
-    checkpoint_url = settings.LANGGRAPH_CHECKPOINT_DB_URL
-
-    connection_kwargs = {
-        "autocommit": True,
-        "row_factory": "dict_row",
-        "prepare_threshold": 0,
-    }
-
-    if checkpoint_enabled and checkpoint_url:
-        if checkpoint_url.startswith("postgresql://"):
-            logger.info(f"[{safe_thread_id}] Starting async postgres checkpointer")
-            async with AsyncConnectionPool(checkpoint_url, kwargs=connection_kwargs) as conn:
-                checkpointer = AsyncPostgresSaver(conn)
-                if not settings.AGENT_SKIP_DB_SETUP:
-                    await checkpointer.setup()
-                _graph.checkpointer = checkpointer
-                _graph.store = _in_memory_store
-                async for event in _stream_graph_events(
-                    _graph, workflow_input, workflow_config, thread_id
-                ):
-                    yield event
-
-        elif checkpoint_url.startswith("mongodb://"):
-            logger.info(f"[{safe_thread_id}] Starting async mongodb checkpointer")
-            async with MongoDBSaver.from_conn_string(checkpoint_url) as checkpointer:
-                _graph.checkpointer = checkpointer
-                _graph.store = _in_memory_store
-                async for event in _stream_graph_events(
-                    _graph, workflow_input, workflow_config, thread_id
-                ):
-                    yield event
-    else:
-        # Use in-memory graph without persistent checkpoint
-        logger.debug(f"[{safe_thread_id}] Using in-memory graph (no checkpointer)")
+    # Use centralized PostgreSQL checkpointer (shared connection pool)
+    logger.info(f"[{safe_thread_id}] Using PostgreSQL checkpointer")
+    async with checkpointer_manager.get_graph_with_checkpointer(_graph, thread_id) as configured_graph:
         async for event in _stream_graph_events(
-            _graph, workflow_input, workflow_config, thread_id
+            configured_graph, workflow_input, workflow_config, thread_id
         ):
             yield event
 
@@ -543,7 +510,7 @@ def _make_event(event_type: str, data: dict) -> str:
     },
     dependencies=[DependsJwtAuth],
 )
-async def chat_stream(request: ChatRequest):
+async def chat_stream(request: ChatRequest, http_request: Request):
     """
     Stream AI agent chat responses.
 
@@ -559,6 +526,12 @@ async def chat_stream(request: ChatRequest):
 
     Authentication is required via JWT token.
     """
+    # Get current user ID from JWT token
+    token = get_token(http_request)
+    token_payload = jwt_decode(token)
+    user_id = str(token_payload.id)
+    logger.debug(f"Chat stream request from user: {user_id}")
+
     # Check MCP configuration
     mcp_enabled = settings.AGENT_MCP_ENABLED
 

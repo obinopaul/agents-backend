@@ -19,15 +19,15 @@ import logging
 from typing import Any, List, Optional
 from uuid import uuid4
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import StreamingResponse
 from langchain_core.messages import AIMessageChunk, BaseMessage
-from langgraph.store.memory import InMemoryStore
 from pydantic import BaseModel, Field
 
-from backend.common.security.jwt import DependsJwtAuth, get_current_user
+from backend.common.security.jwt import DependsJwtAuth, get_token, jwt_decode
 from backend.core.conf import settings
-from backend.src.graph.builder import build_graph_with_memory
+from backend.src.graph.builder import graph
+from backend.src.graph.checkpointer import checkpointer_manager
 from backend.src.rag.retriever import Resource
 from backend.src.services.session_sandbox_manager import SessionSandboxManager
 
@@ -35,9 +35,9 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
-# Singleton instances
-_in_memory_store = InMemoryStore()
-_graph = build_graph_with_memory()
+# Singleton graph instance
+# The PostgreSQL checkpointer is injected at runtime by checkpointer_manager
+_graph = graph
 
 
 # =============================================================================
@@ -140,28 +140,63 @@ async def _agent_stream_generator(
             })
             return
         
-        # STEP 3: Wait for MCP server to be ready (with timeout)
+        # STEP 3: Wait for MCP server to be ready (with keep-alive events)
+        # Get MCP URL for debugging
+        mcp_url = await sandbox.expose_port(6060)
+        logger.info(f"Agent stream: MCP URL = {mcp_url}")
+        
         yield _make_event("status", {
             "type": "mcp_check",
-            "message": "Checking tool server..."
+            "message": "Checking tool server...",
+            "mcp_url": mcp_url,
         })
         
-        mcp_ready = await sandbox_manager.ensure_mcp_ready(timeout=30)
+        # Inline MCP health check with keep-alive events to prevent nginx timeout
+        import httpx
+        from datetime import datetime
+        
+        mcp_ready = False
+        mcp_timeout = 90  # 90 seconds max
+        poll_interval = 2  # Poll every 2 seconds for faster detection (was 10s)
+        start_time = datetime.now()
+        
+        async with httpx.AsyncClient() as client:
+            while (datetime.now() - start_time).seconds < mcp_timeout:
+                elapsed = (datetime.now() - start_time).seconds
+                try:
+                    resp = await client.get(f"{mcp_url}/health", timeout=8.0)
+                    if resp.status_code == 200:
+                        logger.info(f"Agent stream: MCP ready after {elapsed}s")
+                        mcp_ready = True
+                        break
+                except Exception as e:
+                    logger.debug(f"Agent stream: MCP not ready ({elapsed}s): {type(e).__name__}")
+                
+                # Send keep-alive event to prevent nginx timeout
+                yield _make_event("status", {
+                    "type": "mcp_waiting",
+                    "message": f"Waiting for tool server... ({elapsed}s)",
+                    "elapsed_seconds": elapsed,
+                })
+                
+                await asyncio.sleep(poll_interval)
+        
         if not mcp_ready:
             logger.warning("Agent stream: MCP not ready, proceeding anyway")
             yield _make_event("warning", {
                 "type": "mcp_timeout",
-                "message": "Tool server starting slowly, some tools may be delayed"
+                "message": "Tool server starting slowly, some tools may be delayed",
+                "mcp_url": mcp_url,
             })
         else:
             yield _make_event("status", {
                 "type": "mcp_ready",
-                "message": "Tools ready"
+                "message": "Tools ready",
+                "mcp_url": mcp_url,
             })
         
-        # STEP 4: Get MCP URL for tools
-        mcp_url = await sandbox.expose_port(6060)
-        logger.info(f"Agent stream: MCP URL = {mcp_url}")
+        
+        # STEP 4: MCP URL already obtained above, use it for workflow
         
         # STEP 5: Build workflow input
         workflow_input = {
@@ -185,41 +220,43 @@ async def _agent_stream_generator(
             "recursion_limit": _get_recursion_limit(),
         }
         
-        # STEP 6: Stream graph events
+        # STEP 6: Stream graph events with PostgreSQL checkpointer
         yield _make_event("status", {
             "type": "agent_start",
             "message": "Agent processing..."
         })
         
-        async for event in _graph.astream_events(
-            workflow_input,
-            config=workflow_config,
-            version="v2",
-        ):
-            event_type = event.get("event", "")
-            
-            if event_type == "on_chat_model_stream":
-                chunk = event.get("data", {}).get("chunk")
-                if isinstance(chunk, AIMessageChunk) and chunk.content:
-                    yield _make_event("message", {
-                        "type": "chunk",
-                        "content": chunk.content,
-                        "thread_id": thread_id,
+        # Use the centralized PostgreSQL checkpointer
+        async with checkpointer_manager.get_graph_with_checkpointer(_graph, thread_id) as configured_graph:
+            async for event in configured_graph.astream_events(
+                workflow_input,
+                config=workflow_config,
+                version="v2",
+            ):
+                event_type = event.get("event", "")
+                
+                if event_type == "on_chat_model_stream":
+                    chunk = event.get("data", {}).get("chunk")
+                    if isinstance(chunk, AIMessageChunk) and chunk.content:
+                        yield _make_event("message", {
+                            "type": "chunk",
+                            "content": chunk.content,
+                            "thread_id": thread_id,
+                        })
+                
+                elif event_type == "on_tool_start":
+                    tool_name = event.get("name", "unknown")
+                    yield _make_event("tool", {
+                        "type": "start",
+                        "name": tool_name,
                     })
-            
-            elif event_type == "on_tool_start":
-                tool_name = event.get("name", "unknown")
-                yield _make_event("tool", {
-                    "type": "start",
-                    "name": tool_name,
-                })
-            
-            elif event_type == "on_tool_end":
-                tool_name = event.get("name", "unknown")
-                yield _make_event("tool", {
-                    "type": "end",
-                    "name": tool_name,
-                })
+                
+                elif event_type == "on_tool_end":
+                    tool_name = event.get("name", "unknown")
+                    yield _make_event("tool", {
+                        "type": "end",
+                        "name": tool_name,
+                    })
         
         # STEP 7: Send completion
         yield _make_event("status", {
@@ -255,7 +292,7 @@ async def _agent_stream_generator(
     },
     dependencies=[DependsJwtAuth],
 )
-async def agent_stream(request: AgentRequest):
+async def agent_stream(request: AgentRequest, http_request: Request):
     """
     Stream agent responses with sandbox tool support.
     
@@ -273,9 +310,10 @@ async def agent_stream(request: AgentRequest):
     
     Authentication required via JWT token.
     """
-    # Get current user from JWT
-    current_user = await get_current_user()
-    user_id = str(current_user.uuid) if hasattr(current_user, 'uuid') else str(current_user.id)
+    # Get current user ID from JWT token
+    token = get_token(http_request)
+    token_payload = jwt_decode(token)
+    user_id = str(token_payload.id)
     
     # Generate thread/session IDs if needed
     thread_id = request.thread_id

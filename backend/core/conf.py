@@ -448,8 +448,19 @@ class Settings(BaseSettings):
     AGENT_SKIP_DB_SETUP: bool = False  # Skip auto-creation of tables (use Alembic in prod)
 
     # LangGraph Checkpointer (conversation state persistence)
+    # Enables PostgreSQL-backed checkpointing for agent graph state
+    # This allows resuming conversations and provides fault tolerance
     LANGGRAPH_CHECKPOINT_ENABLED: bool = False
-    LANGGRAPH_CHECKPOINT_DB_URL: str = ''  # e.g., postgresql://user:pass@localhost/db or mongodb://localhost
+    LANGGRAPH_CHECKPOINT_DB_URL: str = ''  # e.g., postgresql://user:pass@localhost/db
+    
+    # Connection pool settings for LangGraph checkpointer
+    # These control the shared async connection pool used across all agent requests
+    LANGGRAPH_CHECKPOINT_POOL_MIN: int = 2   # Minimum pool connections
+    LANGGRAPH_CHECKPOINT_POOL_MAX: int = 10  # Maximum pool connections
+    LANGGRAPH_CHECKPOINT_POOL_TIMEOUT: int = 60  # Connection acquisition timeout (seconds)
+    
+    # Legacy: Message stream saving (separate from graph checkpointing)
+    LANGGRAPH_CHECKPOINT_SAVER: bool = False  # Enable SSE message persistence
 
     # MCP (Model Context Protocol) Configuration
     AGENT_MCP_ENABLED: bool = False

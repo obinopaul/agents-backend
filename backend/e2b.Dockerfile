@@ -98,14 +98,16 @@ ENV UV_COMPILE_BYTECODE=1
 # Copy from the cache instead of linking since it's a mounted volume
 ENV UV_LINK_MODE=copy
 
-# Copy e2b-specific requirements.txt for pip install
+# Install uv package manager for much faster dependency resolution (10-100x faster than pip)
+RUN pip install uv
+
+# Copy e2b-specific requirements.txt (curated dependencies for sandbox environment)
 COPY backend/e2b-requirements.txt /app/agents_backend/requirements.txt
 
-# Install dependencies with pip (skip editable install on line 3 which requires local package)
-RUN --mount=type=cache,target=/root/.cache/pip \
-  pip install -r /app/agents_backend/requirements.txt --ignore-installed || \
-  (sed '3d' /app/agents_backend/requirements.txt > /tmp/requirements_fixed.txt && \
-  pip install -r /tmp/requirements_fixed.txt)
+# Install dependencies with uv (significantly faster than pip)
+# uv pip install is 10-100x faster than pip for dependency resolution
+RUN --mount=type=cache,target=/root/.cache/uv \
+  uv pip install --system -r /app/agents_backend/requirements.txt
 
 # Copy obfuscated tool_server and PyArmor runtime from build stage
 # The obfuscation script outputs to /final/tool_server and /final/pyarmor_runtime_*

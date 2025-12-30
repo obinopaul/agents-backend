@@ -36,6 +36,7 @@ from backend.utils.openapi import simplify_operation_ids
 from backend.utils.serializers import MsgSpecJSONResponse
 from backend.utils.snowflake import snowflake
 from backend.src.services.sandbox_service import sandbox_service
+from backend.src.graph.checkpointer import checkpointer_manager
 
 
 @asynccontextmanager
@@ -69,6 +70,9 @@ async def register_init(app: FastAPI) -> AsyncGenerator[None, None]:
     # 创建操作日志任务
     create_task(OperaLogMiddleware.consumer())
 
+    # Initialize LangGraph PostgreSQL Checkpointer (shared connection pool)
+    await checkpointer_manager.initialize()
+
     # Initialize Sandbox Service
     await sandbox_service.initialize()
 
@@ -76,6 +80,9 @@ async def register_init(app: FastAPI) -> AsyncGenerator[None, None]:
 
     # Shutdown Sandbox Service
     await sandbox_service.shutdown()
+
+    # Shutdown LangGraph Checkpointer
+    await checkpointer_manager.shutdown()
 
     # 释放 snowflake 节点
     await snowflake.shutdown()

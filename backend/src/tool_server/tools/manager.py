@@ -1,71 +1,26 @@
+"""
+Tool Manager - Factory functions for sandbox tools.
+
+OPTIMIZATION: All heavy imports are done INSIDE functions (lazy imports).
+This means importing this module is fast - the heavy tool classes are only
+imported when get_sandbox_tools() is actually called.
+
+This follows the II-Agent pattern where the MCP server can start and expose
+/health immediately, and tools are only loaded when needed.
+"""
 from typing import Dict
-from backend.src.tool_server.interfaces.sandbox import SandboxInterface
-from backend.src.tool_server.core.workspace import WorkspaceManager
-from backend.src.tool_server.tools.agent.message_user import MessageUserTool
-from backend.src.tool_server.tools.dev.database import GetDatabaseConnection
-
-from backend.src.tool_server.tools.shell import (
-    ShellInit,
-    ShellRunCommand,
-    ShellView,
-    ShellStopCommand,
-    ShellList,
-    TmuxSessionManager,
-    ShellWriteToProcessTool,
-)
-
-# from backend.src.tool_server.tools.codex import CodexExecuteTool  # Now using MCP stdio versions
-from backend.src.tool_server.tools.file_system import (
-    ASTGrepTool,
-    GrepTool,
-    FileReadTool,
-    FileWriteTool,
-    FileEditTool,
-    ApplyPatchTool,
-    StrReplaceEditorTool,
-)
-from backend.src.tool_server.tools.productivity import TodoReadTool, TodoWriteTool
-from backend.src.tool_server.tools.media import (
-    VideoGenerateTool,
-    ImageGenerateTool,
-)
-from backend.src.tool_server.tools.dev import FullStackInitTool, RegisterPort, SaveCheckpointTool
-from backend.src.tool_server.tools.web import (
-    WebSearchTool,
-    WebVisitTool,
-    ImageSearchTool,
-    WebVisitCompressTool,
-    ReadRemoteImageTool,
-    WebBatchSearchTool,
-)
-from backend.src.tool_server.tools.slide_system.slide_edit_tool import SlideEditTool
-from backend.src.tool_server.tools.slide_system.slide_write_tool import SlideWriteTool
-from backend.src.tool_server.tools.slide_system.slide_patch import SlideApplyPatchTool
-
-# from backend.src.tool_server.tools.codex import CodexExecuteTool  # Now using MCP stdio versions
-from backend.src.tool_server.tools.browser import (
-    BrowserClickTool,
-    BrowserWaitTool,
-    BrowserViewTool,
-    BrowserScrollDownTool,
-    BrowserScrollUpTool,
-    BrowserSwitchTabTool,
-    BrowserOpenNewTabTool,
-    BrowserGetSelectOptionsTool,
-    BrowserSelectDropdownOptionTool,
-    BrowserNavigationTool,
-    BrowserRestartTool,
-    BrowserEnterTextTool,
-    BrowserPressKeyTool,
-    BrowserDragTool,
-    BrowserEnterMultipleTextsTool,
-)
-from backend.src.tool_server.browser.browser import Browser
 
 
-def get_common_tools(
-    sandbox: SandboxInterface,
-):
+def get_common_tools(sandbox):
+    """Get common tools that run on the backend (not in sandbox).
+    
+    These are lightweight tools that don't require heavy imports.
+    """
+    # Lazy import to avoid loading at module level
+    from backend.src.tool_server.interfaces.sandbox import SandboxInterface
+    from backend.src.tool_server.tools.dev import RegisterPort
+    from backend.src.tool_server.tools.agent.message_user import MessageUserTool
+    
     tools = [
         # Sandbox tools
         RegisterPort(sandbox=sandbox),
@@ -76,6 +31,102 @@ def get_common_tools(
 
 
 def get_sandbox_tools(workspace_path: str, credential: Dict):
+    """Get all sandbox tools with lazy imports.
+    
+    OPTIMIZATION: All imports happen inside this function, not at module level.
+    This allows the MCP server to start immediately and expose /health,
+    while tools are only loaded when this function is called.
+    
+    Args:
+        workspace_path: Path to the workspace directory
+        credential: Dict with user_api_key and session_id
+        
+    Returns:
+        List of tool instances ready for registration
+    """
+    # =========================================================================
+    # LAZY IMPORTS - Only loaded when this function is called
+    # =========================================================================
+    
+    # Core utilities
+    from backend.src.tool_server.core.workspace import WorkspaceManager
+    
+    # Shell tools
+    from backend.src.tool_server.tools.shell import (
+        ShellInit,
+        ShellRunCommand,
+        ShellView,
+        ShellStopCommand,
+        ShellList,
+        TmuxSessionManager,
+        ShellWriteToProcessTool,
+    )
+    
+    # File system tools
+    from backend.src.tool_server.tools.file_system import (
+        ASTGrepTool,
+        GrepTool,
+        FileReadTool,
+        FileWriteTool,
+        FileEditTool,
+        ApplyPatchTool,
+        StrReplaceEditorTool,
+    )
+    
+    # Productivity tools
+    from backend.src.tool_server.tools.productivity import TodoReadTool, TodoWriteTool
+    
+    # Media tools
+    from backend.src.tool_server.tools.media import (
+        VideoGenerateTool,
+        ImageGenerateTool,
+    )
+    
+    # Dev tools
+    from backend.src.tool_server.tools.dev import FullStackInitTool, SaveCheckpointTool
+    
+    # Web tools
+    from backend.src.tool_server.tools.web import (
+        WebSearchTool,
+        WebVisitTool,
+        ImageSearchTool,
+        WebVisitCompressTool,
+        ReadRemoteImageTool,
+        WebBatchSearchTool,
+    )
+    
+    # Database tools
+    from backend.src.tool_server.tools.dev.database import GetDatabaseConnection
+    
+    # Slide tools
+    from backend.src.tool_server.tools.slide_system.slide_edit_tool import SlideEditTool
+    from backend.src.tool_server.tools.slide_system.slide_write_tool import SlideWriteTool
+    from backend.src.tool_server.tools.slide_system.slide_patch import SlideApplyPatchTool
+    
+    # Browser tools
+    from backend.src.tool_server.tools.browser import (
+        BrowserClickTool,
+        BrowserWaitTool,
+        BrowserViewTool,
+        BrowserScrollDownTool,
+        BrowserScrollUpTool,
+        BrowserSwitchTabTool,
+        BrowserOpenNewTabTool,
+        BrowserGetSelectOptionsTool,
+        BrowserSelectDropdownOptionTool,
+        BrowserNavigationTool,
+        BrowserRestartTool,
+        BrowserEnterTextTool,
+        BrowserPressKeyTool,
+        BrowserDragTool,
+        BrowserEnterMultipleTextsTool,
+    )
+    from backend.src.tool_server.browser.browser import Browser
+    
+    # =========================================================================
+    # TOOL INSTANTIATION
+    # =========================================================================
+    
     terminal_manager = TmuxSessionManager()
     workspace_manager = WorkspaceManager(workspace_path)
     browser = Browser()
