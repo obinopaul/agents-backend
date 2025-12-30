@@ -47,6 +47,15 @@ def create_async_engine_and_session(url: str | URL) -> tuple[AsyncEngine, async_
     :return:
     """
     try:
+        # Connection arguments for asyncpg
+        # statement_cache_size=0 is required for Supabase/pgbouncer connection poolers
+        connect_args = {}
+        if DataBaseType.postgresql == settings.DATABASE_TYPE:
+            connect_args = {
+                "statement_cache_size": 0,  # Required for Supabase transaction pooler
+                "prepared_statement_cache_size": 0,  # Additional safety for poolers
+            }
+        
         # 数据库引擎
         engine = create_async_engine(
             url,
@@ -60,6 +69,7 @@ def create_async_engine_and_session(url: str | URL) -> tuple[AsyncEngine, async_
             pool_recycle=3600,  # 低：+ 高：-
             pool_pre_ping=True,  # 低：False 高：True
             pool_use_lifo=False,  # 低：False 高：True
+            connect_args=connect_args,  # Pass asyncpg-specific args
         )
     except Exception as e:
         log.error('❌ 数据库链接失败 {}', e)

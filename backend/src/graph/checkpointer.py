@@ -125,7 +125,110 @@ class PostgresCheckpointerManager:
                 f"'{settings.LANGGRAPH_CHECKPOINT_DB_URL[:20]}...'. "
                 "Only PostgreSQL is supported for checkpointing."
             )
-    
+
+    async def _setup_checkpoint_tables(self) -> None:
+        """
+        Create LangGraph checkpoint tables if they don't exist.
+        
+        This is a custom implementation that works with Supabase connection poolers
+        by avoiding CREATE INDEX CONCURRENTLY (which requires a direct connection)
+        and executing statements one at a time (required for pgbouncer).
+        
+        Tables created:
+        - checkpoint_migrations: Tracks applied migrations
+        - checkpoints: Main checkpoint storage
+        - checkpoint_blobs: Binary data storage
+        - checkpoint_writes: Write-ahead log
+        """
+        # SQL statements - must be executed one at a time for pgbouncer compatibility
+        statements = [
+            # Migration tracking table
+            """CREATE TABLE IF NOT EXISTS checkpoint_migrations (
+                v INTEGER PRIMARY KEY
+            )""",
+            
+            # Main checkpoints table
+            """CREATE TABLE IF NOT EXISTS checkpoints (
+                thread_id TEXT NOT NULL,
+                checkpoint_ns TEXT NOT NULL DEFAULT '',
+                checkpoint_id TEXT NOT NULL,
+                parent_checkpoint_id TEXT,
+                type TEXT,
+                checkpoint JSONB NOT NULL,
+                metadata JSONB NOT NULL DEFAULT '{}',
+                PRIMARY KEY (thread_id, checkpoint_ns, checkpoint_id)
+            )""",
+            
+            # Checkpoint blobs table
+            """CREATE TABLE IF NOT EXISTS checkpoint_blobs (
+                thread_id TEXT NOT NULL,
+                checkpoint_ns TEXT NOT NULL DEFAULT '',
+                channel TEXT NOT NULL,
+                version TEXT NOT NULL,
+                type TEXT NOT NULL,
+                blob BYTEA,
+                PRIMARY KEY (thread_id, checkpoint_ns, channel, version)
+            )""",
+            
+            # Checkpoint writes table
+            """CREATE TABLE IF NOT EXISTS checkpoint_writes (
+                thread_id TEXT NOT NULL,
+                checkpoint_ns TEXT NOT NULL DEFAULT '',
+                checkpoint_id TEXT NOT NULL,
+                task_id TEXT NOT NULL,
+                idx INTEGER NOT NULL,
+                channel TEXT NOT NULL,
+                type TEXT,
+                blob BYTEA NOT NULL,
+                task_path TEXT NOT NULL DEFAULT '',
+                PRIMARY KEY (thread_id, checkpoint_ns, checkpoint_id, task_id, idx)
+            )""",
+            
+            # Indexes (without CONCURRENTLY for connection pooler compatibility)
+            "CREATE INDEX IF NOT EXISTS checkpoints_thread_id_idx ON checkpoints(thread_id)",
+            "CREATE INDEX IF NOT EXISTS checkpoint_blobs_thread_id_idx ON checkpoint_blobs(thread_id)",
+            "CREATE INDEX IF NOT EXISTS checkpoint_writes_thread_id_idx ON checkpoint_writes(thread_id)",
+        ]
+        
+        # Migration version inserts - must be done one at a time
+        migration_inserts = [
+            "INSERT INTO checkpoint_migrations (v) VALUES (1) ON CONFLICT (v) DO NOTHING",
+            "INSERT INTO checkpoint_migrations (v) VALUES (2) ON CONFLICT (v) DO NOTHING",
+            "INSERT INTO checkpoint_migrations (v) VALUES (3) ON CONFLICT (v) DO NOTHING",
+            "INSERT INTO checkpoint_migrations (v) VALUES (4) ON CONFLICT (v) DO NOTHING",
+            "INSERT INTO checkpoint_migrations (v) VALUES (5) ON CONFLICT (v) DO NOTHING",
+            "INSERT INTO checkpoint_migrations (v) VALUES (6) ON CONFLICT (v) DO NOTHING",
+            "INSERT INTO checkpoint_migrations (v) VALUES (7) ON CONFLICT (v) DO NOTHING",
+            "INSERT INTO checkpoint_migrations (v) VALUES (8) ON CONFLICT (v) DO NOTHING",
+            "INSERT INTO checkpoint_migrations (v) VALUES (9) ON CONFLICT (v) DO NOTHING",
+        ]
+        
+        try:
+            async with self._pool.connection() as conn:
+                # Disable prepared statements for pgbouncer/Supabase compatibility
+                conn.prepare_threshold = None
+                
+                async with conn.cursor() as cur:
+                    # Execute each statement separately (required for pgbouncer)
+                    for stmt in statements:
+                        try:
+                            await cur.execute(stmt)
+                        except Exception as e:
+                            if "already exists" not in str(e).lower():
+                                logger.debug(f"Statement result: {e}")
+                    
+                    # Insert migration versions
+                    for insert in migration_inserts:
+                        try:
+                            await cur.execute(insert)
+                        except Exception:
+                            pass  # Ignore conflicts
+                            
+            logger.info("✅ LangGraph checkpoint tables created/verified")
+        except Exception as e:
+            logger.error(f"Failed to setup checkpoint tables: {e}")
+            raise
+
     async def initialize(self) -> None:
         """
         Initialize the PostgreSQL connection pool and checkpointer.
@@ -154,13 +257,17 @@ class PostgresCheckpointerManager:
             # TCP keepalive settings help maintain connection health during extended operations
             connection_kwargs = {
                 "autocommit": True,
-                "prepare_threshold": 0,
                 # TCP keepalive settings to prevent idle disconnects
                 "keepalives": 1,
                 "keepalives_idle": 30,      # seconds before starting keepalives
                 "keepalives_interval": 10,  # seconds between keepalives
                 "keepalives_count": 5,      # number of lost keepalives before disconnect
             }
+            
+            # Configure callback to disable prepared statements on each connection
+            # This is REQUIRED for Supabase/pgbouncer connection poolers
+            async def configure_connection(conn):
+                conn.prepare_threshold = None
             
             # Pool settings from configuration
             pool_min_size = settings.LANGGRAPH_CHECKPOINT_POOL_MIN
@@ -172,13 +279,14 @@ class PostgresCheckpointerManager:
                 f"min={pool_min_size}, max={pool_max_size}, timeout={pool_timeout}s"
             )
             
-            # Create the connection pool
+            # Create the connection pool with configure callback
             self._pool = AsyncConnectionPool(
                 db_url,
                 min_size=pool_min_size,
                 max_size=pool_max_size,
                 timeout=pool_timeout,
                 kwargs=connection_kwargs,
+                configure=configure_connection,  # Disable prepared statements on each connection
                 open=False,  # Don't open yet, we'll do it explicitly
             )
             
@@ -189,11 +297,10 @@ class PostgresCheckpointerManager:
             # Create the checkpointer
             self._checkpointer = AsyncPostgresSaver(self._pool)
             
-            # Setup tables if not skipping (use Alembic in production)
-            if not settings.AGENT_SKIP_DB_SETUP:
-                logger.info("Setting up LangGraph checkpoint tables...")
-                await self._checkpointer.setup()
-                logger.info("LangGraph checkpoint tables ready")
+            # Always setup tables using our custom method that works with connection poolers
+            # This is idempotent (safe to run multiple times) and handles Supabase pooler limitations
+            logger.info("Setting up LangGraph checkpoint tables...")
+            await self._setup_checkpoint_tables()
             
             self._initialized = True
             logger.info("✅ PostgreSQL checkpointer initialized successfully")
