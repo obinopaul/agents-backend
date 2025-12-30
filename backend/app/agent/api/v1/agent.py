@@ -16,7 +16,8 @@ that require code execution, file operations, and other sandbox tools.
 import asyncio
 import json
 import logging
-from typing import Any, List, Optional
+import uuid
+from typing import Any, Dict, List, Optional, Union
 from uuid import uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, Request
@@ -31,6 +32,20 @@ from backend.src.graph.checkpointer import checkpointer_manager
 from backend.src.rag.retriever import Resource
 from backend.src.services.session_sandbox_manager import SessionSandboxManager
 
+# Import structured models for AG-UI Protocol
+from backend.app.agent.models import (
+    AgentMessage,
+    ReasoningState,
+    ToolCall,
+    ToolCallState,
+    make_ag_ui_event,
+    extract_reasoning_from_content_blocks,
+    # HITL models
+    HITLRequest,
+    HITLState,
+    create_hitl_interrupt_event,
+)
+
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
@@ -44,20 +59,14 @@ _graph = graph
 # Request/Response Models
 # =============================================================================
 
-class AgentMessage(BaseModel):
-    """Represents a single message in the agent conversation."""
-    
-    role: str = Field(..., description="Message role: 'user', 'assistant', or 'system'")
-    content: str = Field(..., description="The message content")
-    name: Optional[str] = Field(None, description="Optional name of the message sender")
+# AgentMessage imported from backend.app.agent.models
 
 
 class AgentRequest(BaseModel):
     """Request model for the agent streaming endpoint."""
     
     messages: List[AgentMessage] = Field(..., description="List of conversation messages")
-    thread_id: str = Field(default="__default__", description="Thread ID for conversation continuity")
-    session_id: Optional[str] = Field(None, description="Session ID for sandbox reuse")
+    thread_id: str = Field(default="__default__", description="Thread ID for conversation continuity and sandbox session")
     resources: List[Resource] = Field(default_factory=list, description="RAG resources")
     max_plan_iterations: int = Field(default=1, ge=1, le=10, description="Maximum plan iterations")
     max_step_num: int = Field(default=3, ge=1, le=10, description="Maximum steps in a plan")
@@ -112,8 +121,14 @@ async def _agent_stream_generator(
     2. Creates/reuses sandbox (lazy initialization)
     3. Sends "sandbox_ready" status
     4. Runs agent workflow
-    5. Streams responses
+    5. Streams responses with AG-UI Protocol support:
+       - Reasoning events (auto-detected from model output)
+       - Multimodal message conversion
+       - Tool call lifecycle events
     """
+    # Track reasoning state for AG-UI Protocol (using structured ReasoningState)
+    reasoning_state = ReasoningState()
+    
     try:
         # STEP 1: Send immediate feedback
         yield _make_event("status", {
@@ -199,6 +214,7 @@ async def _agent_stream_generator(
         # STEP 4: MCP URL already obtained above, use it for workflow
         
         # STEP 5: Build workflow input
+        # Messages are already in LangChain v1 format (string or list of content blocks)
         workflow_input = {
             "messages": messages,
             "locale": locale,
@@ -237,26 +253,145 @@ async def _agent_stream_generator(
                 
                 if event_type == "on_chat_model_stream":
                     chunk = event.get("data", {}).get("chunk")
-                    if isinstance(chunk, AIMessageChunk) and chunk.content:
-                        yield _make_event("message", {
-                            "type": "chunk",
-                            "content": chunk.content,
-                            "thread_id": thread_id,
-                        })
+                    if isinstance(chunk, AIMessageChunk):
+                        # Process content blocks - LangChain standardizes reasoning/text/etc.
+                        # content_blocks provides unified format across all providers
+                        if hasattr(chunk, 'content_blocks') and chunk.content_blocks:
+                            for block in chunk.content_blocks:
+                                if not isinstance(block, dict):
+                                    continue
+                                
+                                block_type = block.get('type', '')
+                                
+                                # Handle reasoning blocks (auto-standardized by LangChain)
+                                if block_type == 'reasoning':
+                                    reasoning_text = block.get('reasoning') or block.get('thinking') or block.get('text', '')
+                                    
+                                    if reasoning_text:
+                                        # Start reasoning session if not already active
+                                        if not reasoning_state.is_active:
+                                            msg_id = reasoning_state.start_reasoning()
+                                            
+                                            yield _make_event("reasoning_start", {
+                                                "messageId": msg_id,
+                                            })
+                                            yield _make_event("reasoning_message_start", {
+                                                "messageId": msg_id,
+                                                "role": "assistant",
+                                            })
+                                        
+                                        # Stream reasoning content
+                                        yield _make_event("reasoning_message_content", {
+                                            "messageId": reasoning_state.message_id,
+                                            "delta": reasoning_text,
+                                        })
+                                
+                                # Handle text blocks
+                                elif block_type == 'text':
+                                    text_content = block.get('text', '')
+                                    
+                                    if text_content:
+                                        # Close reasoning session if switching to text
+                                        if reasoning_state.is_active:
+                                            msg_id = reasoning_state.end_reasoning()
+                                            yield _make_event("reasoning_message_end", {
+                                                "messageId": msg_id,
+                                            })
+                                            yield _make_event("reasoning_end", {
+                                                "messageId": msg_id,
+                                            })
+                                        
+                                        # Emit text message chunk
+                                        yield _make_event("message", {
+                                            "type": "chunk",
+                                            "content": text_content,
+                                            "thread_id": thread_id,
+                                        })
+                        
+                        # Fallback for simple string content (no content_blocks)
+                        elif isinstance(chunk.content, str) and chunk.content:
+                            # Close reasoning if active
+                            if reasoning_state.is_active:
+                                msg_id = reasoning_state.end_reasoning()
+                                yield _make_event("reasoning_message_end", {
+                                    "messageId": msg_id,
+                                })
+                                yield _make_event("reasoning_end", {
+                                    "messageId": msg_id,
+                                })
+                            
+                            yield _make_event("message", {
+                                "type": "chunk",
+                                "content": chunk.content,
+                                "thread_id": thread_id,
+                            })
                 
                 elif event_type == "on_tool_start":
                     tool_name = event.get("name", "unknown")
-                    yield _make_event("tool", {
-                        "type": "start",
-                        "name": tool_name,
-                    })
+                    tool_run_id = event.get("run_id", str(uuid4()))
+                    tool_input = event.get("data", {}).get("input", {})
+                    
+                    # Create structured ToolCall
+                    tool_call = ToolCall(
+                        tool_call_id=tool_run_id,
+                        tool_name=tool_name,
+                        tool_input=tool_input,
+                    )
+                    
+                    # AG-UI Protocol: TOOL_CALL_START (using model method)
+                    event_data = tool_call.to_ag_ui_start_event()
+                    event_data["thread_id"] = thread_id
+                    yield _make_event("tool_call_start", event_data)
+                    
+                    # AG-UI Protocol: TOOL_CALL_ARGS (send full args as single delta)
+                    if tool_input:
+                        args_str = json.dumps(tool_input) if isinstance(tool_input, dict) else str(tool_input)
+                        yield _make_event("tool_call_args", tool_call.to_ag_ui_args_event(args_str))
                 
                 elif event_type == "on_tool_end":
                     tool_name = event.get("name", "unknown")
-                    yield _make_event("tool", {
-                        "type": "end",
-                        "name": tool_name,
+                    tool_run_id = event.get("run_id", str(uuid4()))
+                    tool_output = event.get("data", {}).get("output", "")
+                    
+                    # AG-UI Protocol: TOOL_CALL_END
+                    yield _make_event("tool_call_end", {
+                        "toolCallId": tool_run_id,
                     })
+                    
+                    # Also emit tool result as tool message for conversation history
+                    yield _make_event("tool_result", {
+                        "role": "tool",
+                        "content": str(tool_output) if tool_output else "",
+                        "toolCallId": tool_run_id,
+                        "toolName": tool_name,
+                        "thread_id": thread_id,
+                    })
+            
+            # Check graph state for interrupts after streaming completes
+            # LangGraph signals interrupts via __interrupt__ in the state
+            try:
+                state_snapshot = await configured_graph.aget_state(workflow_config)
+                if state_snapshot and hasattr(state_snapshot, 'tasks'):
+                    for task in state_snapshot.tasks:
+                        if hasattr(task, 'interrupts') and task.interrupts:
+                            # Found an interrupt - emit HITL event
+                            for interrupt_obj in task.interrupts:
+                                interrupt_value = getattr(interrupt_obj, 'value', interrupt_obj)
+                                yield create_hitl_interrupt_event(interrupt_value, thread_id)
+                            # Don't emit completion if interrupted
+                            return
+            except Exception as state_error:
+                logger.debug(f"Could not check state for interrupts: {state_error}")
+        
+        # Close reasoning if still active at the end
+        if reasoning_state.is_active:
+            msg_id = reasoning_state.end_reasoning()
+            yield _make_event("reasoning_message_end", {
+                "messageId": msg_id,
+            })
+            yield _make_event("reasoning_end", {
+                "messageId": msg_id,
+            })
         
         # STEP 7: Send completion
         yield _make_event("status", {
@@ -298,13 +433,23 @@ async def agent_stream(request: AgentRequest, http_request: Request):
     
     This endpoint:
     - Creates a sandbox lazily (only when needed)
-    - Reuses sandboxes for the same session_id
+    - Reuses sandboxes for the same thread_id
     - Streams responses in real-time using SSE
+    - Supports multimodal input (images, audio, video, files)
+    - Automatically emits reasoning events when model returns thinking content
     
-    Events emitted:
+    Events emitted (AG-UI Protocol compatible):
     - status: Processing status updates
     - message: Agent response chunks
-    - tool: Tool execution events
+    - reasoning_start: Reasoning started (auto-detected)
+    - reasoning_message_start: Reasoning message started
+    - reasoning_message_content: Reasoning content chunk (delta)
+    - reasoning_message_end: Reasoning message ended
+    - reasoning_end: Reasoning completed
+    - tool_call_start: Tool execution started (toolCallId, toolCallName)
+    - tool_call_args: Tool arguments (toolCallId, delta)
+    - tool_call_end: Tool execution completed (toolCallId)
+    - tool_result: Tool output (role, content, toolCallId)
     - error: Error events
     - warning: Non-fatal warnings
     
@@ -315,17 +460,16 @@ async def agent_stream(request: AgentRequest, http_request: Request):
     token_payload = jwt_decode(token)
     user_id = str(token_payload.id)
     
-    # Generate thread/session IDs if needed
+    # Generate thread_id if using default (thread_id is used for both conversation and sandbox)
     thread_id = request.thread_id
     if thread_id == "__default__":
         thread_id = str(uuid4())
     
-    session_id = request.session_id or thread_id
-    
     # Create session sandbox manager (lazy - no sandbox yet)
+    # Using thread_id for sandbox session to maintain consistency
     sandbox_manager = SessionSandboxManager(
         user_id=user_id,
-        session_id=session_id
+        session_id=thread_id  # thread_id serves as session_id for sandbox
     )
     
     # Convert messages to dict format

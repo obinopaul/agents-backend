@@ -237,9 +237,6 @@ def test_state_schema() -> TestResult:
         
         # Check that State has the expected fields
         expected_fields = [
-            "locale",
-            "research_topic",
-            "observations",
             "resources",
             "enable_background_investigation",
             "background_investigation_results",
@@ -292,7 +289,6 @@ def test_create_agent_basic() -> TestResult:
             agent_type="researcher",
             tools=[test_tool],
             prompt_template="researcher",
-            locale="en-US",
         )
         
         assert agent is not None, "Agent should not be None"
@@ -414,9 +410,7 @@ def test_background_investigation_node() -> TestResult:
         
         # Create mock state - background investigation disabled for testing
         state = {
-            "messages": [],
-            "locale": "en-US",
-            "research_topic": "Python programming",
+            "messages": [{"role": "user", "content": "What is Python programming?"}],
             "enable_background_investigation": False,  # Skip actual search
         }
         
@@ -450,21 +444,19 @@ def test_human_feedback_node() -> TestResult:
     """Test the human feedback node routing logic."""
     start = time.time()
     try:
-        from backend.src.graph.nodes import human_feedback_node, preserve_state_meta_fields
+        from backend.src.graph.nodes import preserve_state_meta_fields
         
         # Test state meta field preservation
         state = {
             "messages": [],
-            "locale": "zh-CN",
-            "research_topic": "Test topic",
             "resources": [],
             "enable_background_investigation": True,
         }
         
         preserved = preserve_state_meta_fields(state)
         
-        assert preserved["locale"] == "zh-CN", "Locale should be preserved"
-        assert preserved["research_topic"] == "Test topic", "Research topic should be preserved"
+        assert preserved["resources"] == [], "Resources should be preserved"
+        assert preserved["enable_background_investigation"] == True, "enable_background_investigation should be preserved"
         
         duration = time.time() - start
         return TestResult(
@@ -512,7 +504,6 @@ async def test_agent_simple_question() -> TestResult:
             agent_type="researcher",
             tools=[calculate],
             prompt_template="researcher",
-            locale="en-US",
         )
         
         # Test with a simple question
@@ -622,8 +613,6 @@ async def test_full_graph_execution() -> TestResult:
             "messages": [
                 HumanMessage(content="What is 2+2? Just give me the answer directly.")
             ],
-            "locale": "en-US",
-            "research_topic": "simple math",
             "enable_background_investigation": False,
             "resources": [],
         }

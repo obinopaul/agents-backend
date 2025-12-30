@@ -1,5 +1,6 @@
 # src/utils/token_manager.py
 import copy
+import json
 import logging
 from typing import List
 
@@ -277,8 +278,10 @@ def validate_message_content(messages: List[BaseMessage], max_content_length: in
     This function ensures:
     1. All messages have a content field
     2. No message has None or empty string content (except for legitimate empty responses)
-    3. Complex objects (lists, dicts) are converted to JSON strings
+    3. Complex objects (lists, dicts) are handled appropriately
     4. Content is truncated if too long to prevent token overflow
+    
+    NOTE: Lists are preserved for multimodal content (images, audio, etc.)
     
     Args:
         messages: List of messages to validate
@@ -300,9 +303,20 @@ def validate_message_content(messages: List[BaseMessage], max_content_length: in
                 logger.warning(f"Message {i} ({type(msg).__name__}) has None content, setting to empty string")
                 msg.content = ""
             
-            # Handle complex content types (convert to JSON)
-            elif isinstance(msg.content, (list, dict)):
-                logger.debug(f"Message {i} ({type(msg).__name__}) has complex content type {type(msg.content).__name__}, converting to JSON")
+            # Handle list content - preserve for multimodal (LangChain vision format)
+            elif isinstance(msg.content, list):
+                # Lists are valid multimodal content in LangChain format
+                # Each item should be a dict with 'type' key (e.g., {'type': 'text', 'text': '...'})
+                # or {'type': 'image_url', 'image_url': {'url': '...'}}
+                logger.debug(f"Message {i} ({type(msg).__name__}) has list content (multimodal), preserving as-is")
+                # Validate each block has a type
+                for j, block in enumerate(msg.content):
+                    if isinstance(block, dict) and 'type' not in block:
+                        logger.warning(f"Message {i} content block {j} missing 'type' field")
+            
+            # Handle dict content (single content block) - convert to JSON for safety
+            elif isinstance(msg.content, dict):
+                logger.debug(f"Message {i} ({type(msg).__name__}) has dict content, converting to JSON")
                 msg.content = json.dumps(msg.content, ensure_ascii=False)
             
             # Handle other non-string types

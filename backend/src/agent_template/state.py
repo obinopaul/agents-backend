@@ -29,7 +29,6 @@ class TemplateState(MessagesState):
     # -------------------------------------------------------------------------
     task: str = ""  # The main task/query to process
     context: str = ""  # Additional context for the task
-    locale: str = "en-US"  # User's language locale
     
     # -------------------------------------------------------------------------
     # Plan & Execution State
@@ -40,9 +39,8 @@ class TemplateState(MessagesState):
     step_results: List[Dict[str, Any]] = field(default_factory=list)  # Results from each step
     
     # -------------------------------------------------------------------------
-    # Agent Observations & Memory
+    # Agent Memory
     # -------------------------------------------------------------------------
-    observations: List[str] = field(default_factory=list)  # Agent observations
     tool_calls: List[Dict[str, Any]] = field(default_factory=list)  # History of tool calls
     errors: List[str] = field(default_factory=list)  # Errors encountered
     

@@ -16,8 +16,9 @@ import asyncio
 import base64
 import json
 import logging
-from typing import Annotated, Any, List, Optional
+from typing import Annotated, Any, Dict, List, Optional, Union
 from uuid import uuid4
+import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.responses import Response, StreamingResponse
@@ -45,6 +46,18 @@ from backend.src.utils.log_sanitizer import (
     sanitize_user_content,
 )
 
+# Import structured models for AG-UI Protocol
+from backend.app.agent.models import (
+    ChatMessage,
+    ReasoningState,
+    ToolCall,
+    ToolResult,
+    make_ag_ui_event,
+    # HITL models
+    HITLRequest,
+    create_hitl_interrupt_event,
+)
+
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
@@ -56,12 +69,11 @@ _graph = graph
 INTERNAL_SERVER_ERROR_DETAIL = "Internal Server Error"
 
 
-class ChatMessage(BaseModel):
-    """Represents a single message in the chat conversation."""
+# =============================================================================
+# Request/Response Models
+# =============================================================================
 
-    role: str = Field(..., description="Message role: 'user', 'assistant', or 'system'")
-    content: str = Field(..., description="The message content")
-    name: Optional[str] = Field(None, description="Optional name of the message sender")
+# ChatMessage imported from backend.app.agent.models
 
 
 class MCPServerConfig(BaseModel):
@@ -252,23 +264,17 @@ def _create_event_stream_message(
 
 
 def _create_interrupt_event(thread_id: str, event_data: dict) -> str:
-    """Create interrupt event."""
+    """
+    Create AG-UI interrupt event using structured HITL models.
+    
+    Handles LangGraph interrupts and converts them to AG-UI Protocol format.
+    Uses HITLRequest for proper parsing and event generation.
+    """
     interrupt = event_data["__interrupt__"][0]
-    interrupt_id = getattr(interrupt, "id", None) or thread_id
-    return _make_event(
-        "interrupt",
-        {
-            "thread_id": thread_id,
-            "id": interrupt_id,
-            "role": "assistant",
-            "content": interrupt.value,
-            "finish_reason": "interrupt",
-            "options": [
-                {"text": "Edit plan", "value": "edit_plan"},
-                {"text": "Start research", "value": "accepted"},
-            ],
-        },
-    )
+    interrupt_value = getattr(interrupt, "value", interrupt)
+    
+    # Use the structured HITL model for proper event generation
+    return create_hitl_interrupt_event(interrupt_value, thread_id)
 
 
 def _process_initial_messages(message: dict, thread_id: str) -> None:
@@ -293,8 +299,27 @@ async def _process_message_chunk(
     message_metadata: dict,
     thread_id: str,
     agent: tuple,
+    reasoning_state: ReasoningState,
 ):
-    """Process a single message chunk and yield appropriate events."""
+    """
+    Process a single message chunk and yield appropriate events.
+    
+    Emits AG-UI Protocol compatible events:
+    - reasoning_start: When reasoning content is detected (auto-detected)
+    - reasoning_message_start: Reasoning message starts
+    - reasoning_message_content: Reasoning content chunks (delta)
+    - reasoning_message_end: Reasoning message ends  
+    - reasoning_end: Reasoning completes
+    - tool_call_start: When a tool call begins
+    - tool_call_args: Tool arguments (streaming deltas)  
+    - tool_call_end: When tool call completes
+    - tool_result: Tool output/result
+    
+    Also emits legacy events for backwards compatibility.
+    
+    Args:
+        reasoning_state: ReasoningState instance for tracking reasoning across chunks
+    """
     agent_name = _get_agent_name(agent, message_metadata)
     safe_agent_name = sanitize_agent_name(agent_name)
     safe_thread_id = sanitize_thread_id(thread_id)
@@ -307,6 +332,8 @@ async def _process_message_chunk(
     if isinstance(message_chunk, ToolMessage):
         tool_call_id = message_chunk.tool_call_id
         event_stream_message["tool_call_id"] = tool_call_id
+        # AG-UI: Also include toolCallId for consistency
+        event_stream_message["toolCallId"] = tool_call_id
 
         if tool_call_id:
             safe_tool_id = sanitize_log_input(tool_call_id, max_length=100)
@@ -314,8 +341,86 @@ async def _process_message_chunk(
         else:
             logger.warning(f"[{safe_thread_id}] ToolMessage received without tool_call_id")
 
+        # Emit tool_result (AG-UI compatible) - tool message with result
+        yield _make_event("tool_result", event_stream_message)
+        
+        # Also emit legacy tool_call_result for backwards compatibility
         yield _make_event("tool_call_result", event_stream_message)
+        
     elif isinstance(message_chunk, AIMessageChunk):
+        # Process content blocks - LangChain standardizes reasoning/text/etc.
+        # content_blocks provides unified format across all providers
+        has_processed_content = False
+        
+        if hasattr(message_chunk, 'content_blocks') and message_chunk.content_blocks:
+            for block in message_chunk.content_blocks:
+                if not isinstance(block, dict):
+                    continue
+                
+                block_type = block.get('type', '')
+                
+                # Handle reasoning blocks (auto-standardized by LangChain)
+                if block_type == 'reasoning':
+                    reasoning_text = block.get('reasoning') or block.get('thinking') or block.get('text', '')
+                    
+                    if reasoning_text:
+                        has_processed_content = True
+                        
+                        # Start reasoning session if not already active
+                        if not reasoning_state.is_active:
+                            msg_id = reasoning_state.start_reasoning()
+                            
+                            yield _make_event("reasoning_start", {
+                                "messageId": msg_id,
+                            })
+                            yield _make_event("reasoning_message_start", {
+                                "messageId": msg_id,
+                                "role": "assistant",
+                            })
+                        
+                        # Stream reasoning content
+                        yield _make_event("reasoning_message_content", {
+                            "messageId": reasoning_state.message_id,
+                            "delta": reasoning_text,
+                        })
+                
+                # Handle text blocks
+                elif block_type == 'text':
+                    text_content = block.get('text', '')
+                    
+                    if text_content:
+                        has_processed_content = True
+                        
+                        # Close reasoning session if switching to text
+                        if reasoning_state.is_active:
+                            msg_id = reasoning_state.end_reasoning()
+                            yield _make_event("reasoning_message_end", {
+                                "messageId": msg_id,
+                            })
+                            yield _make_event("reasoning_end", {
+                                "messageId": msg_id,
+                            })
+                        
+                        # Emit text message chunk
+                        event_stream_message["content"] = text_content
+                        yield _make_event("message", event_stream_message)
+        
+        # Fallback for simple string content (no content_blocks)
+        if not has_processed_content and isinstance(message_chunk.content, str) and message_chunk.content:
+            # Close reasoning if active
+            if reasoning_state.is_active:
+                msg_id = reasoning_state.end_reasoning()
+                yield _make_event("reasoning_message_end", {
+                    "messageId": msg_id,
+                })
+                yield _make_event("reasoning_end", {
+                    "messageId": msg_id,
+                })
+            
+            event_stream_message["content"] = message_chunk.content
+            yield _make_event("message", event_stream_message)
+        
+        # Handle tool calls
         if message_chunk.tool_calls:
             safe_tool_names = [sanitize_tool_name(tc.get('name', 'unknown')) for tc in message_chunk.tool_calls]
             logger.debug(f"[{safe_thread_id}] AIMessageChunk has complete tool_calls: {safe_tool_names}")
@@ -325,13 +430,55 @@ async def _process_message_chunk(
             if processed_chunks:
                 event_stream_message["tool_call_chunks"] = processed_chunks
 
+            # Emit AG-UI compatible events for each tool call using structured ToolCall model
+            for tc in message_chunk.tool_calls:
+                tool_call = ToolCall.from_langchain(tc)
+                
+                # AG-UI: TOOL_CALL_START
+                start_event = tool_call.to_ag_ui_start_event()
+                start_event["thread_id"] = thread_id
+                start_event["parentMessageId"] = message_chunk.id
+                yield _make_event("tool_call_start", start_event)
+                
+                # AG-UI: TOOL_CALL_ARGS (send full args)
+                if tool_call.tool_input:
+                    args_str = json.dumps(tool_call.tool_input) if isinstance(tool_call.tool_input, dict) else str(tool_call.tool_input)
+                    yield _make_event("tool_call_args", tool_call.to_ag_ui_args_event(args_str))
+                
+                # AG-UI: TOOL_CALL_END  
+                yield _make_event("tool_call_end", tool_call.to_ag_ui_end_event())
+
+            # Legacy event for backwards compatibility
             yield _make_event("tool_calls", event_stream_message)
+            
         elif message_chunk.tool_call_chunks:
             processed_chunks = _process_tool_call_chunks(message_chunk.tool_call_chunks)
 
             if processed_chunks:
                 event_stream_message["tool_call_chunks"] = processed_chunks
+                
+                # Emit AG-UI compatible events for streaming chunks
+                for chunk in processed_chunks:
+                    chunk_id = chunk.get("id", "")
+                    chunk_name = chunk.get("name", "")
+                    chunk_args = chunk.get("args", "")
+                    
+                    # If we have a name, this is a start event
+                    if chunk_name:
+                        yield _make_event("tool_call_start", {
+                            "toolCallId": chunk_id,
+                            "toolCallName": chunk_name,
+                            "thread_id": thread_id,
+                        })
+                    
+                    # If we have args, emit as delta
+                    if chunk_args:
+                        yield _make_event("tool_call_args", {
+                            "toolCallId": chunk_id,
+                            "delta": chunk_args,
+                        })
 
+            # Legacy event for backwards compatibility
             yield _make_event("tool_call_chunks", event_stream_message)
         else:
             yield _make_event("message_chunk", event_stream_message)
@@ -343,10 +490,19 @@ async def _stream_graph_events(
     workflow_config: dict,
     thread_id: str,
 ):
-    """Stream events from the graph and process them."""
+    """
+    Stream events from the graph and process them.
+    
+    Maintains reasoning state across message chunks for proper AG-UI Protocol
+    reasoning event lifecycle (start -> content -> end).
+    """
     safe_thread_id = sanitize_thread_id(thread_id)
     logger.debug(f"[{safe_thread_id}] Starting graph event stream with agent nodes")
     event_count = 0
+    
+    # Track reasoning state across message chunks (using structured ReasoningState)
+    reasoning_state = ReasoningState()
+    
     try:
         async for agent, _, event_data in graph_instance.astream(
             workflow_input,
@@ -366,9 +522,19 @@ async def _stream_graph_events(
             message_chunk, message_metadata = event_data
 
             async for event in _process_message_chunk(
-                message_chunk, message_metadata, thread_id, agent
+                message_chunk, message_metadata, thread_id, agent, reasoning_state
             ):
                 yield event
+
+        # Close reasoning if still active at the end of the stream
+        if reasoning_state.is_active:
+            msg_id = reasoning_state.end_reasoning()
+            yield _make_event("reasoning_message_end", {
+                "messageId": msg_id,
+            })
+            yield _make_event("reasoning_end", {
+                "messageId": msg_id,
+            })
 
         logger.debug(f"[{safe_thread_id}] Graph event stream completed. Total events: {event_count}")
     except asyncio.CancelledError:
@@ -408,6 +574,11 @@ async def _astream_workflow_generator(
 
     This is the core engine that processes user messages through the LangGraph
     agent workflow and yields Server-Sent Events (SSE) for real-time streaming.
+    
+    Supports AG-UI Protocol:
+    - Multimodal messages (images, audio, video, files) automatically converted
+    - Reasoning events automatically emitted when model returns thinking content
+    - Tool call lifecycle events
     """
     safe_thread_id = sanitize_thread_id(thread_id)
     safe_feedback = sanitize_log_input(interrupt_feedback) if interrupt_feedback else ""
@@ -415,6 +586,9 @@ async def _astream_workflow_generator(
         f"[{safe_thread_id}] _astream_workflow_generator starting: "
         f"messages_count={len(messages)}, auto_accepted_plan={auto_accepted_plan}"
     )
+
+    # Messages are already in LangChain v1 format (string or list of content blocks)
+    # No conversion needed
 
     # Process initial messages
     for message in messages:
@@ -424,7 +598,16 @@ async def _astream_workflow_generator(
     # Reconstruct clarification history
     clarification_history = reconstruct_clarification_history(messages)
     clarified_topic, clarification_history = build_clarified_topic_from_history(clarification_history)
-    latest_message_content = messages[-1]["content"] if messages else ""
+    
+    # Get latest message content (handle multimodal case)
+    latest_content = messages[-1]["content"] if messages else ""
+    if isinstance(latest_content, list):
+        # Extract text from multimodal content
+        text_parts = [block.get("text", "") for block in latest_content if isinstance(block, dict) and block.get("type") == "text"]
+        latest_message_content = " ".join(text_parts)
+    else:
+        latest_message_content = latest_content
+    
     clarified_research_topic = clarified_topic or latest_message_content
 
     # Prepare workflow input

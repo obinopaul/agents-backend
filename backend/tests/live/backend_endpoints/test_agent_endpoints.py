@@ -267,8 +267,7 @@ class AgentEndpointTester:
                 "messages": [
                     {"role": "user", "content": "Say hello and tell me what tools you have available."}
                 ],
-                "session_id": f"test-session-{datetime.now().strftime('%Y%m%d%H%M%S')}",
-                "thread_id": "__default__",
+                "thread_id": f"test-session-{datetime.now().strftime('%Y%m%d%H%M%S')}",
                 "enable_background_investigation": False,  # Faster test
                 "enable_web_search": False,  # Faster test
                 "enable_deep_thinking": False,

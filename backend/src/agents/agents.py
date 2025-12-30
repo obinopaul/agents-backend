@@ -271,7 +271,6 @@ def create_agent(
     prompt_template: str,
     pre_model_hook: callable = None,
     interrupt_before_tools: Optional[List[str]] = None,
-    locale: str = "en-US",
     middleware: Optional[Sequence[Any]] = None,
     use_default_middleware: bool = True,
     middleware_config: Optional[dict] = None,
@@ -289,7 +288,6 @@ def create_agent(
         pre_model_hook: Optional hook to preprocess state before model invocation
                         (converted to middleware internally)
         interrupt_before_tools: Optional list of tool names to interrupt before execution
-        locale: Language locale for prompt template selection (e.g., en-US, zh-CN)
         middleware: Optional list of additional/custom middleware instances
                     (appended after default middleware)
         use_default_middleware: Whether to include default production middleware
@@ -325,8 +323,8 @@ def create_agent(
     # Get the system prompt string from template
     # LangChain v1 create_agent expects a string or SystemMessage, not a callable
     try:
-        system_prompt = get_prompt_template(prompt_template, locale=locale)
-        logger.debug(f"Loaded prompt template '{prompt_template}' for locale '{locale}'")
+        system_prompt = get_prompt_template(prompt_template)
+        logger.debug(f"Loaded prompt template '{prompt_template}'")
     except Exception as e:
         logger.warning(f"Failed to load prompt template '{prompt_template}': {e}")
         system_prompt = f"You are a helpful {agent_type} agent named {agent_name}."
@@ -352,7 +350,7 @@ def create_agent(
         middleware_list.extend(middleware)
         logger.debug(f"Added {len(middleware)} custom middleware for agent '{agent_name}'")
     
-    logger.debug(f"Creating ReAct agent '{agent_name}' with locale: {locale}")
+    logger.debug(f"Creating ReAct agent '{agent_name}'")
     logger.info(f"Agent '{agent_name}' total middleware count: {len(middleware_list)}")
     
     # Create agent using LangChain v1 create_agent signature

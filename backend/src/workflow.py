@@ -62,7 +62,6 @@ async def run_agent_workflow_async(
             # Runtime Variables
             "messages": [{"role": "user", "content": user_input}],
             "enable_background_investigation": enable_background_investigation,
-            "research_topic": user_input,
         }
 
     config = {

@@ -48,6 +48,14 @@ class Configuration:
     interrupt_before_tools: list[str] = field(
         default_factory=list
     )  # List of tool names to interrupt before execution
+    
+    # Human-in-the-loop (HITL) configuration
+    always_require_feedback: bool = (
+        False  # If True, always route to human_feedback after base node (legacy mode)
+    )
+    enable_feedback_tool: bool = (
+        True  # If True, add request_human_feedback tool to agent for explicit HITL
+    )
 
     @classmethod
     def from_runnable_config(

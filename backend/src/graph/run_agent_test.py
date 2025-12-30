@@ -31,7 +31,6 @@ async def test_agent():
         agent_type="researcher",
         tools=[calculate],
         prompt_template="researcher",
-        locale="en-US",
         use_default_middleware=False,  # Skip middleware for quick test
     )
     print(f"Agent created: {type(agent).__name__}")

@@ -8,6 +8,19 @@ This module builds the core agent workflow graph. The graph is compiled
 without a checkpointer - the PostgreSQL checkpointer is injected at runtime
 by the checkpointer_manager.
 
+Graph Architecture:
+    START → background_investigator → base → (human_feedback | END)
+    
+    - background_investigator: Optional initial web search
+    - base: Main agent node with full tool support
+    - human_feedback: Only reached when agent explicitly needs input
+
+Routing Logic:
+    - base → END: Task complete (default)
+    - base → human_feedback: Agent called request_human_feedback tool
+    - human_feedback → base: User provided feedback for another iteration
+    - human_feedback → END: User accepted result
+
 Usage:
     from backend.src.graph.builder import graph
     from backend.src.graph.checkpointer import checkpointer_manager
@@ -36,8 +49,12 @@ def _build_base_graph():
     
     builder.add_edge(START, "background_investigator")
     builder.add_edge("background_investigator", "base")
-    # base node uses Command(goto="human_feedback")
-    # human_feedback node uses Command(goto="base" or "__end__")
+    # base node uses Command(goto="human_feedback" | "__end__"):
+    #   - Routes to __end__ when task is complete (default)
+    #   - Routes to human_feedback when agent needs clarification
+    # human_feedback node uses Command(goto="base" | "__end__"):
+    #   - Routes to base when user provides feedback
+    #   - Routes to __end__ when user accepts result
     
     return builder
 

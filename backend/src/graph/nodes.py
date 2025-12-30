@@ -3,23 +3,23 @@ Simplified Graph Nodes for a Robust LangGraph Agent.
 
 This module provides the node implementations for a streamlined 3-node graph:
 1. background_investigator - Optional initial web search investigation  
-2. base - Main agent node with full tool support (MCP, web search, RAG, Python REPL)
-3. human_feedback - Human-in-the-loop for approval/feedback
+2. base - Main agent node with full tool support (MCP, web search, RAG, Python REPL, HITL)
+3. human_feedback - Human-in-the-loop with structured decisions (approve/edit/reject)
 
-Key Features Preserved:
+Key Features:
 - Full MCP server integration via MultiServerMCPClient
-- All tools: web_search, crawl, RAG retriever, python_repl
+- All tools: web_search, crawl, RAG retriever, python_repl, request_human_input
 - Context compression for large token contexts
+- Structured HITL with proper decision types
 - Web search validation
 - Prompt templates
-- JSON repair utilities
 """
 
 import json
 import logging
 import os
 from functools import partial
-from typing import Annotated, Any, Literal
+from typing import Annotated, Any, Dict, List, Literal, Optional
 
 from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
 from langchain_core.runnables import RunnableConfig
@@ -35,7 +35,9 @@ from backend.src.tools import (
     crawl_tool,
     get_retriever_tool,
     get_web_search_tool,
+    human_feedback_tool,
     python_repl_tool,
+    HITL_TOOL_MARKER,
 )
 from backend.src.tools.search import LoggedTavilySearch
 from backend.src.utils.context_manager import ContextManager, validate_message_content
@@ -46,6 +48,15 @@ from backend.src.graph.types import State
 from backend.src.graph.utils import (
     get_message_content,
     is_user_message,
+)
+
+# Import HITL models for structured decision handling
+from backend.app.agent.models import (
+    HITLDecisionType,
+    HITLRequest,
+    HITLResponse,
+    ActionRequest,
+    ReviewConfig,
 )
 
 logger = logging.getLogger(__name__)
@@ -69,10 +80,11 @@ def preserve_state_meta_fields(state: State) -> dict:
         Dict of meta fields to preserve
     """
     return {
-        "locale": state.get("locale", "en-US"),
-        "research_topic": state.get("research_topic", ""),
         "resources": state.get("resources", []),
         "enable_background_investigation": state.get("enable_background_investigation", True),
+        # HITL fields - preserve across transitions
+        "needs_human_feedback": state.get("needs_human_feedback", False),
+        "hitl_questions": state.get("hitl_questions", None),
     }
 
 
@@ -86,6 +98,7 @@ def background_investigation_node(state: State, config: RunnableConfig):
     
     This node runs before the main agent to gather context about the user's query.
     It uses either Tavily or a configured search engine to fetch relevant results.
+    Uses the last user message as the search query.
     
     Args:
         state: Current workflow state
@@ -107,11 +120,27 @@ def background_investigation_node(state: State, config: RunnableConfig):
         logger.info("Background investigation is disabled in state, skipping.")
         return {"background_investigation_results": json.dumps([], ensure_ascii=False)}
 
-    query = state.get("research_topic", "")
+    # Get the last user message as the search query
+    messages = state.get("messages", [])
+    query = ""
+    for msg in reversed(messages):
+        # Handle both dict and message object formats
+        if isinstance(msg, dict):
+            if msg.get("role") in ("user", "human"):
+                query = msg.get("content", "")
+                break
+        elif hasattr(msg, "content"):
+            # Check if it's a HumanMessage
+            msg_type = type(msg).__name__
+            if msg_type == "HumanMessage" or getattr(msg, "type", "") == "human":
+                query = str(msg.content) if msg.content else ""
+                break
+    
     if not query:
-        logger.warning("No research topic provided for background investigation.")
+        logger.warning("No user message found for background investigation.")
         return {"background_investigation_results": json.dumps([], ensure_ascii=False)}
     
+    logger.info(f"Background investigation query: {query[:100]}...")
     background_investigation_results = []
     
     if SELECTED_SEARCH_ENGINE == SearchEngine.TAVILY.value:
@@ -217,12 +246,77 @@ def validate_web_search_usage(messages: list, agent_name: str = "agent") -> bool
 
 
 # =============================================================================
+# HITL Detection and Parsing
+# =============================================================================
+
+def _parse_hitl_marker(content: str) -> Optional[Dict[str, Any]]:
+    """
+    Parse the HITL marker from tool response to extract questions.
+    
+    Format: [HITL_REQUEST]{"questions": ["question1", "question2"]}
+    
+    Returns:
+        Dict with 'questions' list if valid, None otherwise
+    """
+    if HITL_TOOL_MARKER not in content:
+        return None
+    
+    try:
+        json_part = content.split(HITL_TOOL_MARKER, 1)[1].strip()
+        return json.loads(json_part)
+    except (json.JSONDecodeError, IndexError) as e:
+        logger.warning(f"Failed to parse HITL marker: {e}")
+        return None
+
+
+def _detect_feedback_request(messages: list, agent_name: str = "agent") -> tuple[bool, Optional[List[str]]]:
+    """
+    Detect if the agent explicitly requested human feedback.
+    
+    This checks for:
+    1. Use of the request_human_input tool (new structured format)
+    2. The [HITL_REQUEST] marker in tool responses
+    
+    Args:
+        messages: List of messages from agent execution
+        agent_name: Name of the agent (for logging)
+        
+    Returns:
+        Tuple of (needs_feedback: bool, questions: Optional[List[str]])
+        - needs_feedback: True if HITL was requested
+        - questions: List of questions to ask the user, or None
+    """
+    for message in messages:
+        # Check for tool calls to request_human_input
+        if hasattr(message, 'tool_calls') and message.tool_calls:
+            for tool_call in message.tool_calls:
+                if tool_call.get('name') == "request_human_input":
+                    questions = tool_call.get('args', {}).get('questions', [])
+                    logger.info(f"[HITL] {agent_name} called request_human_input with {len(questions)} question(s)")
+                    return True, questions
+        
+        # Check for ToolMessage with HITL marker
+        if isinstance(message, ToolMessage):
+            content = str(message.content) if message.content else ""
+            
+            # New structured format
+            if HITL_TOOL_MARKER in content:
+                parsed = _parse_hitl_marker(content)
+                if parsed:
+                    questions = parsed.get('questions', [])
+                    logger.info(f"[HITL] {agent_name} HITL request detected: {len(questions)} question(s)")
+                    return True, questions
+    
+    return False, None
+
+
+# =============================================================================
 # Agent Execution Helpers
 # =============================================================================
 
 async def _execute_agent_step(
     state: State, agent, agent_name: str, config: RunnableConfig = None
-) -> Command[Literal["human_feedback"]]:
+) -> Command[Literal["human_feedback", "__end__"]]:
     """
     Helper function to execute the base agent step.
     
@@ -232,6 +326,7 @@ async def _execute_agent_step(
     - Managing recursion limits
     - Error handling and diagnostics
     - Web search validation
+    - HITL detection: Routes to human_feedback only if agent requests it
     
     Args:
         state: Current workflow state
@@ -243,10 +338,6 @@ async def _execute_agent_step(
         Command to update state and route to human_feedback
     """
     logger.debug(f"[_execute_agent_step] Starting execution for agent: {agent_name}")
-    
-    observations = state.get("observations", [])
-    research_topic = state.get("research_topic", "")
-    locale = state.get("locale", "en-US")
     
     # Build agent input messages - convert dict messages to proper message objects
     raw_messages = list(state.get("messages", []))
@@ -383,18 +474,20 @@ async def _execute_agent_step(
 
         detailed_error = f"[ERROR] {agent_name.capitalize()} Agent Error\n\nError Details:\n{str(e)}\n\nPlease check the logs for more information."
 
+        # On error, end the workflow (user can start a new conversation)
         return Command(
             update={
+                **preserve_state_meta_fields(state),
                 "messages": [
                     HumanMessage(
                         content=detailed_error,
                         name=agent_name,
                     )
                 ],
-                "observations": observations + [detailed_error],
-                **preserve_state_meta_fields(state),
+                "needs_human_feedback": False,
+                "hitl_questions": None,
             },
-            goto="human_feedback",
+            goto="__end__",
         )
 
     # Process the result
@@ -437,13 +530,43 @@ async def _execute_agent_step(
             f"All tool results will be preserved and streamed to frontend."
         )
 
+    # ==========================================================================
+    # HITL Routing Decision
+    # ==========================================================================
+    # Determine whether to route to human_feedback or __end__
+    # 
+    # Route to human_feedback if:
+    # 1. Agent explicitly called request_human_input tool
+    # 2. Configuration has always_require_feedback=True (legacy mode)
+    #
+    # Otherwise, route to __end__ (task complete)
+    # ==========================================================================
+    
+    needs_feedback, hitl_questions = _detect_feedback_request(agent_messages, agent_name)
+    
+    # Check for legacy mode (always require feedback)
+    if configurable.always_require_feedback:
+        logger.info(f"[HITL] always_require_feedback is enabled, routing to human_feedback")
+        needs_feedback = True
+        if not hitl_questions:
+            hitl_questions = ["Please review the agent's response."]
+    
+    # Determine next node
+    if needs_feedback:
+        next_node = "human_feedback"
+        logger.info(f"[HITL] Routing to human_feedback. Questions: {hitl_questions}")
+    else:
+        next_node = "__end__"
+        logger.info(f"[HITL] Task complete, routing to __end__")
+
     return Command(
         update={
+            **preserve_state_meta_fields(state),  # Base preserved fields first
             "messages": agent_messages,
-            "observations": observations + [response_content + validation_info],
-            **preserve_state_meta_fields(state),
+            "needs_human_feedback": needs_feedback,
+            "hitl_questions": hitl_questions,  # List of questions for the user
         },
-        goto="human_feedback",
+        goto=next_node,
     )
 
 
@@ -452,7 +575,7 @@ async def _setup_and_execute_agent_step(
     config: RunnableConfig,
     agent_type: str,
     default_tools: list,
-) -> Command[Literal["human_feedback"]]:
+) -> Command[Literal["human_feedback", "__end__"]]:
     """
     Helper function to set up an agent with appropriate tools and execute a step.
 
@@ -473,9 +596,6 @@ async def _setup_and_execute_agent_step(
     configurable = Configuration.from_runnable_config(config)
     mcp_servers = {}
     enabled_tools = {}
-    
-    # Get locale from workflow state to pass to agent creation
-    locale = state.get("locale", "en-US")
 
     # Extract MCP server configuration for this agent type
     # MCP settings allow dynamic tool loading from external servers
@@ -534,7 +654,6 @@ async def _setup_and_execute_agent_step(
         agent_type,  # Uses prompt template matching agent type
         pre_model_hook,
         interrupt_before_tools=configurable.interrupt_before_tools,
-        locale=locale,
     )
     
     return await _execute_agent_step(state, agent, agent_type, config)
@@ -546,24 +665,30 @@ async def _setup_and_execute_agent_step(
 
 async def base_node(
     state: State, config: RunnableConfig
-) -> Command[Literal["human_feedback"]]:
+) -> Command[Literal["human_feedback", "__end__"]]:
     """
     Base node that handles the robust execution of agent tasks.
     
     This is the main agent node that:
-    1. Configures all available tools (web search, RAG, crawl, Python REPL)
+    1. Configures all available tools (web search, RAG, crawl, Python REPL, HITL)
     2. Loads MCP tools if configured
     3. Creates a ReAct agent with the configured tools
     4. Executes the agent and processes results
+    5. Routes to human_feedback ONLY if agent requests it, otherwise to __end__
     
     The node uses the 'researcher' agent type for robust tool usage and prompting.
+    
+    Routing Logic:
+    - If agent calls request_human_feedback tool → human_feedback
+    - If always_require_feedback config is True → human_feedback (legacy mode)
+    - Otherwise → __end__ (task complete)
     
     Args:
         state: Current workflow state with messages and context
         config: Runnable configuration with tool settings
         
     Returns:
-        Command to update state and route to human_feedback
+        Command to update state and route to human_feedback or __end__
     """
     logger.info("Base node running.")
     
@@ -572,6 +697,11 @@ async def base_node(
     
     # Build tools list based on configuration
     tools = []
+    
+    # Add human feedback tool if enabled (allows agent to request clarification)
+    if configurable.enable_feedback_tool:
+        tools.append(human_feedback_tool)
+        logger.info("[base_node] Human feedback tool added for HITL support")
     
     # Add web search and crawl tools only if web search is enabled
     if configurable.enable_web_search:
@@ -598,6 +728,8 @@ async def base_node(
     logger.debug(f"[base_node] Tools: {[tool.name if hasattr(tool, 'name') else str(tool) for tool in tools]}")
     logger.info(f"[base_node] enforce_researcher_search={configurable.enforce_researcher_search}, "
                 f"enable_web_search={configurable.enable_web_search}")
+    logger.info(f"[base_node] HITL config: always_require_feedback={configurable.always_require_feedback}, "
+                f"enable_feedback_tool={configurable.enable_feedback_tool}")
     
     # Use 'researcher' as the agent type for robust prompting and MCP tool configuration
     return await _setup_and_execute_agent_step(
@@ -616,12 +748,21 @@ def human_feedback_node(
     state: State, config: RunnableConfig
 ) -> Command[Literal["base", "__end__"]]:
     """
-    Human feedback node for interaction and approval.
+    Human feedback node with structured HITL decision handling.
     
     This node provides a human-in-the-loop checkpoint where:
-    - The user can review the agent's work
-    - Approve to finish (type 'ACCEPTED' or empty)
-    - Provide feedback to continue iteration
+    - The user reviews agent's work or answers agent's questions
+    - Makes structured decisions: APPROVE, EDIT, or REJECT
+    - Provides feedback for edit/reject decisions
+    
+    This node is only reached when:
+    - Agent explicitly calls request_human_input tool with questions
+    - Configuration has always_require_feedback=True (legacy mode)
+    
+    Decisions:
+    - APPROVE: Finish the workflow, agent's work is accepted
+    - EDIT: Add modifications and loop back to base for another iteration
+    - REJECT: End workflow with rejection message
     
     Args:
         state: Current workflow state
@@ -630,33 +771,169 @@ def human_feedback_node(
     Returns:
         Command to either end workflow or loop back to base node
     """
-    logger.info("Human feedback node running.")
+    logger.info("Human feedback node running with structured HITL.")
     
-    # Interrupt for user feedback
-    feedback = interrupt("Review the agent's response. Type 'ACCEPTED' to finish, or provide feedback to continue:")
+    # Get the questions the agent wants answered (if any)
+    hitl_questions = state.get("hitl_questions", None)
     
-    # Handle None or empty feedback - assume acceptance
-    if not feedback:
-        logger.info("Empty feedback received, assuming acceptance.")
-        return Command(goto="__end__")
-
-    feedback_str = str(feedback).strip()
-    feedback_normalized = feedback_str.upper()
+    # Build structured HITL request
+    hitl_request = {
+        "questions": hitl_questions or [],
+        "allowed_decisions": ["approve", "edit", "reject"],
+        "context": {
+            "message_count": len(state.get("messages", [])),
+        }
+    }
     
-    # Check for explicit acceptance
-    if feedback_normalized == "ACCEPTED" or feedback_normalized.startswith("[ACCEPTED]"):
-        logger.info("User accepted the result.")
-        return Command(goto="__end__")
+    # Add a prompt based on context
+    if hitl_questions:
+        hitl_request["prompt"] = "The agent needs your input on the following:"
+    else:
+        hitl_request["prompt"] = "Review the agent's response and choose an action:"
     
-    # User provided feedback - add to messages and loop back
-    logger.info(f"User provided feedback: {feedback_str}")
+    logger.info(f"HITL request: {hitl_request}")
     
+    # Interrupt for user decision - returns structured response
+    response = interrupt(hitl_request)
+    
+    # Parse the response - can be:
+    # - String: "APPROVED" or plain feedback text
+    # - Dict: {"decision": "approve|edit|reject", "feedback": "...", "answers": [...]}
+    logger.info(f"HITL response received: {response}")
+    
+    # Handle None - assume approval
+    if not response:
+        logger.info("Empty response received, assuming approval.")
+        return Command(
+            update={
+                "needs_human_feedback": False,
+                "hitl_questions": None,
+                **preserve_state_meta_fields(state),
+            },
+            goto="__end__"
+        )
+    
+    # Handle string responses (legacy format)
+    if isinstance(response, str):
+        response_upper = response.strip().upper()
+        
+        # Check for approval
+        if response_upper in ("APPROVED", "ACCEPTED", "OK", "YES"):
+            logger.info("User approved the result (string format).")
+            return Command(
+                update={
+                    "needs_human_feedback": False,
+                    "hitl_questions": None,
+                    **preserve_state_meta_fields(state),
+                },
+                goto="__end__"
+            )
+        
+        # Check for rejection
+        if response_upper in ("REJECTED", "REJECT", "NO", "CANCEL"):
+            logger.info("User rejected the result (string format).")
+            messages = list(state.get("messages", []))
+            messages.append(HumanMessage(
+                content=f"[REJECTED] User rejected the agent's work.",
+                name="human_decision"
+            ))
+            return Command(
+                update={
+                    "messages": messages,
+                    "needs_human_feedback": False,
+                    "hitl_questions": None,
+                    **preserve_state_meta_fields(state),
+                },
+                goto="__end__"
+            )
+        
+        # Treat as feedback (edit decision) - loop back
+        logger.info(f"User provided feedback for edit: {response}")
+        messages = list(state.get("messages", []))
+        messages.append(HumanMessage(content=response.strip(), name="human_feedback"))
+        return Command(
+            update={
+                "messages": messages,
+                "needs_human_feedback": False,
+                "hitl_questions": None,
+                **preserve_state_meta_fields(state),
+            },
+            goto="base",
+        )
+    
+    # Handle dict responses (structured format from UI)
+    if isinstance(response, dict):
+        decision = response.get("decision", "").lower()
+        feedback = response.get("feedback", "")
+        answers = response.get("answers", [])
+        
+        # APPROVE decision - end workflow
+        if decision == "approve":
+            logger.info("User approved (structured decision).")
+            return Command(
+                update={
+                    "needs_human_feedback": False,
+                    "hitl_questions": None,
+                    **preserve_state_meta_fields(state),
+                },
+                goto="__end__"
+            )
+        
+        # REJECT decision - end with rejection message
+        if decision == "reject":
+            logger.info(f"User rejected (structured decision). Reason: {feedback}")
+            messages = list(state.get("messages", []))
+            rejection_msg = f"[REJECTED] User rejected the agent's work."
+            if feedback:
+                rejection_msg += f" Reason: {feedback}"
+            messages.append(HumanMessage(content=rejection_msg, name="human_decision"))
+            return Command(
+                update={
+                    "messages": messages,
+                    "needs_human_feedback": False,
+                    "hitl_questions": None,
+                    **preserve_state_meta_fields(state),
+                },
+                goto="__end__"
+            )
+        
+        # EDIT decision or answers provided - add to messages and loop back
+        if decision == "edit" or answers or feedback:
+            logger.info(f"User requested edit. Feedback: {feedback}, Answers: {answers}")
+            messages = list(state.get("messages", []))
+            
+            # Build the feedback message
+            content_parts = []
+            if feedback:
+                content_parts.append(feedback)
+            if answers:
+                # Format answers to questions
+                for i, answer in enumerate(answers):
+                    q = hitl_questions[i] if hitl_questions and i < len(hitl_questions) else f"Question {i+1}"
+                    content_parts.append(f"Q: {q}\nA: {answer}")
+            
+            combined_content = "\n\n".join(content_parts) if content_parts else "Please continue with the changes."
+            messages.append(HumanMessage(content=combined_content, name="human_feedback"))
+            
+            return Command(
+                update={
+                    "messages": messages,
+                    "needs_human_feedback": False,
+                    "hitl_questions": None,
+                    **preserve_state_meta_fields(state),
+                },
+                goto="base",
+            )
+    
+    # Fallback - treat unknown response as feedback
+    logger.warning(f"Unexpected HITL response format: {type(response)} - treating as feedback")
     messages = list(state.get("messages", []))
-    messages.append(HumanMessage(content=feedback_str, name="human_feedback"))
-    
+    messages.append(HumanMessage(content=str(response), name="human_feedback"))
     return Command(
         update={
             "messages": messages,
+            "needs_human_feedback": False,
+            "hitl_questions": None,
             **preserve_state_meta_fields(state),
         },
         goto="base",
