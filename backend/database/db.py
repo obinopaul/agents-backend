@@ -99,7 +99,7 @@ async def get_db_transaction() -> AsyncGenerator[AsyncSession, None]:
 async def create_tables() -> None:
     """创建数据库表"""
     async with async_engine.begin() as coon:
-        await coon.run_sync(MappedBase.metadata.create_all)
+        await coon.run_sync(MappedBase.metadata.create_all, checkfirst=True)
 
 
 async def drop_tables() -> None:

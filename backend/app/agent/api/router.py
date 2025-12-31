@@ -18,6 +18,7 @@ Endpoints include:
 - /config - Agent configuration
 - /credits/* - User credit balance and usage
 - /sandboxes/* - Sandbox management and slides
+- /files/* - File upload and staging for chat attachments
 """
 
 from fastapi import APIRouter
@@ -25,6 +26,7 @@ from fastapi import APIRouter
 from backend.app.agent.api.v1.chat import router as chat_router
 from backend.app.agent.api.v1.config import router as config_router
 from backend.app.agent.api.v1.credits import router as credits_router
+from backend.app.agent.api.v1.files import router as files_router
 from backend.app.agent.api.v1.generation import router as generation_router
 from backend.app.agent.api.v1.mcp import router as mcp_router
 from backend.app.agent.api.v1.mcp_settings import router as mcp_settings_router
@@ -39,9 +41,10 @@ v1 = APIRouter(prefix='/agent', tags=['Agent'])
 
 # Include sub-routers with appropriate prefixes
 v1.include_router(chat_router, prefix='/chat', tags=['Agent Chat'])
-v1.include_router(agent_router, prefix='/agent', tags=['Agent Sandbox'])
+v1.include_router(agent_router, prefix='/agent', tags=['Agent Sandbox Chat'])
 v1.include_router(config_router, prefix='/config', tags=['Agent Configuration'])
 v1.include_router(credits_router, tags=['Agent Credits'])
+v1.include_router(files_router, prefix='/files', tags=['Agent Files'])
 v1.include_router(generation_router, prefix='/generation', tags=['Agent Generation'])
 v1.include_router(mcp_router, prefix='/mcp', tags=['Agent MCP'])
 v1.include_router(mcp_settings_router, tags=['User MCP Settings'])
@@ -51,3 +54,4 @@ v1.include_router(sandbox_router, prefix='/sandboxes', tags=['Agent Sandbox Mana
 v1.include_router(slides_router, prefix='/sandboxes', tags=['Agent Slides'])
 
 __all__ = ['v1']
+

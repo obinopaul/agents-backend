@@ -141,13 +141,19 @@ class OperaLogMiddleware(BaseHTTPMiddleware):
 
         # Tip: .body() 必须在 .form() 之前获取
         # https://github.com/encode/starlette/discussions/1933
-        content_type = request.headers.get('Content-Type', '').split(';')
+        content_type = request.headers.get('Content-Type', '').split(';')[0].strip()
+
+        # Skip body reading for multipart/form-data to avoid consuming the request body
+        # before the endpoint can read uploaded files
+        if content_type == 'multipart/form-data':
+            args['form-data'] = {'note': 'multipart form data - body not logged to preserve file upload'}
+            return args or None
 
         # 请求体
         body_data = await request.body()
         if body_data:
             # 注意：非 json 数据默认使用 data 作为键
-            if 'application/json' not in content_type:
+            if content_type != 'application/json':
                 args['data'] = str(body_data)
             else:
                 json_data = await request.json()
@@ -156,17 +162,17 @@ class OperaLogMiddleware(BaseHTTPMiddleware):
                 else:
                     args['data'] = str(body_data)
 
-        # 表单参数
-        form_data = await request.form()
-        if len(form_data) > 0:
-            for k, v in form_data.items():
-                form_data = {k: v.filename} if isinstance(v, UploadFile) else {k: v}
-            if 'multipart/form-data' not in content_type:
-                args['x-www-form-urlencoded'] = await self.desensitization(form_data)
-            else:
-                args['form-data'] = await self.desensitization(form_data)
+        # 表单参数 (x-www-form-urlencoded only, not multipart)
+        if content_type == 'application/x-www-form-urlencoded':
+            form_data = await request.form()
+            if len(form_data) > 0:
+                form_dict = {}
+                for k, v in form_data.items():
+                    form_dict[k] = v.filename if isinstance(v, UploadFile) else v
+                args['x-www-form-urlencoded'] = await self.desensitization(form_dict)
 
         return args or None
+
 
     @staticmethod
     @sync_to_async

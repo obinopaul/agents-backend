@@ -92,7 +92,7 @@ async def parse_ip_info(request: Request) -> IpInfo:
 
     location_info = None
     if settings.IP_LOCATION_PARSE == 'online':
-        location_info = await get_location_online(ip, request.headers.get('User-Agent'))
+        location_info = await get_location_online(ip, request.headers.get('User-Agent') or 'Unknown')
     elif settings.IP_LOCATION_PARSE == 'offline':
         location_info = get_location_offline(ip)
 
@@ -115,7 +115,7 @@ def parse_user_agent_info(request: Request) -> UserAgentInfo:
     :param request: FastAPI 请求对象
     :return:
     """
-    user_agent = request.headers.get('User-Agent')
+    user_agent = request.headers.get('User-Agent') or 'Unknown'
     user_agent_ = parse(user_agent)
     os = user_agent_.get_os()
     browser = user_agent_.get_browser()

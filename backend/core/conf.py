@@ -562,6 +562,51 @@ class Settings(BaseSettings):
     SANDBOX_MCP_SERVER_PORT: int = 6060  # MCP tool server port
     SANDBOX_CODE_SERVER_PORT: int = 9000  # Code-Server (VS Code) port
 
+    # --------------------------------------------------------------------------
+    # [File Processing Configuration]
+    # Staged file upload and processing for chat attachments
+    # --------------------------------------------------------------------------
+    
+    # Storage Backend: 'local' for filesystem, 's3' for S3-compatible storage
+    FILE_STORAGE_BACKEND: str = 'local'
+    
+    # Local Storage Configuration
+    FILE_STORAGE_LOCAL_PATH: str = './uploads/staged-files'
+    FILE_STORAGE_LOCAL_BASE_URL: str = ''  # Optional: Base URL for serving files
+    
+    # S3 Storage Configuration (for FILE_STORAGE_BACKEND='s3')
+    FILE_STORAGE_S3_BUCKET: str = 'staged-files'
+    FILE_STORAGE_S3_ENDPOINT_URL: str = ''  # For MinIO, Wasabi, etc.
+    FILE_STORAGE_S3_REGION: str = 'us-east-1'
+    FILE_STORAGE_S3_ACCESS_KEY: str = ''
+    FILE_STORAGE_S3_SECRET_KEY: str = ''
+    FILE_STORAGE_S3_PUBLIC_URL_BASE: str = ''  # Optional: Public URL for files
+    
+    # File Size Limits
+    FILE_MAX_SIZE_MB: int = 50  # Maximum file size in MB
+    FILE_MAX_PARSED_CONTENT_LENGTH: int = 100000  # Max chars stored in DB
+    
+    # Staged File Expiration
+    FILE_STAGED_EXPIRY_HOURS: int = 24  # Hours until staged files expire
+    FILE_SIGNED_URL_EXPIRY_SECONDS: int = 3600  # 1 hour
+    
+    # Image Processing
+    FILE_IMAGE_MAX_WIDTH: int = 2048
+    FILE_IMAGE_MAX_HEIGHT: int = 2048
+    FILE_IMAGE_JPEG_QUALITY: int = 85
+    
+    # Document Parsing Limits
+    FILE_PARSE_MAX_PDF_PAGES: int = 500
+    FILE_PARSE_MAX_EXCEL_ROWS: int = 100000
+    FILE_PARSE_MAX_TEXT_CHARS: int = 10000000  # 10M chars
+
+    # LangGraph Checkpoint
+    LANGGRAPH_CHECKPOINT_ENABLED: bool = True
+    LANGGRAPH_CHECKPOINT_DB_URL: str | None = None
+    LANGGRAPH_CHECKPOINT_POOL_MIN: int = 2
+    LANGGRAPH_CHECKPOINT_POOL_MAX: int = 10
+    LANGGRAPH_CHECKPOINT_POOL_TIMEOUT: int = 60
+
     @model_validator(mode='before')
     @classmethod
     def check_env(cls, values: Any) -> Any:
@@ -573,6 +618,16 @@ class Settings(BaseSettings):
 
             # task
             values['CELERY_BROKER'] = 'rabbitmq'
+
+        # Auto-configure LangGraph Checkpoint DB URL from main DB if not set
+        if not values.get('LANGGRAPH_CHECKPOINT_DB_URL') and values.get('DATABASE_TYPE') == 'postgresql':
+            user = values.get('DATABASE_USER')
+            password = values.get('DATABASE_PASSWORD')
+            host = values.get('DATABASE_HOST')
+            port = values.get('DATABASE_PORT')
+            db = values.get('DATABASE_SCHEMA')
+            if all([user, password, host, port, db]):
+                values['LANGGRAPH_CHECKPOINT_DB_URL'] = f"postgresql://{user}:{password}@{host}:{port}/{db}"
 
         return values
 

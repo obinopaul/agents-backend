@@ -48,16 +48,27 @@ async def register_init(app: FastAPI) -> AsyncGenerator[None, None]:
     :return:
     """
     # Load all database models for SQLAlchemy table creation
+    print("DEBUG: Loading all models...")
     from backend import load_all_models
     load_all_models()
     
     # 创建数据库表
-    await create_tables()
+    print("DEBUG: Creating tables...")
+    try:
+        await create_tables()
+        print("DEBUG: Tables created successfully")
+    except Exception as e:
+        # Ignore errors if tables already exist to allow server to start
+        import logging
+        print(f"DEBUG: Error creating tables: {e}")
+        logging.getLogger(__name__).error(f"Error creating tables (safe to ignore if using migrations): {e}")
 
     # 初始化 redis
+    print("DEBUG: Opening Redis...")
     await redis_client.open()
 
     # 初始化 limiter
+    print("DEBUG: Initializing limiter...")
     await FastAPILimiter.init(
         redis=redis_client,
         prefix=settings.REQUEST_LIMITER_REDIS_PREFIX,
@@ -65,19 +76,24 @@ async def register_init(app: FastAPI) -> AsyncGenerator[None, None]:
     )
 
     # 初始化 snowflake 节点
+    print("DEBUG: Initializing Snowflake...")
     await snowflake.init()
 
     # 创建操作日志任务
     create_task(OperaLogMiddleware.consumer())
 
     # Initialize LangGraph PostgreSQL Checkpointer (shared connection pool)
+    print("DEBUG: Initializing Checkpointer...")
     await checkpointer_manager.initialize()
 
     # Initialize Sandbox Service
+    print("DEBUG: Initializing Sandbox Service...")
     await sandbox_service.initialize()
+    print("DEBUG: Sandbox Service initialized. Startup complete.")
 
     yield
-
+    
+    print("DEBUG: Shutting down...")
     # Shutdown Sandbox Service
     await sandbox_service.shutdown()
 

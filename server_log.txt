@@ -1,0 +1,276 @@
+[INFO] Starting granian (main PID: 16)
+[INFO] Listening at: http://0.0.0.0:8001
+[INFO] Spawning worker-1 with PID: 17
+/usr/local/lib/python3.11/site-packages/langchain_tavily/tavily_research.py:97: UserWarning: Field name "output_schema" in "TavilyResearch" shadows an attribute in parent "BaseTool"
+  class TavilyResearch(BaseTool):  # type: ignore[override, override]
+/usr/local/lib/python3.11/site-packages/langchain_tavily/tavily_research.py:97: UserWarning: Field name "stream" in "TavilyResearch" shadows an attribute in parent "BaseTool"
+  class TavilyResearch(BaseTool):  # type: ignore[override, override]
+2025-12-31 19:57:22.570 | INFO     | - | Checking plugin dependencies...
+2025-12-31 19:57:22.570 | INFO     | - | Plugin dependencies       - 6/6 0:00:14
+checked                                                                         
+2025-12-31 19:57:22.570 | INFO     | - | Starting service...
+[32m2025-12-31 11:57:38.609[0m | [33m[1mWARNING [0m | [36m-[0m | [33m[1mCheckpoint saver is disabled[0m
+DEBUG: Loading all models...
+DEBUG: Creating tables...
+DEBUG: Tables created successfully
+DEBUG: Opening Redis...
+DEBUG: Initializing limiter...
+DEBUG: Initializing Snowflake...
+DEBUG: Initializing Checkpointer...
+[32m2025-12-31 11:57:40.454[0m | [31m[1mERROR   [0m | [36m-[0m | [31m[1mTraceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 694, in lifespan
+    async with self.lifespan_context(app) as maybe_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi_pagination/api.py", line 349, in lifespan
+    async with _original_lifespan_context(app) as maybe_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi/routing.py", line 205, in merged_lifespan
+    async with original_context(app) as maybe_original_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/agents_backend/backend/core/registrar.py", line 87, in register_init
+    await checkpointer_manager.initialize()
+  File "/agents_backend/backend/src/graph/checkpointer.py", line 251, in initialize
+    self._validate_configuration()
+  File "/agents_backend/backend/src/graph/checkpointer.py", line 117, in _validate_configuration
+    raise CheckpointerNotConfiguredError(
+backend.src.graph.checkpointer.CheckpointerNotConfiguredError: PostgreSQL checkpointing is enabled but no database URL provided. Set LANGGRAPH_CHECKPOINT_DB_URL=postgresql://user:pass@host:port/dbname in your .env file.
+[0m
+[32m2025-12-31 11:57:40.454[0m | [31m[1mERROR   [0m | [36m-[0m | [31m[1mASGI lifespan startup failed[0m
+[ERROR] Unexpected exit from worker-1
+[INFO] Shutting down granian
+[INFO] Starting granian (main PID: 45)
+[INFO] Listening at: http://0.0.0.0:8001
+[INFO] Spawning worker-1 with PID: 46
+/usr/local/lib/python3.11/site-packages/langchain_tavily/tavily_research.py:97: UserWarning: Field name "output_schema" in "TavilyResearch" shadows an attribute in parent "BaseTool"
+  class TavilyResearch(BaseTool):  # type: ignore[override, override]
+/usr/local/lib/python3.11/site-packages/langchain_tavily/tavily_research.py:97: UserWarning: Field name "stream" in "TavilyResearch" shadows an attribute in parent "BaseTool"
+  class TavilyResearch(BaseTool):  # type: ignore[override, override]
+2025-12-31 19:57:57.570 | INFO     | - | Checking plugin dependencies...
+2025-12-31 19:57:57.570 | INFO     | - | Plugin dependencies       - 6/6 0:00:00
+checked                                                                         
+2025-12-31 19:57:57.570 | INFO     | - | Starting service...
+[32m2025-12-31 11:57:58.646[0m | [33m[1mWARNING [0m | [36m-[0m | [33m[1mCheckpoint saver is disabled[0m
+DEBUG: Loading all models...
+DEBUG: Creating tables...
+DEBUG: Tables created successfully
+DEBUG: Opening Redis...
+DEBUG: Initializing limiter...
+DEBUG: Initializing Snowflake...
+DEBUG: Initializing Checkpointer...
+[32m2025-12-31 11:58:00.365[0m | [31m[1mERROR   [0m | [36m-[0m | [31m[1mTraceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 694, in lifespan
+    async with self.lifespan_context(app) as maybe_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi_pagination/api.py", line 349, in lifespan
+    async with _original_lifespan_context(app) as maybe_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi/routing.py", line 205, in merged_lifespan
+    async with original_context(app) as maybe_original_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/agents_backend/backend/core/registrar.py", line 87, in register_init
+    await checkpointer_manager.initialize()
+  File "/agents_backend/backend/src/graph/checkpointer.py", line 251, in initialize
+    self._validate_configuration()
+  File "/agents_backend/backend/src/graph/checkpointer.py", line 117, in _validate_configuration
+    raise CheckpointerNotConfiguredError(
+backend.src.graph.checkpointer.CheckpointerNotConfiguredError: PostgreSQL checkpointing is enabled but no database URL provided. Set LANGGRAPH_CHECKPOINT_DB_URL=postgresql://user:pass@host:port/dbname in your .env file.
+[0m
+[32m2025-12-31 11:58:00.365[0m | [31m[1mERROR   [0m | [36m-[0m | [31m[1mASGI lifespan startup failed[0m
+[ERROR] Unexpected exit from worker-1
+[INFO] Shutting down granian
+[INFO] Starting granian (main PID: 66)
+[INFO] Listening at: http://0.0.0.0:8001
+[INFO] Spawning worker-1 with PID: 67
+/usr/local/lib/python3.11/site-packages/langchain_tavily/tavily_research.py:97: UserWarning: Field name "output_schema" in "TavilyResearch" shadows an attribute in parent "BaseTool"
+  class TavilyResearch(BaseTool):  # type: ignore[override, override]
+/usr/local/lib/python3.11/site-packages/langchain_tavily/tavily_research.py:97: UserWarning: Field name "stream" in "TavilyResearch" shadows an attribute in parent "BaseTool"
+  class TavilyResearch(BaseTool):  # type: ignore[override, override]
+2025-12-31 19:58:15.580 | INFO     | - | Checking plugin dependencies...
+2025-12-31 19:58:15.580 | INFO     | - | Plugin dependencies       - 6/6 0:00:00
+checked                                                                         
+2025-12-31 19:58:15.580 | INFO     | - | Starting service...
+[32m2025-12-31 11:58:16.232[0m | [33m[1mWARNING [0m | [36m-[0m | [33m[1mCheckpoint saver is disabled[0m
+DEBUG: Loading all models...
+DEBUG: Creating tables...
+DEBUG: Tables created successfully
+DEBUG: Opening Redis...
+DEBUG: Initializing limiter...
+DEBUG: Initializing Snowflake...
+DEBUG: Initializing Checkpointer...
+[32m2025-12-31 11:58:17.709[0m | [31m[1mERROR   [0m | [36m-[0m | [31m[1mTraceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 694, in lifespan
+    async with self.lifespan_context(app) as maybe_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi_pagination/api.py", line 349, in lifespan
+    async with _original_lifespan_context(app) as maybe_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi/routing.py", line 205, in merged_lifespan
+    async with original_context(app) as maybe_original_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/agents_backend/backend/core/registrar.py", line 87, in register_init
+    await checkpointer_manager.initialize()
+  File "/agents_backend/backend/src/graph/checkpointer.py", line 251, in initialize
+    self._validate_configuration()
+  File "/agents_backend/backend/src/graph/checkpointer.py", line 117, in _validate_configuration
+    raise CheckpointerNotConfiguredError(
+backend.src.graph.checkpointer.CheckpointerNotConfiguredError: PostgreSQL checkpointing is enabled but no database URL provided. Set LANGGRAPH_CHECKPOINT_DB_URL=postgresql://user:pass@host:port/dbname in your .env file.
+[0m
+[32m2025-12-31 11:58:17.710[0m | [31m[1mERROR   [0m | [36m-[0m | [31m[1mASGI lifespan startup failed[0m
+[ERROR] Unexpected exit from worker-1
+[INFO] Shutting down granian
+[INFO] Starting granian (main PID: 87)
+[INFO] Listening at: http://0.0.0.0:8001
+[INFO] Spawning worker-1 with PID: 88
+/usr/local/lib/python3.11/site-packages/langchain_tavily/tavily_research.py:97: UserWarning: Field name "output_schema" in "TavilyResearch" shadows an attribute in parent "BaseTool"
+  class TavilyResearch(BaseTool):  # type: ignore[override, override]
+/usr/local/lib/python3.11/site-packages/langchain_tavily/tavily_research.py:97: UserWarning: Field name "stream" in "TavilyResearch" shadows an attribute in parent "BaseTool"
+  class TavilyResearch(BaseTool):  # type: ignore[override, override]
+2025-12-31 19:58:32.580 | INFO     | - | Checking plugin dependencies...
+2025-12-31 19:58:32.580 | INFO     | - | Plugin dependencies       - 6/6 0:00:00
+checked                                                                         
+2025-12-31 19:58:32.580 | INFO     | - | Starting service...
+[32m2025-12-31 11:58:34.073[0m | [33m[1mWARNING [0m | [36m-[0m | [33m[1mCheckpoint saver is disabled[0m
+DEBUG: Loading all models...
+DEBUG: Creating tables...
+DEBUG: Tables created successfully
+DEBUG: Opening Redis...
+DEBUG: Initializing limiter...
+DEBUG: Initializing Snowflake...
+DEBUG: Initializing Checkpointer...
+[32m2025-12-31 11:58:35.671[0m | [31m[1mERROR   [0m | [36m-[0m | [31m[1mTraceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 694, in lifespan
+    async with self.lifespan_context(app) as maybe_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi_pagination/api.py", line 349, in lifespan
+    async with _original_lifespan_context(app) as maybe_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi/routing.py", line 205, in merged_lifespan
+    async with original_context(app) as maybe_original_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/agents_backend/backend/core/registrar.py", line 87, in register_init
+    await checkpointer_manager.initialize()
+  File "/agents_backend/backend/src/graph/checkpointer.py", line 251, in initialize
+    self._validate_configuration()
+  File "/agents_backend/backend/src/graph/checkpointer.py", line 117, in _validate_configuration
+    raise CheckpointerNotConfiguredError(
+backend.src.graph.checkpointer.CheckpointerNotConfiguredError: PostgreSQL checkpointing is enabled but no database URL provided. Set LANGGRAPH_CHECKPOINT_DB_URL=postgresql://user:pass@host:port/dbname in your .env file.
+[0m
+[32m2025-12-31 11:58:35.672[0m | [31m[1mERROR   [0m | [36m-[0m | [31m[1mASGI lifespan startup failed[0m
+[ERROR] Unexpected exit from worker-1
+[INFO] Shutting down granian
+[INFO] Starting granian (main PID: 114)
+[INFO] Listening at: http://0.0.0.0:8001
+[INFO] Spawning worker-1 with PID: 121
+/usr/local/lib/python3.11/site-packages/langchain_tavily/tavily_research.py:97: UserWarning: Field name "output_schema" in "TavilyResearch" shadows an attribute in parent "BaseTool"
+  class TavilyResearch(BaseTool):  # type: ignore[override, override]
+/usr/local/lib/python3.11/site-packages/langchain_tavily/tavily_research.py:97: UserWarning: Field name "stream" in "TavilyResearch" shadows an attribute in parent "BaseTool"
+  class TavilyResearch(BaseTool):  # type: ignore[override, override]
+2025-12-31 19:58:51.580 | INFO     | - | Checking plugin dependencies...
+2025-12-31 19:58:51.580 | INFO     | - | Plugin dependencies       - 6/6 0:00:00
+checked                                                                         
+2025-12-31 19:58:51.580 | INFO     | - | Starting service...
+[32m2025-12-31 11:58:53.018[0m | [33m[1mWARNING [0m | [36m-[0m | [33m[1mCheckpoint saver is disabled[0m
+DEBUG: Loading all models...
+DEBUG: Creating tables...
+DEBUG: Tables created successfully
+DEBUG: Opening Redis...
+DEBUG: Initializing limiter...
+DEBUG: Initializing Snowflake...
+DEBUG: Initializing Checkpointer...
+[32m2025-12-31 11:58:54.851[0m | [31m[1mERROR   [0m | [36m-[0m | [31m[1mTraceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 694, in lifespan
+    async with self.lifespan_context(app) as maybe_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi_pagination/api.py", line 349, in lifespan
+    async with _original_lifespan_context(app) as maybe_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi/routing.py", line 205, in merged_lifespan
+    async with original_context(app) as maybe_original_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/agents_backend/backend/core/registrar.py", line 87, in register_init
+    await checkpointer_manager.initialize()
+  File "/agents_backend/backend/src/graph/checkpointer.py", line 251, in initialize
+    self._validate_configuration()
+  File "/agents_backend/backend/src/graph/checkpointer.py", line 117, in _validate_configuration
+    raise CheckpointerNotConfiguredError(
+backend.src.graph.checkpointer.CheckpointerNotConfiguredError: PostgreSQL checkpointing is enabled but no database URL provided. Set LANGGRAPH_CHECKPOINT_DB_URL=postgresql://user:pass@host:port/dbname in your .env file.
+[0m
+[32m2025-12-31 11:58:54.852[0m | [31m[1mERROR   [0m | [36m-[0m | [31m[1mASGI lifespan startup failed[0m
+[ERROR] Unexpected exit from worker-1
+[INFO] Shutting down granian
+[INFO] Starting granian (main PID: 147)
+[INFO] Listening at: http://0.0.0.0:8001
+[INFO] Spawning worker-1 with PID: 148
+/usr/local/lib/python3.11/site-packages/langchain_tavily/tavily_research.py:97: UserWarning: Field name "output_schema" in "TavilyResearch" shadows an attribute in parent "BaseTool"
+  class TavilyResearch(BaseTool):  # type: ignore[override, override]
+/usr/local/lib/python3.11/site-packages/langchain_tavily/tavily_research.py:97: UserWarning: Field name "stream" in "TavilyResearch" shadows an attribute in parent "BaseTool"
+  class TavilyResearch(BaseTool):  # type: ignore[override, override]
+2025-12-31 19:59:09.590 | INFO     | - | Checking plugin dependencies...
+2025-12-31 19:59:09.590 | INFO     | - | Plugin dependencies       - 6/6 0:00:00
+checked                                                                         
+2025-12-31 19:59:09.590 | INFO     | - | Starting service...
+[32m2025-12-31 11:59:10.663[0m | [33m[1mWARNING [0m | [36m-[0m | [33m[1mCheckpoint saver is disabled[0m
+DEBUG: Loading all models...
+DEBUG: Creating tables...
+DEBUG: Tables created successfully
+DEBUG: Opening Redis...
+DEBUG: Initializing limiter...
+DEBUG: Initializing Snowflake...
+DEBUG: Initializing Checkpointer...
+[32m2025-12-31 11:59:12.265[0m | [31m[1mERROR   [0m | [36m-[0m | [31m[1mTraceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 694, in lifespan
+    async with self.lifespan_context(app) as maybe_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi_pagination/api.py", line 349, in lifespan
+    async with _original_lifespan_context(app) as maybe_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi/routing.py", line 205, in merged_lifespan
+    async with original_context(app) as maybe_original_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/agents_backend/backend/core/registrar.py", line 87, in register_init
+    await checkpointer_manager.initialize()
+  File "/agents_backend/backend/src/graph/checkpointer.py", line 251, in initialize
+    self._validate_configuration()
+  File "/agents_backend/backend/src/graph/checkpointer.py", line 117, in _validate_configuration
+    raise CheckpointerNotConfiguredError(
+backend.src.graph.checkpointer.CheckpointerNotConfiguredError: PostgreSQL checkpointing is enabled but no database URL provided. Set LANGGRAPH_CHECKPOINT_DB_URL=postgresql://user:pass@host:port/dbname in your .env file.
+[0m
+[32m2025-12-31 11:59:12.265[0m | [31m[1mERROR   [0m | [36m-[0m | [31m[1mASGI lifespan startup failed[0m
+[ERROR] Unexpected exit from worker-1
+[INFO] Shutting down granian

@@ -31,5 +31,9 @@ class AccessMiddleware(BaseHTTPMiddleware):
         ctx.start_time = start_time
 
         response = await call_next(request)
+        
+        # DEBUG: Log request path and response status
+        if 'files' in path:
+            print(f"[DEBUG middleware] Request: {request.method} {path} -> Response: {response.status_code}")
 
         return response

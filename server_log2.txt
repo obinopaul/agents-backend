@@ -1,0 +1,796 @@
+[INFO] Starting granian (main PID: 16)
+[INFO] Listening at: http://0.0.0.0:8001
+[INFO] Spawning worker-1 with PID: 17
+/usr/local/lib/python3.11/site-packages/langchain_tavily/tavily_research.py:97: UserWarning: Field name "output_schema" in "TavilyResearch" shadows an attribute in parent "BaseTool"
+  class TavilyResearch(BaseTool):  # type: ignore[override, override]
+/usr/local/lib/python3.11/site-packages/langchain_tavily/tavily_research.py:97: UserWarning: Field name "stream" in "TavilyResearch" shadows an attribute in parent "BaseTool"
+  class TavilyResearch(BaseTool):  # type: ignore[override, override]
+2025-12-31 19:57:22.570 | INFO     | - | Checking plugin dependencies...
+2025-12-31 19:57:22.570 | INFO     | - | Plugin dependencies       - 6/6 0:00:14
+checked                                                                         
+2025-12-31 19:57:22.570 | INFO     | - | Starting service...
+[32m2025-12-31 11:57:38.609[0m | [33m[1mWARNING [0m | [36m-[0m | [33m[1mCheckpoint saver is disabled[0m
+DEBUG: Loading all models...
+DEBUG: Creating tables...
+DEBUG: Tables created successfully
+DEBUG: Opening Redis...
+DEBUG: Initializing limiter...
+DEBUG: Initializing Snowflake...
+DEBUG: Initializing Checkpointer...
+[32m2025-12-31 11:57:40.454[0m | [31m[1mERROR   [0m | [36m-[0m | [31m[1mTraceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 694, in lifespan
+    async with self.lifespan_context(app) as maybe_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi_pagination/api.py", line 349, in lifespan
+    async with _original_lifespan_context(app) as maybe_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi/routing.py", line 205, in merged_lifespan
+    async with original_context(app) as maybe_original_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/agents_backend/backend/core/registrar.py", line 87, in register_init
+    await checkpointer_manager.initialize()
+  File "/agents_backend/backend/src/graph/checkpointer.py", line 251, in initialize
+    self._validate_configuration()
+  File "/agents_backend/backend/src/graph/checkpointer.py", line 117, in _validate_configuration
+    raise CheckpointerNotConfiguredError(
+backend.src.graph.checkpointer.CheckpointerNotConfiguredError: PostgreSQL checkpointing is enabled but no database URL provided. Set LANGGRAPH_CHECKPOINT_DB_URL=postgresql://user:pass@host:port/dbname in your .env file.
+[0m
+[32m2025-12-31 11:57:40.454[0m | [31m[1mERROR   [0m | [36m-[0m | [31m[1mASGI lifespan startup failed[0m
+[ERROR] Unexpected exit from worker-1
+[INFO] Shutting down granian
+[INFO] Starting granian (main PID: 45)
+[INFO] Listening at: http://0.0.0.0:8001
+[INFO] Spawning worker-1 with PID: 46
+/usr/local/lib/python3.11/site-packages/langchain_tavily/tavily_research.py:97: UserWarning: Field name "output_schema" in "TavilyResearch" shadows an attribute in parent "BaseTool"
+  class TavilyResearch(BaseTool):  # type: ignore[override, override]
+/usr/local/lib/python3.11/site-packages/langchain_tavily/tavily_research.py:97: UserWarning: Field name "stream" in "TavilyResearch" shadows an attribute in parent "BaseTool"
+  class TavilyResearch(BaseTool):  # type: ignore[override, override]
+2025-12-31 19:57:57.570 | INFO     | - | Checking plugin dependencies...
+2025-12-31 19:57:57.570 | INFO     | - | Plugin dependencies       - 6/6 0:00:00
+checked                                                                         
+2025-12-31 19:57:57.570 | INFO     | - | Starting service...
+[32m2025-12-31 11:57:58.646[0m | [33m[1mWARNING [0m | [36m-[0m | [33m[1mCheckpoint saver is disabled[0m
+DEBUG: Loading all models...
+DEBUG: Creating tables...
+DEBUG: Tables created successfully
+DEBUG: Opening Redis...
+DEBUG: Initializing limiter...
+DEBUG: Initializing Snowflake...
+DEBUG: Initializing Checkpointer...
+[32m2025-12-31 11:58:00.365[0m | [31m[1mERROR   [0m | [36m-[0m | [31m[1mTraceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 694, in lifespan
+    async with self.lifespan_context(app) as maybe_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi_pagination/api.py", line 349, in lifespan
+    async with _original_lifespan_context(app) as maybe_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi/routing.py", line 205, in merged_lifespan
+    async with original_context(app) as maybe_original_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/agents_backend/backend/core/registrar.py", line 87, in register_init
+    await checkpointer_manager.initialize()
+  File "/agents_backend/backend/src/graph/checkpointer.py", line 251, in initialize
+    self._validate_configuration()
+  File "/agents_backend/backend/src/graph/checkpointer.py", line 117, in _validate_configuration
+    raise CheckpointerNotConfiguredError(
+backend.src.graph.checkpointer.CheckpointerNotConfiguredError: PostgreSQL checkpointing is enabled but no database URL provided. Set LANGGRAPH_CHECKPOINT_DB_URL=postgresql://user:pass@host:port/dbname in your .env file.
+[0m
+[32m2025-12-31 11:58:00.365[0m | [31m[1mERROR   [0m | [36m-[0m | [31m[1mASGI lifespan startup failed[0m
+[ERROR] Unexpected exit from worker-1
+[INFO] Shutting down granian
+[INFO] Starting granian (main PID: 66)
+[INFO] Listening at: http://0.0.0.0:8001
+[INFO] Spawning worker-1 with PID: 67
+/usr/local/lib/python3.11/site-packages/langchain_tavily/tavily_research.py:97: UserWarning: Field name "output_schema" in "TavilyResearch" shadows an attribute in parent "BaseTool"
+  class TavilyResearch(BaseTool):  # type: ignore[override, override]
+/usr/local/lib/python3.11/site-packages/langchain_tavily/tavily_research.py:97: UserWarning: Field name "stream" in "TavilyResearch" shadows an attribute in parent "BaseTool"
+  class TavilyResearch(BaseTool):  # type: ignore[override, override]
+2025-12-31 19:58:15.580 | INFO     | - | Checking plugin dependencies...
+2025-12-31 19:58:15.580 | INFO     | - | Plugin dependencies       - 6/6 0:00:00
+checked                                                                         
+2025-12-31 19:58:15.580 | INFO     | - | Starting service...
+[32m2025-12-31 11:58:16.232[0m | [33m[1mWARNING [0m | [36m-[0m | [33m[1mCheckpoint saver is disabled[0m
+DEBUG: Loading all models...
+DEBUG: Creating tables...
+DEBUG: Tables created successfully
+DEBUG: Opening Redis...
+DEBUG: Initializing limiter...
+DEBUG: Initializing Snowflake...
+DEBUG: Initializing Checkpointer...
+[32m2025-12-31 11:58:17.709[0m | [31m[1mERROR   [0m | [36m-[0m | [31m[1mTraceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 694, in lifespan
+    async with self.lifespan_context(app) as maybe_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi_pagination/api.py", line 349, in lifespan
+    async with _original_lifespan_context(app) as maybe_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi/routing.py", line 205, in merged_lifespan
+    async with original_context(app) as maybe_original_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/agents_backend/backend/core/registrar.py", line 87, in register_init
+    await checkpointer_manager.initialize()
+  File "/agents_backend/backend/src/graph/checkpointer.py", line 251, in initialize
+    self._validate_configuration()
+  File "/agents_backend/backend/src/graph/checkpointer.py", line 117, in _validate_configuration
+    raise CheckpointerNotConfiguredError(
+backend.src.graph.checkpointer.CheckpointerNotConfiguredError: PostgreSQL checkpointing is enabled but no database URL provided. Set LANGGRAPH_CHECKPOINT_DB_URL=postgresql://user:pass@host:port/dbname in your .env file.
+[0m
+[32m2025-12-31 11:58:17.710[0m | [31m[1mERROR   [0m | [36m-[0m | [31m[1mASGI lifespan startup failed[0m
+[ERROR] Unexpected exit from worker-1
+[INFO] Shutting down granian
+[INFO] Starting granian (main PID: 87)
+[INFO] Listening at: http://0.0.0.0:8001
+[INFO] Spawning worker-1 with PID: 88
+/usr/local/lib/python3.11/site-packages/langchain_tavily/tavily_research.py:97: UserWarning: Field name "output_schema" in "TavilyResearch" shadows an attribute in parent "BaseTool"
+  class TavilyResearch(BaseTool):  # type: ignore[override, override]
+/usr/local/lib/python3.11/site-packages/langchain_tavily/tavily_research.py:97: UserWarning: Field name "stream" in "TavilyResearch" shadows an attribute in parent "BaseTool"
+  class TavilyResearch(BaseTool):  # type: ignore[override, override]
+2025-12-31 19:58:32.580 | INFO     | - | Checking plugin dependencies...
+2025-12-31 19:58:32.580 | INFO     | - | Plugin dependencies       - 6/6 0:00:00
+checked                                                                         
+2025-12-31 19:58:32.580 | INFO     | - | Starting service...
+[32m2025-12-31 11:58:34.073[0m | [33m[1mWARNING [0m | [36m-[0m | [33m[1mCheckpoint saver is disabled[0m
+DEBUG: Loading all models...
+DEBUG: Creating tables...
+DEBUG: Tables created successfully
+DEBUG: Opening Redis...
+DEBUG: Initializing limiter...
+DEBUG: Initializing Snowflake...
+DEBUG: Initializing Checkpointer...
+[32m2025-12-31 11:58:35.671[0m | [31m[1mERROR   [0m | [36m-[0m | [31m[1mTraceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 694, in lifespan
+    async with self.lifespan_context(app) as maybe_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi_pagination/api.py", line 349, in lifespan
+    async with _original_lifespan_context(app) as maybe_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi/routing.py", line 205, in merged_lifespan
+    async with original_context(app) as maybe_original_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/agents_backend/backend/core/registrar.py", line 87, in register_init
+    await checkpointer_manager.initialize()
+  File "/agents_backend/backend/src/graph/checkpointer.py", line 251, in initialize
+    self._validate_configuration()
+  File "/agents_backend/backend/src/graph/checkpointer.py", line 117, in _validate_configuration
+    raise CheckpointerNotConfiguredError(
+backend.src.graph.checkpointer.CheckpointerNotConfiguredError: PostgreSQL checkpointing is enabled but no database URL provided. Set LANGGRAPH_CHECKPOINT_DB_URL=postgresql://user:pass@host:port/dbname in your .env file.
+[0m
+[32m2025-12-31 11:58:35.672[0m | [31m[1mERROR   [0m | [36m-[0m | [31m[1mASGI lifespan startup failed[0m
+[ERROR] Unexpected exit from worker-1
+[INFO] Shutting down granian
+[INFO] Starting granian (main PID: 114)
+[INFO] Listening at: http://0.0.0.0:8001
+[INFO] Spawning worker-1 with PID: 121
+/usr/local/lib/python3.11/site-packages/langchain_tavily/tavily_research.py:97: UserWarning: Field name "output_schema" in "TavilyResearch" shadows an attribute in parent "BaseTool"
+  class TavilyResearch(BaseTool):  # type: ignore[override, override]
+/usr/local/lib/python3.11/site-packages/langchain_tavily/tavily_research.py:97: UserWarning: Field name "stream" in "TavilyResearch" shadows an attribute in parent "BaseTool"
+  class TavilyResearch(BaseTool):  # type: ignore[override, override]
+2025-12-31 19:58:51.580 | INFO     | - | Checking plugin dependencies...
+2025-12-31 19:58:51.580 | INFO     | - | Plugin dependencies       - 6/6 0:00:00
+checked                                                                         
+2025-12-31 19:58:51.580 | INFO     | - | Starting service...
+[32m2025-12-31 11:58:53.018[0m | [33m[1mWARNING [0m | [36m-[0m | [33m[1mCheckpoint saver is disabled[0m
+DEBUG: Loading all models...
+DEBUG: Creating tables...
+DEBUG: Tables created successfully
+DEBUG: Opening Redis...
+DEBUG: Initializing limiter...
+DEBUG: Initializing Snowflake...
+DEBUG: Initializing Checkpointer...
+[32m2025-12-31 11:58:54.851[0m | [31m[1mERROR   [0m | [36m-[0m | [31m[1mTraceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 694, in lifespan
+    async with self.lifespan_context(app) as maybe_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi_pagination/api.py", line 349, in lifespan
+    async with _original_lifespan_context(app) as maybe_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi/routing.py", line 205, in merged_lifespan
+    async with original_context(app) as maybe_original_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/agents_backend/backend/core/registrar.py", line 87, in register_init
+    await checkpointer_manager.initialize()
+  File "/agents_backend/backend/src/graph/checkpointer.py", line 251, in initialize
+    self._validate_configuration()
+  File "/agents_backend/backend/src/graph/checkpointer.py", line 117, in _validate_configuration
+    raise CheckpointerNotConfiguredError(
+backend.src.graph.checkpointer.CheckpointerNotConfiguredError: PostgreSQL checkpointing is enabled but no database URL provided. Set LANGGRAPH_CHECKPOINT_DB_URL=postgresql://user:pass@host:port/dbname in your .env file.
+[0m
+[32m2025-12-31 11:58:54.852[0m | [31m[1mERROR   [0m | [36m-[0m | [31m[1mASGI lifespan startup failed[0m
+[ERROR] Unexpected exit from worker-1
+[INFO] Shutting down granian
+[INFO] Starting granian (main PID: 147)
+[INFO] Listening at: http://0.0.0.0:8001
+[INFO] Spawning worker-1 with PID: 148
+/usr/local/lib/python3.11/site-packages/langchain_tavily/tavily_research.py:97: UserWarning: Field name "output_schema" in "TavilyResearch" shadows an attribute in parent "BaseTool"
+  class TavilyResearch(BaseTool):  # type: ignore[override, override]
+/usr/local/lib/python3.11/site-packages/langchain_tavily/tavily_research.py:97: UserWarning: Field name "stream" in "TavilyResearch" shadows an attribute in parent "BaseTool"
+  class TavilyResearch(BaseTool):  # type: ignore[override, override]
+2025-12-31 19:59:09.590 | INFO     | - | Checking plugin dependencies...
+2025-12-31 19:59:09.590 | INFO     | - | Plugin dependencies       - 6/6 0:00:00
+checked                                                                         
+2025-12-31 19:59:09.590 | INFO     | - | Starting service...
+[32m2025-12-31 11:59:10.663[0m | [33m[1mWARNING [0m | [36m-[0m | [33m[1mCheckpoint saver is disabled[0m
+DEBUG: Loading all models...
+DEBUG: Creating tables...
+DEBUG: Tables created successfully
+DEBUG: Opening Redis...
+DEBUG: Initializing limiter...
+DEBUG: Initializing Snowflake...
+DEBUG: Initializing Checkpointer...
+[32m2025-12-31 11:59:12.265[0m | [31m[1mERROR   [0m | [36m-[0m | [31m[1mTraceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 694, in lifespan
+    async with self.lifespan_context(app) as maybe_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi_pagination/api.py", line 349, in lifespan
+    async with _original_lifespan_context(app) as maybe_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi/routing.py", line 205, in merged_lifespan
+    async with original_context(app) as maybe_original_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/agents_backend/backend/core/registrar.py", line 87, in register_init
+    await checkpointer_manager.initialize()
+  File "/agents_backend/backend/src/graph/checkpointer.py", line 251, in initialize
+    self._validate_configuration()
+  File "/agents_backend/backend/src/graph/checkpointer.py", line 117, in _validate_configuration
+    raise CheckpointerNotConfiguredError(
+backend.src.graph.checkpointer.CheckpointerNotConfiguredError: PostgreSQL checkpointing is enabled but no database URL provided. Set LANGGRAPH_CHECKPOINT_DB_URL=postgresql://user:pass@host:port/dbname in your .env file.
+[0m
+[32m2025-12-31 11:59:12.265[0m | [31m[1mERROR   [0m | [36m-[0m | [31m[1mASGI lifespan startup failed[0m
+[ERROR] Unexpected exit from worker-1
+[INFO] Shutting down granian
+[INFO] Starting granian (main PID: 174)
+[INFO] Listening at: http://0.0.0.0:8001
+[INFO] Spawning worker-1 with PID: 175
+/usr/local/lib/python3.11/site-packages/langchain_tavily/tavily_research.py:97: UserWarning: Field name "output_schema" in "TavilyResearch" shadows an attribute in parent "BaseTool"
+  class TavilyResearch(BaseTool):  # type: ignore[override, override]
+/usr/local/lib/python3.11/site-packages/langchain_tavily/tavily_research.py:97: UserWarning: Field name "stream" in "TavilyResearch" shadows an attribute in parent "BaseTool"
+  class TavilyResearch(BaseTool):  # type: ignore[override, override]
+2025-12-31 19:59:27.590 | INFO     | - | Checking plugin dependencies...
+2025-12-31 19:59:27.590 | INFO     | - | Plugin dependencies       - 6/6 0:00:00
+checked                                                                         
+2025-12-31 19:59:27.590 | INFO     | - | Starting service...
+[32m2025-12-31 11:59:28.621[0m | [33m[1mWARNING [0m | [36m-[0m | [33m[1mCheckpoint saver is disabled[0m
+DEBUG: Loading all models...
+DEBUG: Creating tables...
+DEBUG: Tables created successfully
+DEBUG: Opening Redis...
+DEBUG: Initializing limiter...
+DEBUG: Initializing Snowflake...
+DEBUG: Initializing Checkpointer...
+[32m2025-12-31 11:59:30.143[0m | [31m[1mERROR   [0m | [36m-[0m | [31m[1mTraceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 694, in lifespan
+    async with self.lifespan_context(app) as maybe_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi_pagination/api.py", line 349, in lifespan
+    async with _original_lifespan_context(app) as maybe_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi/routing.py", line 205, in merged_lifespan
+    async with original_context(app) as maybe_original_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/agents_backend/backend/core/registrar.py", line 87, in register_init
+    await checkpointer_manager.initialize()
+  File "/agents_backend/backend/src/graph/checkpointer.py", line 251, in initialize
+    self._validate_configuration()
+  File "/agents_backend/backend/src/graph/checkpointer.py", line 117, in _validate_configuration
+    raise CheckpointerNotConfiguredError(
+backend.src.graph.checkpointer.CheckpointerNotConfiguredError: PostgreSQL checkpointing is enabled but no database URL provided. Set LANGGRAPH_CHECKPOINT_DB_URL=postgresql://user:pass@host:port/dbname in your .env file.
+[0m
+[32m2025-12-31 11:59:30.143[0m | [31m[1mERROR   [0m | [36m-[0m | [31m[1mASGI lifespan startup failed[0m
+[ERROR] Unexpected exit from worker-1
+[INFO] Shutting down granian
+[INFO] Starting granian (main PID: 195)
+[INFO] Listening at: http://0.0.0.0:8001
+[INFO] Spawning worker-1 with PID: 196
+/usr/local/lib/python3.11/site-packages/langchain_tavily/tavily_research.py:97: UserWarning: Field name "output_schema" in "TavilyResearch" shadows an attribute in parent "BaseTool"
+  class TavilyResearch(BaseTool):  # type: ignore[override, override]
+/usr/local/lib/python3.11/site-packages/langchain_tavily/tavily_research.py:97: UserWarning: Field name "stream" in "TavilyResearch" shadows an attribute in parent "BaseTool"
+  class TavilyResearch(BaseTool):  # type: ignore[override, override]
+2025-12-31 19:59:45.590 | INFO     | - | Checking plugin dependencies...
+2025-12-31 19:59:45.590 | INFO     | - | Plugin dependencies       - 6/6 0:00:00
+checked                                                                         
+2025-12-31 19:59:45.590 | INFO     | - | Starting service...
+[32m2025-12-31 11:59:46.869[0m | [33m[1mWARNING [0m | [36m-[0m | [33m[1mCheckpoint saver is disabled[0m
+DEBUG: Loading all models...
+DEBUG: Creating tables...
+DEBUG: Tables created successfully
+DEBUG: Opening Redis...
+DEBUG: Initializing limiter...
+DEBUG: Initializing Snowflake...
+DEBUG: Initializing Checkpointer...
+[32m2025-12-31 11:59:48.618[0m | [31m[1mERROR   [0m | [36m-[0m | [31m[1mTraceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 694, in lifespan
+    async with self.lifespan_context(app) as maybe_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi_pagination/api.py", line 349, in lifespan
+    async with _original_lifespan_context(app) as maybe_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi/routing.py", line 205, in merged_lifespan
+    async with original_context(app) as maybe_original_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/agents_backend/backend/core/registrar.py", line 87, in register_init
+    await checkpointer_manager.initialize()
+  File "/agents_backend/backend/src/graph/checkpointer.py", line 251, in initialize
+    self._validate_configuration()
+  File "/agents_backend/backend/src/graph/checkpointer.py", line 117, in _validate_configuration
+    raise CheckpointerNotConfiguredError(
+backend.src.graph.checkpointer.CheckpointerNotConfiguredError: PostgreSQL checkpointing is enabled but no database URL provided. Set LANGGRAPH_CHECKPOINT_DB_URL=postgresql://user:pass@host:port/dbname in your .env file.
+[0m
+[32m2025-12-31 11:59:48.618[0m | [31m[1mERROR   [0m | [36m-[0m | [31m[1mASGI lifespan startup failed[0m
+[ERROR] Unexpected exit from worker-1
+[INFO] Shutting down granian
+[INFO] Starting granian (main PID: 216)
+[INFO] Listening at: http://0.0.0.0:8001
+[INFO] Spawning worker-1 with PID: 217
+/usr/local/lib/python3.11/site-packages/langchain_tavily/tavily_research.py:97: UserWarning: Field name "output_schema" in "TavilyResearch" shadows an attribute in parent "BaseTool"
+  class TavilyResearch(BaseTool):  # type: ignore[override, override]
+/usr/local/lib/python3.11/site-packages/langchain_tavily/tavily_research.py:97: UserWarning: Field name "stream" in "TavilyResearch" shadows an attribute in parent "BaseTool"
+  class TavilyResearch(BaseTool):  # type: ignore[override, override]
+2025-12-31 20:00:04.000 | INFO     | - | Checking plugin dependencies...
+2025-12-31 20:00:04.000 | INFO     | - | Plugin dependencies       - 6/6 0:00:00
+checked                                                                         
+2025-12-31 20:00:04.000 | INFO     | - | Starting service...
+[32m2025-12-31 12:00:06.371[0m | [33m[1mWARNING [0m | [36m-[0m | [33m[1mCheckpoint saver is disabled[0m
+DEBUG: Loading all models...
+DEBUG: Creating tables...
+DEBUG: Tables created successfully
+DEBUG: Opening Redis...
+DEBUG: Initializing limiter...
+DEBUG: Initializing Snowflake...
+DEBUG: Initializing Checkpointer...
+[32m2025-12-31 12:00:07.873[0m | [31m[1mERROR   [0m | [36m-[0m | [31m[1mTraceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 694, in lifespan
+    async with self.lifespan_context(app) as maybe_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi_pagination/api.py", line 349, in lifespan
+    async with _original_lifespan_context(app) as maybe_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi/routing.py", line 205, in merged_lifespan
+    async with original_context(app) as maybe_original_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/agents_backend/backend/core/registrar.py", line 87, in register_init
+    await checkpointer_manager.initialize()
+  File "/agents_backend/backend/src/graph/checkpointer.py", line 251, in initialize
+    self._validate_configuration()
+  File "/agents_backend/backend/src/graph/checkpointer.py", line 117, in _validate_configuration
+    raise CheckpointerNotConfiguredError(
+backend.src.graph.checkpointer.CheckpointerNotConfiguredError: PostgreSQL checkpointing is enabled but no database URL provided. Set LANGGRAPH_CHECKPOINT_DB_URL=postgresql://user:pass@host:port/dbname in your .env file.
+[0m
+[32m2025-12-31 12:00:07.873[0m | [31m[1mERROR   [0m | [36m-[0m | [31m[1mASGI lifespan startup failed[0m
+[ERROR] Unexpected exit from worker-1
+[INFO] Shutting down granian
+[INFO] Starting granian (main PID: 237)
+[INFO] Listening at: http://0.0.0.0:8001
+[INFO] Spawning worker-1 with PID: 238
+/usr/local/lib/python3.11/site-packages/langchain_tavily/tavily_research.py:97: UserWarning: Field name "output_schema" in "TavilyResearch" shadows an attribute in parent "BaseTool"
+  class TavilyResearch(BaseTool):  # type: ignore[override, override]
+/usr/local/lib/python3.11/site-packages/langchain_tavily/tavily_research.py:97: UserWarning: Field name "stream" in "TavilyResearch" shadows an attribute in parent "BaseTool"
+  class TavilyResearch(BaseTool):  # type: ignore[override, override]
+2025-12-31 20:00:23.000 | INFO     | - | Checking plugin dependencies...
+2025-12-31 20:00:23.000 | INFO     | - | Plugin dependencies       - 6/6 0:00:00
+checked                                                                         
+2025-12-31 20:00:23.000 | INFO     | - | Starting service...
+[32m2025-12-31 12:00:25.096[0m | [33m[1mWARNING [0m | [36m-[0m | [33m[1mCheckpoint saver is disabled[0m
+DEBUG: Loading all models...
+DEBUG: Creating tables...
+DEBUG: Tables created successfully
+DEBUG: Opening Redis...
+DEBUG: Initializing limiter...
+DEBUG: Initializing Snowflake...
+DEBUG: Initializing Checkpointer...
+[32m2025-12-31 12:00:26.567[0m | [31m[1mERROR   [0m | [36m-[0m | [31m[1mTraceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 694, in lifespan
+    async with self.lifespan_context(app) as maybe_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi_pagination/api.py", line 349, in lifespan
+    async with _original_lifespan_context(app) as maybe_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi/routing.py", line 205, in merged_lifespan
+    async with original_context(app) as maybe_original_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/agents_backend/backend/core/registrar.py", line 87, in register_init
+    await checkpointer_manager.initialize()
+  File "/agents_backend/backend/src/graph/checkpointer.py", line 251, in initialize
+    self._validate_configuration()
+  File "/agents_backend/backend/src/graph/checkpointer.py", line 117, in _validate_configuration
+    raise CheckpointerNotConfiguredError(
+backend.src.graph.checkpointer.CheckpointerNotConfiguredError: PostgreSQL checkpointing is enabled but no database URL provided. Set LANGGRAPH_CHECKPOINT_DB_URL=postgresql://user:pass@host:port/dbname in your .env file.
+[0m
+[32m2025-12-31 12:00:26.568[0m | [31m[1mERROR   [0m | [36m-[0m | [31m[1mASGI lifespan startup failed[0m
+[ERROR] Unexpected exit from worker-1
+[INFO] Shutting down granian
+[INFO] Starting granian (main PID: 258)
+[INFO] Listening at: http://0.0.0.0:8001
+[INFO] Spawning worker-1 with PID: 259
+/usr/local/lib/python3.11/site-packages/langchain_tavily/tavily_research.py:97: UserWarning: Field name "output_schema" in "TavilyResearch" shadows an attribute in parent "BaseTool"
+  class TavilyResearch(BaseTool):  # type: ignore[override, override]
+/usr/local/lib/python3.11/site-packages/langchain_tavily/tavily_research.py:97: UserWarning: Field name "stream" in "TavilyResearch" shadows an attribute in parent "BaseTool"
+  class TavilyResearch(BaseTool):  # type: ignore[override, override]
+2025-12-31 20:00:41.000 | INFO     | - | Checking plugin dependencies...
+2025-12-31 20:00:41.000 | INFO     | - | Plugin dependencies       - 6/6 0:00:00
+checked                                                                         
+2025-12-31 20:00:41.000 | INFO     | - | Starting service...
+[32m2025-12-31 12:00:43.072[0m | [33m[1mWARNING [0m | [36m-[0m | [33m[1mCheckpoint saver is disabled[0m
+DEBUG: Loading all models...
+DEBUG: Creating tables...
+DEBUG: Tables created successfully
+DEBUG: Opening Redis...
+DEBUG: Initializing limiter...
+DEBUG: Initializing Snowflake...
+DEBUG: Initializing Checkpointer...
+[32m2025-12-31 12:00:44.610[0m | [31m[1mERROR   [0m | [36m-[0m | [31m[1mTraceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 694, in lifespan
+    async with self.lifespan_context(app) as maybe_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi_pagination/api.py", line 349, in lifespan
+    async with _original_lifespan_context(app) as maybe_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi/routing.py", line 205, in merged_lifespan
+    async with original_context(app) as maybe_original_state:
+  File "/usr/local/lib/python3.11/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/agents_backend/backend/core/registrar.py", line 87, in register_init
+    await checkpointer_manager.initialize()
+  File "/agents_backend/backend/src/graph/checkpointer.py", line 251, in initialize
+    self._validate_configuration()
+  File "/agents_backend/backend/src/graph/checkpointer.py", line 117, in _validate_configuration
+    raise CheckpointerNotConfiguredError(
+backend.src.graph.checkpointer.CheckpointerNotConfiguredError: PostgreSQL checkpointing is enabled but no database URL provided. Set LANGGRAPH_CHECKPOINT_DB_URL=postgresql://user:pass@host:port/dbname in your .env file.
+[0m
+[32m2025-12-31 12:00:44.610[0m | [31m[1mERROR   [0m | [36m-[0m | [31m[1mASGI lifespan startup failed[0m
+[ERROR] Unexpected exit from worker-1
+[INFO] Shutting down granian
+[INFO] Starting granian (main PID: 279)
+[INFO] Listening at: http://0.0.0.0:8001
+[INFO] Spawning worker-1 with PID: 280
+/usr/local/lib/python3.11/site-packages/langchain_tavily/tavily_research.py:97: UserWarning: Field name "output_schema" in "TavilyResearch" shadows an attribute in parent "BaseTool"
+  class TavilyResearch(BaseTool):  # type: ignore[override, override]
+/usr/local/lib/python3.11/site-packages/langchain_tavily/tavily_research.py:97: UserWarning: Field name "stream" in "TavilyResearch" shadows an attribute in parent "BaseTool"
+  class TavilyResearch(BaseTool):  # type: ignore[override, override]
+2025-12-31 20:01:00.010 | INFO     | - | Checking plugin dependencies...
+2025-12-31 20:01:00.010 | INFO     | - | Plugin dependencies       - 6/6 0:00:00
+checked                                                                         
+2025-12-31 20:01:00.010 | INFO     | - | Starting service...
+[32m2025-12-31 12:01:02.007[0m | [33m[1mWARNING [0m | [36m-[0m | [33m[1mCheckpoint saver is disabled[0m
+[INFO] Starting granian (main PID: 17)
+[INFO] Listening at: http://0.0.0.0:8001
+[INFO] Spawning worker-1 with PID: 18
+/usr/local/lib/python3.11/site-packages/langchain_tavily/tavily_research.py:97: UserWarning: Field name "output_schema" in "TavilyResearch" shadows an attribute in parent "BaseTool"
+  class TavilyResearch(BaseTool):  # type: ignore[override, override]
+/usr/local/lib/python3.11/site-packages/langchain_tavily/tavily_research.py:97: UserWarning: Field name "stream" in "TavilyResearch" shadows an attribute in parent "BaseTool"
+  class TavilyResearch(BaseTool):  # type: ignore[override, override]
+2025-12-31 20:01:23.010 | INFO     | - | Checking plugin dependencies...
+2025-12-31 20:01:23.010 | INFO     | - | Plugin dependencies       - 6/6 0:00:00
+checked                                                                         
+2025-12-31 20:01:23.010 | INFO     | - | Starting service...
+[32m2025-12-31 12:01:24.782[0m | [33m[1mWARNING [0m | [36m-[0m | [33m[1mCheckpoint saver is disabled[0m
+DEBUG: Loading all models...
+DEBUG: Creating tables...
+DEBUG: Tables created successfully
+DEBUG: Opening Redis...
+DEBUG: Initializing limiter...
+DEBUG: Initializing Snowflake...
+DEBUG: Initializing Checkpointer...
+[32m2025-12-31 12:01:26.592[0m | [1mINFO    [0m | [36m-[0m | [1mInitializing PostgreSQL checkpointer pool: min=2, max=10, timeout=60s[0m
+[32m2025-12-31 12:01:26.592[0m | [1mINFO    [0m | [36m-[0m | [1mSetting up LangGraph checkpoint tables...[0m
+[32m2025-12-31 12:01:26.699[0m | [1mINFO    [0m | [36m-[0m | [1mΓ£à LangGraph checkpoint tables created/verified[0m
+[32m2025-12-31 12:01:26.699[0m | [1mINFO    [0m | [36m-[0m | [1mΓ£à PostgreSQL checkpointer initialized successfully[0m
+DEBUG: Initializing Sandbox Service...
+[32m2025-12-31 12:01:26.699[0m | [1mINFO    [0m | [36m-[0m | [1mSandbox manager started[0m
+[32m2025-12-31 12:01:26.699[0m | [1mINFO    [0m | [36m-[0m | [1mSandboxService initialized successfully[0m
+DEBUG: Sandbox Service initialized. Startup complete.
+[32m2025-12-31 12:01:26.700[0m | [1mINFO    [0m | [36m-[0m | [1mStarted Redis message consumer[0m
+[32m2025-12-31 12:01:26.701[0m | [1mINFO    [0m | [36m-[0m | [1mStarted worker-1[0m
+[32m2025-12-31 12:01:26.701[0m | [1mINFO    [0m | [36m-[0m | [1mStarted worker-1 runtime-1[0m
+[DEBUG middleware] Request: GET /agent/files/test -> Response: 200
+[32m2025-12-31 12:02:24.223[0m | [31m[1mERROR   [0m | [36m00afefbb62504b7ebf6673bfd38c973c[0m | [31m[1mApplication callable raised an exception
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/granian/_futures.py", line 15, in future_watcher
+    await inner(watcher.scope, watcher.proto)
+  File "/usr/local/lib/python3.11/site-packages/fastapi/applications.py", line 1139, in __call__
+    await super().__call__(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/applications.py", line 107, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/middleware/cors.py", line 85, in __call__
+    await self.app(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/middleware/errors.py", line 186, in __call__
+    raise exc
+  File "/usr/local/lib/python3.11/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/middleware/base.py", line 191, in __call__
+    with recv_stream, send_stream, collapse_excgroups():
+  File "/usr/local/lib/python3.11/contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "/usr/local/lib/python3.11/site-packages/starlette/_utils.py", line 85, in collapse_excgroups
+    raise exc
+  File "/usr/local/lib/python3.11/site-packages/starlette/middleware/base.py", line 193, in __call__
+    response = await self.dispatch_func(request, call_next)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/starlette_context/middleware/context_middleware.py", line 69, in dispatch
+    response = await call_next(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/starlette/middleware/base.py", line 168, in call_next
+    raise app_exc from app_exc.__cause__ or app_exc.__context__
+  File "/usr/local/lib/python3.11/site-packages/starlette/middleware/base.py", line 144, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+  File "/usr/local/lib/python3.11/site-packages/starlette/middleware/base.py", line 191, in __call__
+    with recv_stream, send_stream, collapse_excgroups():
+  File "/usr/local/lib/python3.11/contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "/usr/local/lib/python3.11/site-packages/starlette/_utils.py", line 85, in collapse_excgroups
+    raise exc
+  File "/usr/local/lib/python3.11/site-packages/starlette/middleware/base.py", line 193, in __call__
+    response = await self.dispatch_func(request, call_next)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/agents_backend/backend/middleware/access_middleware.py", line 33, in dispatch
+    response = await call_next(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/starlette/middleware/base.py", line 168, in call_next
+    raise app_exc from app_exc.__cause__ or app_exc.__context__
+  File "/usr/local/lib/python3.11/site-packages/starlette/middleware/base.py", line 144, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+  File "/usr/local/lib/python3.11/site-packages/starlette/middleware/base.py", line 191, in __call__
+    with recv_stream, send_stream, collapse_excgroups():
+  File "/usr/local/lib/python3.11/contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "/usr/local/lib/python3.11/site-packages/starlette/_utils.py", line 85, in collapse_excgroups
+    raise exc
+  File "/usr/local/lib/python3.11/site-packages/starlette/middleware/base.py", line 193, in __call__
+    response = await self.dispatch_func(request, call_next)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/agents_backend/backend/middleware/i18n_middleware.py", line 52, in dispatch
+    response = await call_next(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/starlette/middleware/base.py", line 168, in call_next
+    raise app_exc from app_exc.__cause__ or app_exc.__context__
+  File "/usr/local/lib/python3.11/site-packages/starlette/middleware/base.py", line 144, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+  File "/usr/local/lib/python3.11/site-packages/starlette/middleware/authentication.py", line 48, in __call__
+    await self.app(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/middleware/base.py", line 191, in __call__
+    with recv_stream, send_stream, collapse_excgroups():
+  File "/usr/local/lib/python3.11/contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "/usr/local/lib/python3.11/site-packages/starlette/_utils.py", line 85, in collapse_excgroups
+    raise exc
+  File "/usr/local/lib/python3.11/site-packages/starlette/middleware/base.py", line 193, in __call__
+    response = await self.dispatch_func(request, call_next)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/agents_backend/backend/middleware/state_middleware.py", line 25, in dispatch
+    ua_info = parse_user_agent_info(request)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/agents_backend/backend/utils/request_parse.py", line 119, in parse_user_agent_info
+    user_agent_ = parse(user_agent)
+                  ^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/user_agents/parsers.py", line 268, in parse
+    return UserAgent(user_agent_string)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/user_agents/parsers.py", line 136, in __init__
+    ua_dict = user_agent_parser.Parse(user_agent_string)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/ua_parser/user_agent_parser.py", line 227, in Parse
+    entry = _lookup(user_agent_string)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/ua_parser/user_agent_parser.py", line 192, in _lookup
+    raise TypeError(f"Expected user agent to be a string, got {ua!r}")
+TypeError: Expected user agent to be a string, got None[0m
+[INFO] Starting granian (main PID: 17)
+[INFO] Listening at: http://0.0.0.0:8001
+[INFO] Spawning worker-1 with PID: 18
+/usr/local/lib/python3.11/site-packages/langchain_tavily/tavily_research.py:97: UserWarning: Field name "output_schema" in "TavilyResearch" shadows an attribute in parent "BaseTool"
+  class TavilyResearch(BaseTool):  # type: ignore[override, override]
+/usr/local/lib/python3.11/site-packages/langchain_tavily/tavily_research.py:97: UserWarning: Field name "stream" in "TavilyResearch" shadows an attribute in parent "BaseTool"
+  class TavilyResearch(BaseTool):  # type: ignore[override, override]
+2025-12-31 20:06:14.060 | INFO     | - | Checking plugin dependencies...
+2025-12-31 20:06:14.060 | INFO     | - | Plugin dependencies       - 6/6 0:00:00
+checked                                                                         
+2025-12-31 20:06:14.060 | INFO     | - | Starting service...
+[32m2025-12-31 12:06:15.181[0m | [33m[1mWARNING [0m | [36m-[0m | [33m[1mCheckpoint saver is disabled[0m
+DEBUG: Loading all models...
+DEBUG: Creating tables...
+DEBUG: Tables created successfully
+DEBUG: Opening Redis...
+DEBUG: Initializing limiter...
+DEBUG: Initializing Snowflake...
+DEBUG: Initializing Checkpointer...
+[32m2025-12-31 12:06:20.198[0m | [1mINFO    [0m | [36m-[0m | [1mInitializing PostgreSQL checkpointer pool: min=2, max=10, timeout=60s[0m
+[32m2025-12-31 12:06:20.198[0m | [1mINFO    [0m | [36m-[0m | [1mSetting up LangGraph checkpoint tables...[0m
+[32m2025-12-31 12:06:21.601[0m | [33m[1mWARNING [0m | [36m-[0m | [33m[1merror connecting in 'pool-1': connection failed: connection to server at "44.208.221.186", port 5432 failed: FATAL:  Tenant or user not found
+connection to server at "44.208.221.186", port 5432 failed: FATAL:  Tenant or user not found
+Multiple connection attempts failed. All failures were:
+- host: 'aws-0-us-east-1.pooler.supabase.com', port: '5432', hostaddr: '52.45.94.125': connection failed: connection to server at "52.45.94.125", port 5432 failed: FATAL:  Tenant or user not found
+connection to server at "52.45.94.125", port 5432 failed: FATAL:  Tenant or user not found
+- host: 'aws-0-us-east-1.pooler.supabase.com', port: '5432', hostaddr: '44.216.29.125': connection failed: connection to server at "44.216.29.125", port 5432 failed: FATAL:  Tenant or user not found
+connection to server at "44.216.29.125", port 5432 failed: FATAL:  Tenant or user not found
+- host: 'aws-0-us-east-1.pooler.supabase.com', port: '5432', hostaddr: '44.208.221.186': connection failed: connection to server at "44.208.221.186", port 5432 failed: FATAL:  Tenant or user not found
+connection to server at "44.208.221.186", port 5432 failed: FATAL:  Tenant or user not found[0m
+[32m2025-12-31 12:06:21.602[0m | [33m[1mWARNING [0m | [36m-[0m | [33m[1merror connecting in 'pool-1': connection failed: connection to server at "44.208.221.186", port 5432 failed: FATAL:  Tenant or user not found
+connection to server at "44.208.221.186", port 5432 failed: FATAL:  Tenant or user not found
+Multiple connection attempts failed. All failures were:
+- host: 'aws-0-us-east-1.pooler.supabase.com', port: '5432', hostaddr: '52.45.94.125': connection failed: connection to server at "52.45.94.125", port 5432 failed: FATAL:  Tenant or user not found
+connection to server at "52.45.94.125", port 5432 failed: FATAL:  Tenant or user not found
+- host: 'aws-0-us-east-1.pooler.supabase.com', port: '5432', hostaddr: '44.216.29.125': connection failed: connection to server at "44.216.29.125", port 5432 failed: FATAL:  Tenant or user not found
+connection to server at "44.216.29.125", port 5432 failed: FATAL:  Tenant or user not found
+- host: 'aws-0-us-east-1.pooler.supabase.com', port: '5432', hostaddr: '44.208.221.186': connection failed: connection to server at "44.208.221.186", port 5432 failed: FATAL:  Tenant or user not found
+connection to server at "44.208.221.186", port 5432 failed: FATAL:  Tenant or user not found[0m
+[32m2025-12-31 12:06:21.603[0m | [33m[1mWARNING [0m | [36m-[0m | [33m[1merror connecting in 'pool-1': connection failed: connection to server at "44.208.221.186", port 5432 failed: FATAL:  Tenant or user not found
+connection to server at "44.208.221.186", port 5432 failed: FATAL:  Tenant or user not found
+Multiple connection attempts failed. All failures were:
+- host: 'aws-0-us-east-1.pooler.supabase.com', port: '5432', hostaddr: '52.45.94.125': connection failed: connection to server at "52.45.94.125", port 5432 failed: FATAL:  Tenant or user not found
+connection to server at "52.45.94.125", port 5432 failed: FATAL:  Tenant or user not found
+- host: 'aws-0-us-east-1.pooler.supabase.com', port: '5432', hostaddr: '44.216.29.125': connection failed: connection to server at "44.216.29.125", port 5432 failed: FATAL:  Tenant or user not found
+connection to server at "44.216.29.125", port 5432 failed: FATAL:  Tenant or user not found
+- host: 'aws-0-us-east-1.pooler.supabase.com', port: '5432', hostaddr: '44.208.221.186': connection failed: connection to server at "44.208.221.186", port 5432 failed: FATAL:  Tenant or user not found
+connection to server at "44.208.221.186", port 5432 failed: FATAL:  Tenant or user not found[0m
+[32m2025-12-31 12:06:23.624[0m | [33m[1mWARNING [0m | [36m-[0m | [33m[1merror connecting in 'pool-1': connection failed: connection to server at "44.208.221.186", port 5432 failed: FATAL:  Tenant or user not found
+connection to server at "44.208.221.186", port 5432 failed: FATAL:  Tenant or user not found
+Multiple connection attempts failed. All failures were:
+- host: 'aws-0-us-east-1.pooler.supabase.com', port: '5432', hostaddr: '52.45.94.125': connection failed: connection to server at "52.45.94.125", port 5432 failed: FATAL:  Tenant or user not found
+connection to server at "52.45.94.125", port 5432 failed: FATAL:  Tenant or user not found
+- host: 'aws-0-us-east-1.pooler.supabase.com', port: '5432', hostaddr: '44.216.29.125': connection failed: connection to server at "44.216.29.125", port 5432 failed: FATAL:  Tenant or user not found
+connection to server at "44.216.29.125", port 5432 failed: FATAL:  Tenant or user not found
+- host: 'aws-0-us-east-1.pooler.supabase.com', port: '5432', hostaddr: '44.208.221.186': connection failed: connection to server at "44.208.221.186", port 5432 failed: FATAL:  Tenant or user not found
+connection to server at "44.208.221.186", port 5432 failed: FATAL:  Tenant or user not found[0m
+[32m2025-12-31 12:06:23.681[0m | [33m[1mWARNING [0m | [36m-[0m | [33m[1merror connecting in 'pool-1': connection failed: connection to server at "44.208.221.186", port 5432 failed: FATAL:  Tenant or user not found
+connection to server at "44.208.221.186", port 5432 failed: FATAL:  Tenant or user not found
+Multiple connection attempts failed. All failures were:
+- host: 'aws-0-us-east-1.pooler.supabase.com', port: '5432', hostaddr: '52.45.94.125': connection failed: connection to server at "52.45.94.125", port 5432 failed: FATAL:  Tenant or user not found
+connection to server at "52.45.94.125", port 5432 failed: FATAL:  Tenant or user not found
+- host: 'aws-0-us-east-1.pooler.supabase.com', port: '5432', hostaddr: '44.216.29.125': connection failed: connection to server at "44.216.29.125", port 5432 failed: FATAL:  Tenant or user not found
+connection to server at "44.216.29.125", port 5432 failed: FATAL:  Tenant or user not found
+- host: 'aws-0-us-east-1.pooler.supabase.com', port: '5432', hostaddr: '44.208.221.186': connection failed: connection to server at "44.208.221.186", port 5432 failed: FATAL:  Tenant or user not found
+connection to server at "44.208.221.186", port 5432 failed: FATAL:  Tenant or user not found[0m
+[32m2025-12-31 12:06:23.832[0m | [33m[1mWARNING [0m | [36m-[0m | [33m[1merror connecting in 'pool-1': connection failed: connection to server at "44.208.221.186", port 5432 failed: FATAL:  Tenant or user not found
+connection to server at "44.208.221.186", port 5432 failed: FATAL:  Tenant or user not found
+Multiple connection attempts failed. All failures were:
+- host: 'aws-0-us-east-1.pooler.supabase.com', port: '5432', hostaddr: '52.45.94.125': connection failed: connection to server at "52.45.94.125", port 5432 failed: FATAL:  Tenant or user not found
+connection to server at "52.45.94.125", port 5432 failed: FATAL:  Tenant or user not found
+- host: 'aws-0-us-east-1.pooler.supabase.com', port: '5432', hostaddr: '44.216.29.125': connection failed: connection to server at "44.216.29.125", port 5432 failed: FATAL:  Tenant or user not found
+connection to server at "44.216.29.125", port 5432 failed: FATAL:  Tenant or user not found
+- host: 'aws-0-us-east-1.pooler.supabase.com', port: '5432', hostaddr: '44.208.221.186': connection failed: connection to server at "44.208.221.186", port 5432 failed: FATAL:  Tenant or user not found
+connection to server at "44.208.221.186", port 5432 failed: FATAL:  Tenant or user not found[0m
+[32m2025-12-31 12:06:27.052[0m | [33m[1mWARNING [0m | [36m-[0m | [33m[1merror connecting in 'pool-1': connection failed: connection to server at "44.208.221.186", port 5432 failed: FATAL:  Tenant or user not found
+connection to server at "44.208.221.186", port 5432 failed: FATAL:  Tenant or user not found
+Multiple connection attempts failed. All failures were:
+- host: 'aws-0-us-east-1.pooler.supabase.com', port: '5432', hostaddr: '52.45.94.125': connection failed: connection to server at "52.45.94.125", port 5432 failed: FATAL:  Tenant or user not found
+connection to server at "52.45.94.125", port 5432 failed: FATAL:  Tenant or user not found
+- host: 'aws-0-us-east-1.pooler.supabase.com', port: '5432', hostaddr: '44.216.29.125': connection failed: connection to server at "44.216.29.125", port 5432 failed: FATAL:  Tenant or user not found
+connection to server at "44.216.29.125", port 5432 failed: FATAL:  Tenant or user not found
+- host: 'aws-0-us-east-1.pooler.supabase.com', port: '5432', hostaddr: '44.208.221.186': connection failed: connection to server at "44.208.221.186", port 5432 failed: FATAL:  Tenant or user not found
+connection to server at "44.208.221.186", port 5432 failed: FATAL:  Tenant or user not found[0m
+[32m2025-12-31 12:06:27.137[0m | [33m[1mWARNING [0m | [36m-[0m | [33m[1merror connecting in 'pool-1': connection failed: connection to server at "44.208.221.186", port 5432 failed: FATAL:  Tenant or user not found
+connection to server at "44.208.221.186", port 5432 failed: FATAL:  Tenant or user not found
+Multiple connection attempts failed. All failures were:
+- host: 'aws-0-us-east-1.pooler.supabase.com', port: '5432', hostaddr: '52.45.94.125': connection failed: connection to server at "52.45.94.125", port 5432 failed: FATAL:  Tenant or user not found
+connection to server at "52.45.94.125", port 5432 failed: FATAL:  Tenant or user not found
+- host: 'aws-0-us-east-1.pooler.supabase.com', port: '5432', hostaddr: '44.216.29.125': connection failed: connection to server at "44.216.29.125", port 5432 failed: FATAL:  Tenant or user not found
+connection to server at "44.216.29.125", port 5432 failed: FATAL:  Tenant or user not found
+- host: 'aws-0-us-east-1.pooler.supabase.com', port: '5432', hostaddr: '44.208.221.186': connection failed: connection to server at "44.208.221.186", port 5432 failed: FATAL:  Tenant or user not found
+connection to server at "44.208.221.186", port 5432 failed: FATAL:  Tenant or user not found[0m
+[32m2025-12-31 12:06:27.452[0m | [33m[1mWARNING [0m | [36m-[0m | [33m[1merror connecting in 'pool-1': connection failed: connection to server at "44.208.221.186", port 5432 failed: FATAL:  Tenant or user not found
+connection to server at "44.208.221.186", port 5432 failed: FATAL:  Tenant or user not found
+Multiple connection attempts failed. All failures were:
+- host: 'aws-0-us-east-1.pooler.supabase.com', port: '5432', hostaddr: '52.45.94.125': connection failed: connection to server at "52.45.94.125", port 5432 failed: FATAL:  Tenant or user not found
+connection to server at "52.45.94.125", port 5432 failed: FATAL:  Tenant or user not found
+- host: 'aws-0-us-east-1.pooler.supabase.com', port: '5432', hostaddr: '44.216.29.125': connection failed: connection to server at "44.216.29.125", port 5432 failed: FATAL:  Tenant or user not found
+connection to server at "44.216.29.125", port 5432 failed: FATAL:  Tenant or user not found
+- host: 'aws-0-us-east-1.pooler.supabase.com', port: '5432', hostaddr: '44.208.221.186': connection failed: connection to server at "44.208.221.186", port 5432 failed: FATAL:  Tenant or user not found
+connection to server at "44.208.221.186", port 5432 failed: FATAL:  Tenant or user not found[0m
+[32m2025-12-31 12:06:31.878[0m | [33m[1mWARNING [0m | [36m-[0m | [33m[1merror connecting in 'pool-1': connection failed: connection to server at "44.208.221.186", port 5432 failed: FATAL:  Tenant or user not found
+connection to server at "44.208.221.186", port 5432 failed: FATAL:  Tenant or user not found
+Multiple connection attempts failed. All failures were:
+- host: 'aws-0-us-east-1.pooler.supabase.com', port: '5432', hostaddr: '52.45.94.125': connection failed: connection to server at "52.45.94.125", port 5432 failed: FATAL:  Tenant or user not found
+connection to server at "52.45.94.125", port 5432 failed: FATAL:  Tenant or user not found
+- host: 'aws-0-us-east-1.pooler.supabase.com', port: '5432', hostaddr: '44.216.29.125': connection failed: connection to server at "44.216.29.125", port 5432 failed: FATAL:  Tenant or user not found
+connection to server at "44.216.29.125", port 5432 failed: FATAL:  Tenant or user not found
+- host: 'aws-0-us-east-1.pooler.supabase.com', port: '5432', hostaddr: '44.208.221.186': connection failed: connection to server at "44.208.221.186", port 5432 failed: FATAL:  Tenant or user not found
+connection to server at "44.208.221.186", port 5432 failed: FATAL:  Tenant or user not found[0m
+[32m2025-12-31 12:06:31.994[0m | [33m[1mWARNING [0m | [36m-[0m | [33m[1merror connecting in 'pool-1': connection failed: connection to server at "44.208.221.186", port 5432 failed: FATAL:  Tenant or user not found
+connection to server at "44.208.221.186", port 5432 failed: FATAL:  Tenant or user not found
+Multiple connection attempts failed. All failures were:
+- host: 'aws-0-us-east-1.pooler.supabase.com', port: '5432', hostaddr: '52.45.94.125': connection failed: connection to server at "52.45.94.125", port 5432 failed: FATAL:  Tenant or user not found
+connection to server at "52.45.94.125", port 5432 failed: FATAL:  Tenant or user not found
+- host: 'aws-0-us-east-1.pooler.supabase.com', port: '5432', hostaddr: '44.216.29.125': connection failed: connection to server at "44.216.29.125", port 5432 failed: FATAL:  Tenant or user not found
+connection to server at "44.216.29.125", port 5432 failed: FATAL:  Tenant or user not found
+- host: 'aws-0-us-east-1.pooler.supabase.com', port: '5432', hostaddr: '44.208.221.186': connection failed: connection to server at "44.208.221.186", port 5432 failed: FATAL:  Tenant or user not found
+connection to server at "44.208.221.186", port 5432 failed: FATAL:  Tenant or user not found[0m
+[32m2025-12-31 12:06:32.904[0m | [33m[1mWARNING [0m | [36m-[0m | [33m[1merror connecting in 'pool-1': connection failed: connection to server at "44.208.221.186", port 5432 failed: FATAL:  Tenant or user not found
+connection to server at "44.208.221.186", port 5432 failed: FATAL:  Tenant or user not found
+Multiple connection attempts failed. All failures were:
+- host: 'aws-0-us-east-1.pooler.supabase.com', port: '5432', hostaddr: '52.45.94.125': connection failed: connection to server at "52.45.94.125", port 5432 failed: FATAL:  Tenant or user not found
+connection to server at "52.45.94.125", port 5432 failed: FATAL:  Tenant or user not found
+- host: 'aws-0-us-east-1.pooler.supabase.com', port: '5432', hostaddr: '44.216.29.125': connection failed: connection to server at "44.216.29.125", port 5432 failed: FATAL:  Tenant or user not found
+connection to server at "44.216.29.125", port 5432 failed: FATAL:  Tenant or user not found
+- host: 'aws-0-us-east-1.pooler.supabase.com', port: '5432', hostaddr: '44.208.221.186': connection failed: connection to server at "44.208.221.186", port 5432 failed: FATAL:  Tenant or user not found
+connection to server at "44.208.221.186", port 5432 failed: FATAL:  Tenant or user not found[0m
+[32m2025-12-31 12:06:40.464[0m | [33m[1mWARNING [0m | [36m-[0m | [33m[1merror connecting in 'pool-1': connection failed: connection to server at "44.208.221.186", port 5432 failed: FATAL:  Tenant or user not found
+connection to server at "44.208.221.186", port 5432 failed: FATAL:  Tenant or user not found
+Multiple connection attempts failed. All failures were:
+- host: 'aws-0-us-east-1.pooler.supabase.com', port: '5432', hostaddr: '52.45.94.125': connection failed: connection to server at "52.45.94.125", port 5432 failed: FATAL:  Tenant or user not found
+connection to server at "52.45.94.125", port 5432 failed: FATAL:  Tenant or user not found
+- host: 'aws-0-us-east-1.pooler.supabase.com', port: '5432', hostaddr: '44.216.29.125': connection failed: connection to server at "44.216.29.125", port 5432 failed: FATAL:  Tenant or user not found
+connection to server at "44.216.29.125", port 5432 failed: FATAL:  Tenant or user not found
+- host: 'aws-0-us-east-1.pooler.supabase.com', port: '5432', hostaddr: '44.208.221.186': connection failed: connection to server at "44.208.221.186", port 5432 failed: FATAL:  Tenant or user not found
+connection to server at "44.208.221.186", port 5432 failed: FATAL:  Tenant or user not found[0m
+[32m2025-12-31 12:06:40.599[0m | [33m[1mWARNING [0m | [36m-[0m | [33m[1merror connecting in 'pool-1': connection failed: connection to server at "44.208.221.186", port 5432 failed: FATAL:  Tenant or user not found
+connection to server at "44.208.221.186", port 5432 failed: FATAL:  Tenant or user not found
+Multiple connection attempts failed. All failures were:
+- host: 'aws-0-us-east-1.pooler.supabase.com', port: '5432', hostaddr: '52.45.94.125': connection failed: connection to server at "52.45.94.125", port 5432 failed: FATAL:  Tenant or user not found
+connection to server at "52.45.94.125", port 5432 failed: FATAL:  Tenant or user not found
+- host: 'aws-0-us-east-1.pooler.supabase.com', port: '5432', hostaddr: '44.216.29.125': connection failed: connection to server at "44.216.29.125", port 5432 failed: FATAL:  Tenant or user not found
+connection to server at "44.216.29.125", port 5432 failed: FATAL:  Tenant or user not found
+- host: 'aws-0-us-east-1.pooler.supabase.com', port: '5432', hostaddr: '44.208.221.186': connection failed: connection to server at "44.208.221.186", port 5432 failed: FATAL:  Tenant or user not found
+connection to server at "44.208.221.186", port 5432 failed: FATAL:  Tenant or user not found[0m
+[32m2025-12-31 12:06:42.755[0m | [33m[1mWARNING [0m | [36m-[0m | [33m[1merror connecting in 'pool-1': connection failed: connection to server at "44.208.221.186", port 5432 failed: FATAL:  Tenant or user not found
+connection to server at "44.208.221.186", port 5432 failed: FATAL:  Tenant or user not found
+Multiple connection attempts failed. All failures were:
+- host: 'aws-0-us-east-1.pooler.supabase.com', port: '5432', hostaddr: '52.45.94.125': connection failed: connection to server at "52.45.94.125", port 5432 failed: FATAL:  Tenant or user not found
+connection to server at "52.45.94.125", port 5432 failed: FATAL:  Tenant or user not found
+- host: 'aws-0-us-east-1.pooler.supabase.com', port: '5432', hostaddr: '44.216.29.125': connection failed: connection to server at "44.216.29.125", port 5432 failed: FATAL:  Tenant or user not found
+connection to server at "44.216.29.125", port 5432 failed: FATAL:  Tenant or user not found
+- host: 'aws-0-us-east-1.pooler.supabase.com', port: '5432', hostaddr: '44.208.221.186': connection failed: connection to server at "44.208.221.186", port 5432 failed: FATAL:  Tenant or user not found
+connection to server at "44.208.221.186", port 5432 failed: FATAL:  Tenant or user not found[0m

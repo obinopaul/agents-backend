@@ -1,0 +1,1 @@
+{"code":422,"msg":"Φ»╖µ▒éσÅéµò░Θ¥₧µ│ò: args Field required∩╝îΦ╛ôσàÑ∩╝ÜNone","data":{"errors":[{"type":"missing","loc":["query","args"],"msg":"Field required","input":null},{"type":"missing","loc":["query","kwargs"],"msg":"Field required","input":null}]},"trace_id":"cc3ad8d3e8fd41f0907177dab0d1cd5e"}

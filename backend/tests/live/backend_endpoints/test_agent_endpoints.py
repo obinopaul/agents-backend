@@ -9,12 +9,20 @@ This script tests the /agent/agent/stream endpoint which:
 1. Creates a sandbox lazily (only when tools need them)
 2. Reuses sandboxes for the same session
 3. Streams responses in real-time using SSE
+4. Supports multiple agent modules via the 'module' parameter
 
 This is different from /api/v1/agent/chat/stream which does NOT create sandboxes.
 
+Available Modules:
+    - general (default): MCP-enabled agent with sandbox tools
+    - research: Multi-agent deep research workflow
+    - podcast: Podcast generation (not yet implemented)
+    - ppt: PowerPoint generation (not yet implemented)
+    - prose: Prose writing operations (not yet implemented)
+
 Flow tested:
     Client -> /agent/agent/stream
-           -> SSE: status:processing
+           -> SSE: status:processing (includes module name)
            -> SessionSandboxManager creates/reuses sandbox
            -> SSE: status:sandbox_ready (sandbox_id)
            -> Wait for MCP server health check
@@ -39,6 +47,13 @@ Usage:
 
     # Custom base URL
     python backend/tests/live/backend_endpoints/test_agent_endpoints.py --base-url http://localhost:8001
+
+Example Request Body:
+    {
+        "module": "general",  # Optional, defaults to "general"
+        "messages": [{"role": "user", "content": "Hello"}],
+        "thread_id": "my-session-id"
+    }
 """
 
 import asyncio
@@ -262,10 +277,11 @@ class AgentEndpointTester:
         events: List[SSEEvent] = []
         
         try:
-            # Prepare request
+            # Prepare request - using 'general' module (default, MCP-enabled agent)
             request_body = {
+                "module": "general",  # Specify the agent module (general, research, podcast, ppt, prose)
                 "messages": [
-                    {"role": "user", "content": "Say hello and tell me what tools you have available."}
+                    {"role": "user", "content": "create a basic calculator app, deploy it in the terminal and give me the link to view."}
                 ],
                 "thread_id": f"test-session-{datetime.now().strftime('%Y%m%d%H%M%S')}",
                 "enable_background_investigation": False,  # Faster test
@@ -417,6 +433,165 @@ class AgentEndpointTester:
             duration_seconds=duration
         )
     
+    async def test_agent_stream_research(self) -> TestResult:
+        """
+        Test the /agent/agent/stream endpoint with the research module.
+        
+        The research module is a multi-agent workflow with coordinator, planner,
+        researcher, and reporter nodes. This test verifies that the module parameter
+        correctly routes to the research graph.
+        """
+        self.log("\n📋 Testing /agent/agent/stream with RESEARCH module...")
+        
+        start_time = datetime.now()
+        events: List[SSEEvent] = []
+        
+        try:
+            # Prepare request - using 'research' module for deep research workflow
+            request_body = {
+                "module": "research",  # Use the research multi-agent workflow
+                "messages": [
+                    {"role": "user", "content": "What are the latest trends in AI for 2025?"}
+                ],
+                "thread_id": f"test-research-{datetime.now().strftime('%Y%m%d%H%M%S')}",
+                "enable_background_investigation": False,
+                "enable_web_search": True,  # Research module benefits from web search
+                "enable_deep_thinking": False,
+                "max_plan_iterations": 1,
+                "max_step_num": 3,
+                "max_search_results": 3
+            }
+            
+            self.log(f"   Request: {json.dumps(request_body, indent=2)}", "verbose")
+            
+            # Stream response
+            async with self.client.stream(
+                "POST",
+                f"{self.base_url}/agent/agent/stream",
+                json=request_body
+            ) as response:
+                
+                if response.status_code != 200:
+                    error_text = await response.aread()
+                    return TestResult(
+                        name="agent_stream_research",
+                        passed=False,
+                        message=f"HTTP {response.status_code}: {error_text.decode()}",
+                        duration_seconds=(datetime.now() - start_time).total_seconds()
+                    )
+                
+                # Parse SSE events
+                buffer = ""
+                async for chunk in response.aiter_text():
+                    buffer += chunk
+                    
+                    while '\n\n' in buffer:
+                        event_text, buffer = buffer.split('\n\n', 1)
+                        parsed_events = parse_sse_chunk(event_text + '\n\n')
+                        
+                        for event in parsed_events:
+                            events.append(event)
+                            self._log_event(event)
+                            
+                            # Verify module name in processing status
+                            if event.event_type == "status":
+                                if event.data.get("type") == "processing":
+                                    module = event.data.get("module", "")
+                                    if module == "research":
+                                        self.log("   ✅ Confirmed research module in use")
+                                if event.data.get("type") == "sandbox_ready":
+                                    self.sandbox_id = event.data.get("sandbox_id")
+            
+            # Validate events - same as basic test
+            duration = (datetime.now() - start_time).total_seconds()
+            status_types = [e.data.get("type") for e in events if e.event_type == "status"]
+            message_count = len([e for e in events if e.event_type == "message"])
+            
+            required = ["processing", "sandbox_ready", "agent_start", "complete"]
+            missing = [r for r in required if r not in status_types]
+            
+            if missing:
+                return TestResult(
+                    name="agent_stream_research",
+                    passed=False,
+                    message=f"Missing required status events: {missing}",
+                    events=events,
+                    duration_seconds=duration
+                )
+            
+            return TestResult(
+                name="agent_stream_research",
+                passed=True,
+                message=f"Research module test passed ({len(events)} events, {message_count} messages)",
+                events=events,
+                duration_seconds=duration
+            )
+            
+        except Exception as e:
+            import traceback
+            self.log(f"   ❌ Error: {e}", "verbose")
+            if self.verbose:
+                traceback.print_exc()
+            return TestResult(
+                name="agent_stream_research",
+                passed=False,
+                message=f"Exception: {e}",
+                events=events,
+                duration_seconds=(datetime.now() - start_time).total_seconds()
+            )
+    
+    async def test_module_not_implemented(self) -> TestResult:
+        """
+        Test that unimplemented modules return HTTP 501.
+        
+        This verifies proper error handling for modules like 'podcast' that
+        are registered but not yet implemented.
+        """
+        self.log("\n📋 Testing unimplemented module (expect 501)...")
+        
+        start_time = datetime.now()
+        
+        try:
+            request_body = {
+                "module": "podcast",  # This module is stubbed (not implemented)
+                "messages": [
+                    {"role": "user", "content": "Create a podcast about AI"}
+                ],
+                "thread_id": f"test-notimpl-{datetime.now().strftime('%Y%m%d%H%M%S')}"
+            }
+            
+            response = await self.client.post(
+                f"{self.base_url}/agent/agent/stream",
+                json=request_body
+            )
+            
+            duration = (datetime.now() - start_time).total_seconds()
+            
+            if response.status_code == 501:
+                self.log("   ✅ Correctly received HTTP 501 Not Implemented")
+                return TestResult(
+                    name="module_not_implemented",
+                    passed=True,
+                    message="Unimplemented module correctly returns 501",
+                    duration_seconds=duration
+                )
+            else:
+                self.log(f"   ❌ Expected 501, got {response.status_code}")
+                return TestResult(
+                    name="module_not_implemented",
+                    passed=False,
+                    message=f"Expected HTTP 501, got {response.status_code}",
+                    duration_seconds=duration
+                )
+                
+        except Exception as e:
+            return TestResult(
+                name="module_not_implemented",
+                passed=False,
+                message=f"Exception: {e}",
+                duration_seconds=(datetime.now() - start_time).total_seconds()
+            )
+    
     async def cleanup(self):
         """Clean up sandbox and close connections."""
         self.log("\n📋 Step 3: Cleanup...")
@@ -505,9 +680,20 @@ async def main():
         if not await tester.setup():
             sys.exit(1)
         
-        # Run tests
+        # Run tests for different modules
+        
+        # Test 1: Basic test with 'general' module (default)
         result = await tester.test_agent_stream_basic()
         tester.test_results.append(result)
+        
+        # Test 2: Test unimplemented module returns 501
+        result = await tester.test_module_not_implemented()
+        tester.test_results.append(result)
+        
+        # Test 3: Research module (optional - takes longer)
+        # Uncomment to run research module test:
+        # result = await tester.test_agent_stream_research()
+        # tester.test_results.append(result)
         
     finally:
         await tester.cleanup()

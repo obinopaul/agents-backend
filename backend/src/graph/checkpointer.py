@@ -214,8 +214,12 @@ class PostgresCheckpointerManager:
                         try:
                             await cur.execute(stmt)
                         except Exception as e:
-                            if "already exists" not in str(e).lower():
-                                logger.debug(f"Statement result: {e}")
+                            # Only ignore "already exists" errors
+                            if "already exists" in str(e).lower():
+                                logger.debug(f"Table/Index already exists: {e}")
+                            else:
+                                logger.error(f"Failed to execute creation statement: {stmt[:50]}... Error: {e}")
+                                raise e
                     
                     # Insert migration versions
                     for insert in migration_inserts:

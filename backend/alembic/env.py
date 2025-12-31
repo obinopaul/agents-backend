@@ -35,10 +35,15 @@ if alembic_config.config_file_name is not None:
 target_metadata = MappedBase.metadata
 
 # other values from the config, defined by the needs of env.py,
-alembic_config.set_main_option(
-    'sqlalchemy.url',
-    SQLALCHEMY_DATABASE_URL.render_as_string(hide_password=False).replace('%', '%%'),
-)
+# Add prepared_statement_cache_size=0 for pgbouncer compatibility
+db_url = SQLALCHEMY_DATABASE_URL.render_as_string(hide_password=False).replace('%', '%%')
+# Append query param for asyncpg to disable prepared statement cache
+if '?' in db_url:
+    db_url += '&prepared_statement_cache_size=0'
+else:
+    db_url += '?prepared_statement_cache_size=0'
+alembic_config.set_main_option('sqlalchemy.url', db_url)
+
 
 
 def run_migrations_offline() -> None:
@@ -95,17 +100,21 @@ async def run_async_migrations() -> None:
     and associate a connection with the context.
 
     """
+    from sqlalchemy.ext.asyncio import create_async_engine
 
-    connectable = async_engine_from_config(
-        alembic_config.get_section(alembic_config.config_ini_section, {}),
-        prefix='sqlalchemy.',
+    # Use create_async_engine directly for better control over asyncpg settings
+    # statement_cache_size=0 is required for pgbouncer compatibility
+    connectable = create_async_engine(
+        db_url.replace('%%', '%'),  # Unescape the % signs
         poolclass=pool.NullPool,
+        connect_args={"statement_cache_size": 0},
     )
 
     async with connectable.connect() as connection:
         await connection.run_sync(do_run_migrations)
 
     await connectable.dispose()
+
 
 
 def run_migrations_online() -> None:

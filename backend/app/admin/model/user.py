@@ -44,3 +44,5 @@ class User(Base):
 
     # Relationships
     api_keys = relationship("APIKey", back_populates="user", lazy="selectin", default_factory=list)
+    staged_files = relationship("StagedFile", back_populates="user", lazy="selectin", default_factory=list)
+

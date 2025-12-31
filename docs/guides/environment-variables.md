@@ -15,9 +15,11 @@
 | [LLM Providers](#llm-providers) | `OPENAI_`, `ANTHROPIC_`, etc. | `OPENAI_API_KEY` |
 | [Agent](#agent-configuration) | `AGENT_` | `AGENT_RECURSION_LIMIT` |
 | [Sandbox](#sandbox) | `SANDBOX_`, `E2B_`, `DAYTONA_` | `SANDBOX_PROVIDER` |
+| [File Processing](#file-processing) | `FILE_` | `FILE_STORAGE_BACKEND` |
 | [Search](#search--crawler) | `TAVILY_`, `JINA_`, etc. | `TAVILY_API_KEY` |
 | [RAG](#rag) | `MILVUS_`, `QDRANT_`, etc. | `MILVUS_HOST` |
 | [Tool Server](#tool-server) | `WEB_VISIT_`, `COMPRESSOR_` | `WEB_VISIT_JINA_API_KEY` |
+
 
 ---
 
@@ -270,6 +272,54 @@ AGENT_INFRA_TIMEOUT=60
 ```bash
 SANDBOX_MCP_SERVER_PORT=6060
 SANDBOX_CODE_SERVER_PORT=9000
+```
+
+---
+
+## File Processing
+
+### Storage Backend
+
+```bash
+# Backend selection: 'local' or 's3'
+FILE_STORAGE_BACKEND=local
+
+# Local filesystem storage
+FILE_STORAGE_LOCAL_PATH='./uploads/staged-files'
+FILE_STORAGE_LOCAL_BASE_URL=''
+
+# S3-compatible storage (AWS, MinIO, Wasabi, etc.)
+FILE_STORAGE_S3_BUCKET='staged-files'
+FILE_STORAGE_S3_ENDPOINT_URL=''   # Required for MinIO/custom
+FILE_STORAGE_S3_REGION='us-east-1'
+FILE_STORAGE_S3_ACCESS_KEY=''
+FILE_STORAGE_S3_SECRET_KEY=''
+FILE_STORAGE_S3_PUBLIC_URL_BASE=''
+```
+
+### Limits
+
+```bash
+FILE_MAX_SIZE_MB=50               # Max upload size
+FILE_MAX_PARSED_CONTENT_LENGTH=100000  # Max chars in DB
+FILE_STAGED_EXPIRY_HOURS=24       # File expiration
+FILE_SIGNED_URL_EXPIRY_SECONDS=3600
+```
+
+### Image Processing
+
+```bash
+FILE_IMAGE_MAX_WIDTH=2048
+FILE_IMAGE_MAX_HEIGHT=2048
+FILE_IMAGE_JPEG_QUALITY=85
+```
+
+### Document Parsing
+
+```bash
+FILE_PARSE_MAX_PDF_PAGES=500
+FILE_PARSE_MAX_EXCEL_ROWS=100000
+FILE_PARSE_MAX_TEXT_CHARS=10000000
 ```
 
 ---

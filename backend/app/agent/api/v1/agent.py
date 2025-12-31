@@ -17,7 +17,9 @@ import asyncio
 import json
 import logging
 import uuid
-from typing import Any, Dict, List, Optional, Union
+from dataclasses import dataclass
+from enum import Enum
+from typing import Any, Callable, Dict, List, Optional, Union
 from uuid import uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, Request
@@ -27,7 +29,6 @@ from pydantic import BaseModel, Field
 
 from backend.common.security.jwt import DependsJwtAuth, get_token, jwt_decode
 from backend.core.conf import settings
-from backend.src.graph.builder import graph
 from backend.src.graph.checkpointer import checkpointer_manager
 from backend.src.rag.retriever import Resource
 from backend.src.services.session_sandbox_manager import SessionSandboxManager
@@ -50,9 +51,157 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
-# Singleton graph instance
-# The PostgreSQL checkpointer is injected at runtime by checkpointer_manager
-_graph = graph
+
+# =============================================================================
+# Module Registry - Lazy Loading Agent Modules
+# =============================================================================
+
+class AgentModuleType(str, Enum):
+    """Available agent modules.
+    
+    Each module represents a different LangGraph agent workflow:
+    - GENERAL: Default MCP-enabled agent with sandbox tools
+    - RESEARCH: Deep research multi-agent workflow
+    - PODCAST: Podcast generation (not yet implemented)
+    - PPT: PowerPoint generation (not yet implemented)
+    - PROSE: Prose writing operations (not yet implemented)
+    """
+    GENERAL = "general"       # Default MCP-enabled agent
+    RESEARCH = "research"     # Deep research multi-agent workflow  
+    PODCAST = "podcast"       # Podcast generation (stub)
+    PPT = "ppt"               # PowerPoint generation (stub)
+    PROSE = "prose"           # Prose writing (stub)
+
+
+@dataclass
+class ModuleInfo:
+    """Information about an agent module."""
+    name: str
+    import_path: str
+    loader: Callable[[], Any]
+    is_implemented: bool = True
+    description: str = ""
+
+
+class ModuleRegistry:
+    """
+    Registry for agent modules with lazy loading.
+    
+    Modules are only imported when first requested, reducing startup time.
+    Each module exports a compiled LangGraph graph that can be used with
+    the checkpointer_manager for state persistence.
+    """
+    
+    _modules: Dict[str, ModuleInfo] = {}
+    _loaded_graphs: Dict[str, Any] = {}
+    
+    @classmethod
+    def register(cls, module_type: AgentModuleType, info: ModuleInfo):
+        """Register a module with its loader."""
+        cls._modules[module_type.value] = info
+    
+    @classmethod
+    def get_graph(cls, module_type: AgentModuleType):
+        """Get a module's compiled graph (lazy loaded)."""
+        name = module_type.value
+        
+        if name not in cls._modules:
+            raise ValueError(f"Unknown module: {name}")
+        
+        info = cls._modules[name]
+        
+        # Check if module is implemented
+        if not info.is_implemented:
+            raise NotImplementedError(
+                f"Module '{name}' is not yet implemented. "
+                f"Available modules: {cls.get_available_modules()}"
+            )
+        
+        # Lazy load the graph
+        if name not in cls._loaded_graphs:
+            logger.info(f"Loading module graph: {name}")
+            cls._loaded_graphs[name] = info.loader()
+            
+        return cls._loaded_graphs[name]
+    
+    @classmethod
+    def get_available_modules(cls) -> List[str]:
+        """Get list of implemented module names."""
+        return [name for name, info in cls._modules.items() if info.is_implemented]
+    
+    @classmethod
+    def get_module_info(cls, module_type: AgentModuleType) -> Optional[ModuleInfo]:
+        """Get info about a module."""
+        return cls._modules.get(module_type.value)
+
+
+# Module loader functions (lazy import)
+def _load_general_graph():
+    """Load the general/default MCP-enabled agent graph."""
+    from backend.src.graph.builder import graph
+    return graph
+
+def _load_research_graph():
+    """Load the deep research multi-agent workflow graph."""
+    from backend.src.module.research.graph.builder import graph
+    return graph
+
+def _load_podcast_graph():
+    """Load the podcast generation graph (stub)."""
+    from backend.src.module.podcast import graph
+    return graph
+
+def _load_ppt_graph():
+    """Load the PPT generation graph (stub)."""
+    from backend.src.module.ppt import graph
+    return graph
+
+def _load_prose_graph():
+    """Load the prose writing graph (stub)."""
+    from backend.src.module.prose import graph
+    return graph
+
+
+# Register all modules
+ModuleRegistry.register(AgentModuleType.GENERAL, ModuleInfo(
+    name="general",
+    import_path="backend.src.graph.builder",
+    loader=_load_general_graph,
+    is_implemented=True,
+    description="MCP-enabled agent with sandbox tools for general coding tasks",
+))
+
+ModuleRegistry.register(AgentModuleType.RESEARCH, ModuleInfo(
+    name="research",
+    import_path="backend.src.module.research.graph.builder",
+    loader=_load_research_graph,
+    is_implemented=True,
+    description="Multi-agent deep research workflow with coordinator, planner, researcher, and reporter",
+))
+
+ModuleRegistry.register(AgentModuleType.PODCAST, ModuleInfo(
+    name="podcast",
+    import_path="backend.src.module.podcast",
+    loader=_load_podcast_graph,
+    is_implemented=False,
+    description="AI-powered podcast generation from text content",
+))
+
+ModuleRegistry.register(AgentModuleType.PPT, ModuleInfo(
+    name="ppt",
+    import_path="backend.src.module.ppt",
+    loader=_load_ppt_graph,
+    is_implemented=False,
+    description="PowerPoint presentation generation using Marp CLI",
+))
+
+ModuleRegistry.register(AgentModuleType.PROSE, ModuleInfo(
+    name="prose",
+    import_path="backend.src.module.prose",
+    loader=_load_prose_graph,
+    is_implemented=False,
+    description="Prose writing operations: continue, improve, shorten, lengthen, fix",
+))
 
 
 # =============================================================================
@@ -65,6 +214,10 @@ _graph = graph
 class AgentRequest(BaseModel):
     """Request model for the agent streaming endpoint."""
     
+    module: AgentModuleType = Field(
+        default=AgentModuleType.GENERAL,
+        description="Agent module to use. Default 'general' uses MCP sandbox tools."
+    )
     messages: List[AgentMessage] = Field(..., description="List of conversation messages")
     thread_id: str = Field(default="__default__", description="Thread ID for conversation continuity and sandbox session")
     resources: List[Resource] = Field(default_factory=list, description="RAG resources")
@@ -99,6 +252,8 @@ def _get_recursion_limit() -> int:
 # =============================================================================
 
 async def _agent_stream_generator(
+    graph,  # The compiled LangGraph to use
+    module_name: str,  # Module name for logging/events
     messages: List[dict],
     thread_id: str,
     sandbox_manager: SessionSandboxManager,
@@ -133,7 +288,8 @@ async def _agent_stream_generator(
         # STEP 1: Send immediate feedback
         yield _make_event("status", {
             "type": "processing",
-            "message": "Processing your request..."
+            "message": f"Processing with {module_name} module...",
+            "module": module_name,
         })
         
         # STEP 2: Get or create sandbox (lazy initialization)
@@ -242,8 +398,8 @@ async def _agent_stream_generator(
             "message": "Agent processing..."
         })
         
-        # Use the centralized PostgreSQL checkpointer
-        async with checkpointer_manager.get_graph_with_checkpointer(_graph, thread_id) as configured_graph:
+        # Use the centralized PostgreSQL checkpointer with the provided graph
+        async with checkpointer_manager.get_graph_with_checkpointer(graph, thread_id) as configured_graph:
             async for event in configured_graph.astream_events(
                 workflow_input,
                 config=workflow_config,
@@ -415,15 +571,17 @@ async def _agent_stream_generator(
 @router.post(
     '/stream',
     summary="Stream agent responses with sandbox support",
-    description="Process user messages through an AI agent workflow with sandbox tools and stream responses.",
+    description="Process user messages through an AI agent workflow with sandbox tools and stream responses. Supports multiple agent modules.",
     response_class=StreamingResponse,
     responses={
         200: {
             "description": "Streaming response with SSE events",
             "content": {"text/event-stream": {}},
         },
+        400: {"description": "Bad request - Invalid module specified"},
         401: {"description": "Unauthorized - Invalid or missing JWT token"},
         500: {"description": "Internal server error"},
+        501: {"description": "Not implemented - Module not yet available"},
     },
     dependencies=[DependsJwtAuth],
 )
@@ -432,26 +590,27 @@ async def agent_stream(request: AgentRequest, http_request: Request):
     Stream agent responses with sandbox tool support.
     
     This endpoint:
+    - Supports multiple agent modules via the 'module' parameter
     - Creates a sandbox lazily (only when needed)
     - Reuses sandboxes for the same thread_id
     - Streams responses in real-time using SSE
     - Supports multimodal input (images, audio, video, files)
     - Automatically emits reasoning events when model returns thinking content
     
+    Available Modules:
+    - general (default): MCP-enabled agent with sandbox tools
+    - research: Deep research multi-agent workflow
+    - podcast: Podcast generation (not yet implemented)
+    - ppt: PowerPoint generation (not yet implemented)
+    - prose: Prose writing (not yet implemented)
+    
     Events emitted (AG-UI Protocol compatible):
-    - status: Processing status updates
+    - status: Processing status updates (includes module name)
     - message: Agent response chunks
-    - reasoning_start: Reasoning started (auto-detected)
-    - reasoning_message_start: Reasoning message started
-    - reasoning_message_content: Reasoning content chunk (delta)
-    - reasoning_message_end: Reasoning message ended
-    - reasoning_end: Reasoning completed
-    - tool_call_start: Tool execution started (toolCallId, toolCallName)
-    - tool_call_args: Tool arguments (toolCallId, delta)
-    - tool_call_end: Tool execution completed (toolCallId)
-    - tool_result: Tool output (role, content, toolCallId)
-    - error: Error events
-    - warning: Non-fatal warnings
+    - reasoning_*: Reasoning events (auto-detected)
+    - tool_call_*: Tool execution events
+    - tool_result: Tool output
+    - error/warning: Error and warning events
     
     Authentication required via JWT token.
     """
@@ -475,8 +634,20 @@ async def agent_stream(request: AgentRequest, http_request: Request):
     # Convert messages to dict format
     messages = [msg.model_dump() for msg in request.messages]
     
+    # Get the module's graph from registry
+    try:
+        selected_graph = ModuleRegistry.get_graph(request.module)
+        module_name = request.module.value
+        logger.info(f"Agent stream: Using module '{module_name}' for thread {thread_id}")
+    except NotImplementedError as e:
+        raise HTTPException(status_code=501, detail=str(e))
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    
     return StreamingResponse(
         _agent_stream_generator(
+            graph=selected_graph,
+            module_name=module_name,
             messages=messages,
             thread_id=thread_id,
             sandbox_manager=sandbox_manager,
