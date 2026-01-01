@@ -408,6 +408,7 @@ async def _agent_stream_generator(
     enable_deep_thinking: bool,
     locale: str,
     db_session: CurrentSession,  # Required for slide subscriber
+    user_api_key: str,  # User's JWT token for MCP authentication
 ):
     """
     Async generator for streaming agent workflow events.
@@ -507,82 +508,50 @@ async def _agent_stream_generator(
                 "mcp_url": mcp_url,
             })
             
-            # Explicitly register tools with the MCP server
-            # Required because the server uses on-demand registration optimizations
+            # Register tools with the MCP server using MCPClient class
+            # MCPClient handles /credential and /tool-server-url endpoints cleanly
             try:
-                async with httpx.AsyncClient() as client:
-                    # 1. Set credentials
-                    # Use a dummy key for now, or extract from user profile if needed
-                    # The session_id matches the thread_id for consistency
-                    cred_payload = {
-                        "user_api_key": "sandbox-key", 
+                from backend.src.tool_server.mcp.client import MCPClient
+                
+                async with MCPClient(mcp_url) as mcp_client:
+                    # 1. Set credentials using user's JWT token
+                    await mcp_client.set_credential({
+                        "user_api_key": user_api_key,
                         "session_id": thread_id
-                    }
-                    await client.post(f"{mcp_url}/credential", json=cred_payload)
+                    })
                     
-                    # 2. Set tool server URL and trigger registration
-                    # Tools communicate internally on localhost:6060
-                    # Using 127.0.0.1 to be safer inside container
-                    url_payload = {"tool_server_url": "http://127.0.0.1:6060"}
-                    logger.info(f"[DEBUG_SLIDES] Registering tools at {mcp_url}/tool-server-url with {url_payload}")
+                    # 2. Set tool server URL (triggers tool registration)
+                    # MCP server runs on SANDBOX_MCP_SERVER_PORT inside the sandbox
+                    internal_tool_url = f"http://127.0.0.1:{settings.SANDBOX_MCP_SERVER_PORT}"
+                    await mcp_client.set_tool_server_url(internal_tool_url)
                     
-                    reg_resp = await client.post(f"{mcp_url}/tool-server-url", json=url_payload)
+                    logger.info("Agent stream: Sandbox tools registered via MCPClient")
+                    yield _make_event("status", {
+                        "type": "tool_registration",
+                        "message": "Tools registered",
+                        "status": "success"
+                    })
                     
-                    if reg_resp.status_code == 200:
-                        logger.info("[DEBUG_SLIDES] Agent stream: Sandbox tools registered successfully")
-                        yield _make_event("status", {
-                            "type": "tool_registration",
-                            "message": "Slides tools registered",
-                            "status": "success"
-                        })
+                    # Probe to verify tools are available
+                    try:
+                        tool_names = await mcp_client.get_tool_names()
+                        logger.info(f"Agent stream: Found {len(tool_names)} tools: {tool_names[:10]}...")
                         
-                        # [DEBUG PROBE] Immediately check if we can see the tools
-                        try:
-                            from langchain_mcp_adapters.client import MultiServerMCPClient
-                            logger.info("[DEBUG_SLIDES] PROBE: Checking if tools are visible via MCP client...")
-                            
-                            probe_servers = {
-                                "probe": {
-                                    "transport": "http",  # Tool Server uses HTTP
-                                    "url": f"{mcp_url}/mcp",  # Endpoint is /mcp
-                                }
-                            }
-                            probe_client = MultiServerMCPClient(probe_servers)
-                            # Give it a tiny moment?
-                            await asyncio.sleep(1)
-                            probe_tools = await probe_client.get_tools()
-                            
-                            probe_names = [t.name for t in probe_tools]
-                            logger.info(f"[DEBUG_SLIDES] PROBE: Found {len(probe_names)} tools: {probe_names}")
-                            
-                            yield _make_event("status", {
-                                "type": "tool_probe",
-                                "message": f"Probe found {len(probe_names)} tools",
-                                "tools": probe_names
-                            })
-                            
-                            # Clean up probe
-                            # probe_client doesn't have explicit close? usually context manager, but MultiServerMCPClient isn't one.
-                            # We'll just leave it be, it's ephemeral.
-                            
-                        except Exception as probe_error:
-                            logger.error(f"[DEBUG_SLIDES] PROBE FAILED: {probe_error}")
-                            yield _make_event("warning", {
-                                "type": "tool_probe_error",
-                                "message": f"Probe failed: {str(probe_error)}"
-                            })
-
-                    else:
-                        error_msg = f"Tool reg failed: {reg_resp.status_code} {reg_resp.text}"
-                        logger.error(f"[DEBUG_SLIDES] {error_msg}")
+                        yield _make_event("status", {
+                            "type": "tool_probe",
+                            "message": f"Found {len(tool_names)} tools",
+                            "tools": tool_names
+                        })
+                    except Exception as probe_error:
+                        logger.warning(f"Agent stream: Tool probe failed: {probe_error}")
                         yield _make_event("warning", {
-                            "type": "tool_registration_failed",
-                            "message": error_msg
+                            "type": "tool_probe_error",
+                            "message": f"Probe failed: {str(probe_error)}"
                         })
                         
             except Exception as reg_error:
-                error_msg = f"Tool reg error: {str(reg_error)}"
-                logger.error(f"[DEBUG_SLIDES] {error_msg}")
+                error_msg = f"Tool registration error: {str(reg_error)}"
+                logger.error(f"Agent stream: {error_msg}")
                 yield _make_event("warning", {
                     "type": "tool_registration_error",
                     "message": error_msg
@@ -902,6 +871,7 @@ async def agent_stream(
             enable_deep_thinking=request.enable_deep_thinking,
             locale=request.locale,
             db_session=db,
+            user_api_key=token,  # Pass user's JWT for MCP authentication
         ),
         media_type="text/event-stream",
         headers={

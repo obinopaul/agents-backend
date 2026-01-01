@@ -236,12 +236,70 @@ class InteractiveAgentTester:
             await asyncio.sleep(5)
         return False
 
+    async def _initialize_mcp_tools(self) -> bool:
+        """
+        CRITICAL: Initialize MCP tools by calling /credential and /tool-server-url.
+        
+        The MCP server starts quickly with /health available, but tools are NOT
+        registered until these endpoints are called. This is an optimization to
+        reduce startup time - tools are registered on-demand.
+        """
+        session_id = str(uuid.uuid4())
+        
+        # Step 1: Set credentials
+        print("   ⏳ Initializing MCP tools (setting credentials)...")
+        try:
+            credential_payload = {
+                "user_api_key": self.token,
+                "session_id": session_id
+            }
+            r = await self.client.post(
+                f"{self.mcp_url}/credential",
+                json=credential_payload,
+                timeout=30.0
+            )
+            if r.status_code != 200:
+                print(f"   ⚠️ Credential setup returned: {r.status_code}")
+                return False
+            print("   ✅ Credentials set")
+        except Exception as e:
+            print(f"   ❌ Credential setup failed: {e}")
+            return False
+        
+        # Step 2: Set tool server URL (triggers tool registration)
+        print("   ⏳ Registering tools (this may take 30-60 seconds)...")
+        try:
+            r = await self.client.post(
+                f"{self.mcp_url}/tool-server-url",
+                json={"tool_server_url": self.mcp_url},
+                timeout=120.0  # Tool registration can take a while
+            )
+            if r.status_code != 200:
+                print(f"   ⚠️ Tool registration returned: {r.status_code} - {r.text[:200]}")
+                return False
+            print("   ✅ Tools registered successfully")
+        except Exception as e:
+            print(f"   ❌ Tool registration failed: {e}")
+            return False
+        
+        return True
+
     async def _get_langchain_tools_via_mcp(self) -> List:
         """
         Get the REAL LangChain tools from the MCP server via langchain-mcp-adapters.
         
         These are the actual tools from backend.src.tool_server.tools, not REST wrappers.
+        
+        IMPORTANT: This method now first initializes the MCP tools by calling
+        /credential and /tool-server-url endpoints before connecting.
         """
+        # First, initialize MCP tools (this is the critical step that was missing!)
+        if not await self._initialize_mcp_tools():
+            print("   ⚠️ MCP tool initialization failed, attempting to connect anyway...")
+        
+        # Wait a moment for tools to be fully available
+        await asyncio.sleep(3)
+        
         try:
             from langchain_mcp_adapters.client import MultiServerMCPClient
             

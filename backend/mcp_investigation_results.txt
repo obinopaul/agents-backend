@@ -1,0 +1,85 @@
+
+======================================================================
+  ≡ƒö¼ MCP SERVER INVESTIGATION
+     2026-01-01 14:42:03
+======================================================================
+
+======================================================================
+  Phase 1: Authentication & Sandbox Creation
+======================================================================
+Γ£à Authenticated as sandbox_test
+Γ£à Sandbox created: 6516fa36-3460-4afe-9d4c-e7d2fad23aec
+Γä╣∩╕Å MCP URL: https://6060-i9bvz2729bs6gaw0sem03.e2b.app
+
+======================================================================
+  Phase 2: Wait for MCP Health
+======================================================================
+Γä╣∩╕Å Waiting for MCP health endpoint (max 60s)...
+Γ£à MCP /health ready in 0s
+
+======================================================================
+  Test A: Get Tools WITHOUT Initialization (Current Broken Behavior)
+======================================================================
+Γä╣∩╕Å Connecting via MultiServerMCPClient...
+Γ£à Got 0 tools (expected - tools not initialized)
+
+======================================================================
+  Test B: Get Tools WITH Proper Initialization (Fixed Behavior)
+======================================================================
+
+======================================================================
+  Initializing MCP Tools (Previously Missing Step)
+======================================================================
+Γä╣∩╕Å Calling /credential endpoint...
+  Γ£à Credential set: {'status': 'success'}
+Γä╣∩╕Å Calling /tool-server-url endpoint (triggers registration)...
+  Γ£à Tool server URL set: {'status': 'success'}
+Γä╣∩╕Å Waiting 5s for tools to finish registering...
+Γä╣∩╕Å Connecting via MultiServerMCPClient...
+Γ£à Got 44 tools!
+Γä╣∩╕Å Sample tools:
+  Γä╣∩╕Å   - BashInit
+  Γä╣∩╕Å   - Bash
+  Γä╣∩╕Å   - BashView
+  Γä╣∩╕Å   - BashStop
+  Γä╣∩╕Å   - BashList
+  Γä╣∩╕Å   - BashWriteToProcess
+  Γä╣∩╕Å   - Read
+  Γä╣∩╕Å   - Write
+  Γä╣∩╕Å   - Edit
+  Γä╣∩╕Å   - apply_patch
+  Γä╣∩╕Å   ... and 34 more
+
+======================================================================
+  Test C: Using MCPClient Class (Best Practice)
+======================================================================
+Γä╣∩╕Å Connecting MCPClient to https://6060-i9bvz2729bs6gaw0sem03.e2b.app...
+Γ£à Health check: True
+Γ£à Got 44 LangChain tools!
+  Γä╣∩╕Å   - BashInit
+  Γä╣∩╕Å   - Bash
+  Γä╣∩╕Å   - BashView
+  Γä╣∩╕Å   - BashStop
+  Γä╣∩╕Å   - BashList
+
+======================================================================
+  RESULTS SUMMARY
+======================================================================
+
+  Without initialization: 0 tools
+  With initialization:    44 tools
+  MCPClient class:        44 tools
+
+  Γ£à ROOT CAUSE CONFIRMED!
+  The issue is that test scripts skip /credential and /tool-server-url.
+  Fix: Add these calls before connecting to MCP.
+
+======================================================================
+  Cleanup
+======================================================================
+Γ£à Sandbox 6516fa36-3460-4afe-9d4c-e7d2fad23aec deleted
+
+======================================================================
+  Investigation Complete
+======================================================================
+

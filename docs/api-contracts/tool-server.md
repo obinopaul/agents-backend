@@ -165,6 +165,8 @@ cd backend/tests/live
 | `sandbox_lifecycle_deepdive.py` | Sandbox lifecycle deep dive | ✅ Implemented |
 | `debug_sandbox.py` | Debug sandbox | ✅ Implemented |
 | `test_agent_endpoints.py` | Agent endpoints | ✅ Implemented |
+| `test_mcp_investigation.py` | MCP investigation | ✅ Implemented |
+
 
 ### Run Tests
 
