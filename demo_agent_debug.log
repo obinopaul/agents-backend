@@ -1,0 +1,111 @@
+2025-12-31 21:01:32,554 - backend.src.llms.llm - INFO - Initializing LLM provider: OpenAI
+2025-12-31 21:01:32,554 - backend.src.llms.llm - INFO - Creating OpenAI LLM: model=gpt-5.2
+2025-12-31 21:01:34,344 - backend.src.llms.llm - INFO - LLM provider 'OpenAI' initialized successfully
+2025-12-31 21:01:34,345 - backend.src.agents.agents - WARNING - Failed to load prompt template 'generic': Error loading template generic: 'generic.md' not found in search path: 'C:\\Users\\pault\\Documents\\3. AI and Machine Learning\\2. Deep Learning\\1c. App\\Projects\\agents-backend\\backend\\src\\prompts'
+2025-12-31 21:01:34,345 - backend.src.llms.llm - INFO - Creating OpenAI LLM: model=gpt-5.2
+2025-12-31 21:01:34,346 - backend.src.agents.agents - INFO - Agent 'MathAgent' total middleware count: 5
+2025-12-31 21:01:34,370 - backend.src.agents.agents - INFO - Agent 'MathAgent' created successfully with LangChain v1 create_agent
+2025-12-31 21:01:35,558 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-31 21:01:35,578 - __main__ - INFO - TOOL EXECUTION: Adding 5 + 3
+2025-12-31 21:01:36,496 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-31 21:01:36,507 - __main__ - INFO - TOOL EXECUTION: Multiplying 8 * 10
+2025-12-31 21:01:37,315 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-31 21:01:37,324 - backend.src.agents.agents - WARNING - Failed to load prompt template 'generic': Error loading template generic: 'generic.md' not found in search path: 'C:\\Users\\pault\\Documents\\3. AI and Machine Learning\\2. Deep Learning\\1c. App\\Projects\\agents-backend\\backend\\src\\prompts'
+2025-12-31 21:01:37,325 - backend.src.llms.llm - INFO - Creating OpenAI LLM: model=gpt-5.2
+2025-12-31 21:01:37,325 - backend.src.agents.agents - INFO - Agent 'GeneralAgent' total middleware count: 5
+2025-12-31 21:01:37,342 - backend.src.agents.agents - INFO - Agent 'GeneralAgent' created successfully with LangChain v1 create_agent
+2025-12-31 21:01:38,285 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-31 21:01:38,294 - __main__ - INFO - TOOL EXECUTION: Getting weather for Tokyo
+2025-12-31 21:01:38,852 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-31 21:01:38,862 - backend.src.agents.agents - INFO - Creating agent 'AuditAgent' with tool-specific interrupts: ['calculator_multiply']
+2025-12-31 21:01:38,862 - backend.src.agents.tool_interceptor - INFO - Wrapping 2 tools with interrupt logic for: ['calculator_multiply']
+2025-12-31 21:01:38,862 - backend.src.agents.tool_interceptor - INFO - ToolInterceptor initialized with interrupt_before_tools: ['calculator_multiply']
+2025-12-31 21:01:38,862 - backend.src.agents.tool_interceptor - DEBUG - Wrapping tool 'calculator_add' with interrupt capability
+2025-12-31 21:01:38,862 - backend.src.agents.tool_interceptor - DEBUG - Attaching intercepted function to tool 'calculator_add'
+2025-12-31 21:01:38,862 - backend.src.agents.tool_interceptor - DEBUG - Also wrapping _run method for tool 'calculator_add'
+2025-12-31 21:01:38,862 - backend.src.agents.tool_interceptor - DEBUG - Wrapped tool: calculator_add
+2025-12-31 21:01:38,863 - backend.src.agents.tool_interceptor - DEBUG - Wrapping tool 'calculator_multiply' with interrupt capability
+2025-12-31 21:01:38,863 - backend.src.agents.tool_interceptor - DEBUG - Attaching intercepted function to tool 'calculator_multiply'
+2025-12-31 21:01:38,863 - backend.src.agents.tool_interceptor - DEBUG - Also wrapping _run method for tool 'calculator_multiply'
+2025-12-31 21:01:38,863 - backend.src.agents.tool_interceptor - DEBUG - Wrapped tool: calculator_multiply
+2025-12-31 21:01:38,863 - backend.src.agents.tool_interceptor - INFO - Successfully wrapped 2 tools
+2025-12-31 21:01:38,866 - backend.src.agents.agents - INFO - Agent 'AuditAgent' total middleware count: 0
+2025-12-31 21:01:38,871 - backend.src.agents.agents - INFO - Agent 'AuditAgent' created successfully with LangChain v1 create_agent
+2025-12-31 21:01:39,809 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-31 21:01:39,820 - backend.src.agents.tool_interceptor - DEBUG - [ToolInterceptor] Executing tool: calculator_multiply
+2025-12-31 21:01:39,820 - backend.src.agents.tool_interceptor - DEBUG - [ToolInterceptor] Tool input: {\n  "a": 10,\n  "b": 5\n}
+2025-12-31 21:01:39,821 - backend.src.agents.tool_interceptor - INFO - Tool 'calculator_multiply' marked for interrupt
+2025-12-31 21:01:39,821 - backend.src.agents.tool_interceptor - DEBUG - [ToolInterceptor] should_interrupt=True for tool 'calculator_multiply'
+2025-12-31 21:01:39,821 - backend.src.agents.tool_interceptor - INFO - [ToolInterceptor] Interrupting before tool 'calculator_multiply'
+2025-12-31 21:01:39,821 - backend.src.agents.tool_interceptor - DEBUG - [ToolInterceptor] Interrupt message: About to execute tool 'calculator_multiply' with input: {\n  "a": 10,\n  "b": 5\n}...
+2025-12-31 21:01:39,821 - backend.src.agents.tool_interceptor - ERROR - [ToolInterceptor] Error during interrupt: (Interrupt(value='About to execute tool: \'calculator_multiply\'\n\nInput:\n{\n  "a": 10,\n  "b": 5\n}\n\nApprove execution?', id='1103f0c74ce7b238664e2d6d780c2ef7'),)
+Starting Manual Agent Capability Demo...
+
+============================================================
+ SCENARIO 1: Custom Middleware Configuration
+============================================================
+Goal: Demonstrate configuring retry limits and using tools.
+
+User: Calculate (5 + 3) * 10
+Agent: (Thinking...)
+  [SummarizationMiddleware.before_model] produced output
+  [ModelCallLimitMiddleware.before_model] produced output
+  [model] produced output
+  [ToolCallLimitMiddleware.after_model] produced output
+  [ModelCallLimitMiddleware.after_model] produced output
+  [tools] produced output
+  -> Content: 8
+  [SummarizationMiddleware.before_model] produced output
+  [ModelCallLimitMiddleware.before_model] produced output
+  [model] produced output
+  [ToolCallLimitMiddleware.after_model] produced output
+  [ModelCallLimitMiddleware.after_model] produced output
+  [tools] produced output
+  -> Content: 80
+  [SummarizationMiddleware.before_model] produced output
+  [ModelCallLimitMiddleware.before_model] produced output
+  [model] produced output
+  -> Content: \((5 + 3) \times 10 = 8 \times 10 = 80\).
+  [ToolCallLimitMiddleware.after_model] produced output
+  [ModelCallLimitMiddleware.after_model] produced output
+
+[Timer] Scenario 1 finished in 4.7701s
+
+============================================================
+ SCENARIO 2: Default Production Middleware
+============================================================
+Goal: Demonstrate default middleware stack (Summarization, Limits, etc).
+
+User: What's the weather in Tokyo?
+Agent: (Thinking...)
+  [SummarizationMiddleware.before_model] produced output
+  [ModelCallLimitMiddleware.before_model] produced output
+  [model] produced output
+  [ToolCallLimitMiddleware.after_model] produced output
+  [ModelCallLimitMiddleware.after_model] produced output
+  [tools] produced output
+  -> Content: The weather in Tokyo is Sunny, 25°C
+  [SummarizationMiddleware.before_model] produced output
+  [ModelCallLimitMiddleware.before_model] produced output
+  [model] produced output
+  -> Content: Tokyo is currently **sunny** with a temperature of **25°C**.
+  [ToolCallLimitMiddleware.after_model] produced output
+  [ModelCallLimitMiddleware.after_model] produced output
+
+[Timer] Scenario 2 finished in 1.5373s
+
+============================================================
+ SCENARIO 3: Tool Interruption (Human-in-the-loop)
+============================================================
+Goal: Demonstrate pausing before a specific tool execution.
+
+User: Calculate 10 * 5 (Should pause before multiply)
+  [model] completed step.
+  -> Agent trying to call: calculator_multiply
+  [__interrupt__] completed step.
+
+[Timer] Scenario 3 finished in 0.9715s
+
+============================================================
+ DEMO COMPLETED SUCCESSFULLY
+============================================================

@@ -88,6 +88,7 @@ When running `fba run`, the following endpoints become available:
 
 📖 See individual endpoint documentation:
 - [Agent API (with Sandbox)](./agent-api.md)
+- [Billing API](./billing-api.md)
 - [Chat API](./chat-api.md)
 - [Sandbox API](./sandbox-api.md)
 - [RAG API](./rag-api.md)

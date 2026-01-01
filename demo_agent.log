@@ -1,0 +1,27 @@
+2025-12-31 20:21:08,670 - backend.src.llms.llm - INFO - Initializing LLM provider: OpenAI
+2025-12-31 20:21:08,670 - backend.src.llms.llm - INFO - Creating OpenAI LLM: model=gpt-5.2
+2025-12-31 20:21:11,153 - backend.src.llms.llm - INFO - LLM provider 'OpenAI' initialized successfully
+2025-12-31 20:21:11,153 - backend.src.agents.agents - WARNING - Failed to load prompt template 'generic': Error loading template generic: 'generic.md' not found in search path: 'C:\\Users\\pault\\Documents\\3. AI and Machine Learning\\2. Deep Learning\\1c. App\\Projects\\agents-backend\\backend\\src\\prompts'
+2025-12-31 20:21:11,153 - backend.src.llms.llm - INFO - Creating OpenAI LLM: model=gpt-5.2
+2025-12-31 20:21:11,154 - backend.src.agents.agents - INFO - Agent 'MathAgent' total middleware count: 5
+2025-12-31 20:21:11,175 - backend.src.agents.agents - INFO - Agent 'MathAgent' created successfully with LangChain v1 create_agent
+2025-12-31 20:21:11,356 - __main__ - ERROR - Demo failed: argument of type 'NoneType' is not iterable
+Traceback (most recent call last):
+  File "C:\Users\pault\Documents\3. AI and Machine Learning\2. Deep Learning\1c. App\Projects\agents-backend\backend\tests\live\demo_agent_capabilities.py", line 142, in main
+    await scenario_1_middleware_config()
+  File "C:\Users\pault\Documents\3. AI and Machine Learning\2. Deep Learning\1c. App\Projects\agents-backend\backend\tests\live\demo_agent_capabilities.py", line 83, in scenario_1_middleware_config
+    await run_agent_interaction(agent, "Calculate (5 + 3) * 10")
+  File "C:\Users\pault\Documents\3. AI and Machine Learning\2. Deep Learning\1c. App\Projects\agents-backend\backend\tests\live\demo_agent_capabilities.py", line 54, in run_agent_interaction
+    if "messages" in node_state:
+       ^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: argument of type 'NoneType' is not iterable
+Starting Manual Agent Capability Demo...
+
+============================================================
+ SCENARIO 1: Custom Middleware Configuration
+============================================================
+Goal: Demonstrate configuring retry limits and using tools.
+
+User: Calculate (5 + 3) * 10
+Agent: (Thinking...)
+  [SummarizationMiddleware.before_model] produced output

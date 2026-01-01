@@ -1,0 +1,14 @@
+INFO:backend.src.llms.llm:Initializing LLM provider: OpenAI
+INFO:backend.src.llms.llm:Creating OpenAI LLM: model=gpt-5.2
+INFO:backend.src.llms.llm:LLM provider 'OpenAI' initialized successfully
+INFO:backend.src.agents.agents:Agent 'GraphInspector' total middleware count: 0
+INFO:backend.src.agents.agents:Agent 'GraphInspector' created successfully with LangChain v1 create_agent
+--- Inspecting Agent Graph Structure ---
+
+Graph Nodes:
+ - __start__
+ - model
+ - tools
+ - __end__
+
+Graph Edges:

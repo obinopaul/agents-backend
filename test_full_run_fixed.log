@@ -1,0 +1,366 @@
+============================= test session starts =============================
+platform win32 -- Python 3.13.5, pytest-9.0.1, pluggy-1.6.0
+rootdir: C:\Users\pault\Documents\3. AI and Machine Learning\2. Deep Learning\1c. App\Projects\agents-backend
+configfile: pyproject.toml
+plugins: anyio-4.12.0, Faker-25.0.0, langsmith-0.4.23, libtmux-0.53.0, asyncio-1.3.0, cov-7.0.0, django-4.5.2, mock-3.11.1, postgresql-7.0.2, sugar-1.1.1, xdist-3.3.1
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collected 8 items
+
+backend\tests\live\billing\integration\test_endpoints.py EEE             [ 37%]
+backend\tests\live\billing\integration\test_webhooks.py EEE              [ 75%]
+backend\tests\live\billing\scenarios\test_user_scenarios.py EE           [100%]
+
+=================================== ERRORS ====================================
+__________________ ERROR at setup of test_get_account_state ___________________
+
+self = <Coroutine test_get_account_state>
+
+    def setup(self) -> None:
+        runner_fixture_id = f"_{self._loop_scope}_scoped_runner"
+        if runner_fixture_id not in self.fixturenames:
+            self.fixturenames.append(runner_fixture_id)
+>       return super().setup()
+               ^^^^^^^^^^^^^^^
+
+C:\Users\pault\AppData\Roaming\Python\Python313\site-packages\pytest_asyncio\plugin.py:458: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+C:\Users\pault\AppData\Roaming\Python\Python313\site-packages\pytest_asyncio\plugin.py:728: in pytest_fixture_setup
+    return (yield)
+            ^^^^^
+backend\tests\live\billing\conftest.py:34: in app
+    return register_app()
+           ^^^^^^^^^^^^^^
+backend\core\registrar.py:144: in register_app
+    register_router(app)
+backend\core\registrar.py:254: in register_router
+    ensure_unique_route_names(app)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+app = <backend.core.registrar.register_app.<locals>.MyFastAPI object at 0x0000015195D07E00>
+
+    def ensure_unique_route_names(app: FastAPI) -> None:
+        """
+        \u68c0\u67e5\u8def\u7531\u540d\u79f0\u662f\u5426\u552f\u4e00
+    
+        :param app: FastAPI \u5e94\u7528\u5b9e\u4f8b
+        :return:
+        """
+        temp_routes = set()
+        for route in app.routes:
+            if isinstance(route, APIRoute):
+                if route.name in temp_routes:
+>                   raise ValueError(f'Non-unique route name: {route.name}')
+E                   ValueError: Non-unique route name: get_credit_usage
+
+backend\utils\health_check.py:28: ValueError
+---------------------------- Captured stdout setup ----------------------------
+2025-12-31 19:18:18.747 | WARNING  | - | Checkpoint saver is disabled
+___________________ ERROR at setup of test_get_transactions ___________________
+
+self = <Coroutine test_get_transactions>
+
+    def setup(self) -> None:
+        runner_fixture_id = f"_{self._loop_scope}_scoped_runner"
+        if runner_fixture_id not in self.fixturenames:
+            self.fixturenames.append(runner_fixture_id)
+>       return super().setup()
+               ^^^^^^^^^^^^^^^
+
+C:\Users\pault\AppData\Roaming\Python\Python313\site-packages\pytest_asyncio\plugin.py:458: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+backend\tests\live\billing\conftest.py:34: in app
+    return register_app()
+           ^^^^^^^^^^^^^^
+backend\core\registrar.py:144: in register_app
+    register_router(app)
+backend\core\registrar.py:254: in register_router
+    ensure_unique_route_names(app)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+app = <backend.core.registrar.register_app.<locals>.MyFastAPI object at 0x0000015195D07E00>
+
+    def ensure_unique_route_names(app: FastAPI) -> None:
+        """
+        \u68c0\u67e5\u8def\u7531\u540d\u79f0\u662f\u5426\u552f\u4e00
+    
+        :param app: FastAPI \u5e94\u7528\u5b9e\u4f8b
+        :return:
+        """
+        temp_routes = set()
+        for route in app.routes:
+            if isinstance(route, APIRoute):
+                if route.name in temp_routes:
+>                   raise ValueError(f'Non-unique route name: {route.name}')
+E                   ValueError: Non-unique route name: get_credit_usage
+
+backend\utils\health_check.py:28: ValueError
+_______________ ERROR at setup of test_create_checkout_session ________________
+
+self = <Coroutine test_create_checkout_session>
+
+    def setup(self) -> None:
+        runner_fixture_id = f"_{self._loop_scope}_scoped_runner"
+        if runner_fixture_id not in self.fixturenames:
+            self.fixturenames.append(runner_fixture_id)
+>       return super().setup()
+               ^^^^^^^^^^^^^^^
+
+C:\Users\pault\AppData\Roaming\Python\Python313\site-packages\pytest_asyncio\plugin.py:458: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+backend\tests\live\billing\conftest.py:34: in app
+    return register_app()
+           ^^^^^^^^^^^^^^
+backend\core\registrar.py:144: in register_app
+    register_router(app)
+backend\core\registrar.py:254: in register_router
+    ensure_unique_route_names(app)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+app = <backend.core.registrar.register_app.<locals>.MyFastAPI object at 0x0000015195D07E00>
+
+    def ensure_unique_route_names(app: FastAPI) -> None:
+        """
+        \u68c0\u67e5\u8def\u7531\u540d\u79f0\u662f\u5426\u552f\u4e00
+    
+        :param app: FastAPI \u5e94\u7528\u5b9e\u4f8b
+        :return:
+        """
+        temp_routes = set()
+        for route in app.routes:
+            if isinstance(route, APIRoute):
+                if route.name in temp_routes:
+>                   raise ValueError(f'Non-unique route name: {route.name}')
+E                   ValueError: Non-unique route name: get_credit_usage
+
+backend\utils\health_check.py:28: ValueError
+______________ ERROR at setup of test_webhook_missing_signature _______________
+
+self = <Coroutine test_webhook_missing_signature>
+
+    def setup(self) -> None:
+        runner_fixture_id = f"_{self._loop_scope}_scoped_runner"
+        if runner_fixture_id not in self.fixturenames:
+            self.fixturenames.append(runner_fixture_id)
+>       return super().setup()
+               ^^^^^^^^^^^^^^^
+
+C:\Users\pault\AppData\Roaming\Python\Python313\site-packages\pytest_asyncio\plugin.py:458: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+backend\tests\live\billing\conftest.py:34: in app
+    return register_app()
+           ^^^^^^^^^^^^^^
+backend\core\registrar.py:144: in register_app
+    register_router(app)
+backend\core\registrar.py:254: in register_router
+    ensure_unique_route_names(app)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+app = <backend.core.registrar.register_app.<locals>.MyFastAPI object at 0x0000015195D07E00>
+
+    def ensure_unique_route_names(app: FastAPI) -> None:
+        """
+        \u68c0\u67e5\u8def\u7531\u540d\u79f0\u662f\u5426\u552f\u4e00
+    
+        :param app: FastAPI \u5e94\u7528\u5b9e\u4f8b
+        :return:
+        """
+        temp_routes = set()
+        for route in app.routes:
+            if isinstance(route, APIRoute):
+                if route.name in temp_routes:
+>                   raise ValueError(f'Non-unique route name: {route.name}')
+E                   ValueError: Non-unique route name: get_credit_usage
+
+backend\utils\health_check.py:28: ValueError
+______________ ERROR at setup of test_webhook_invalid_signature _______________
+
+self = <Coroutine test_webhook_invalid_signature>
+
+    def setup(self) -> None:
+        runner_fixture_id = f"_{self._loop_scope}_scoped_runner"
+        if runner_fixture_id not in self.fixturenames:
+            self.fixturenames.append(runner_fixture_id)
+>       return super().setup()
+               ^^^^^^^^^^^^^^^
+
+C:\Users\pault\AppData\Roaming\Python\Python313\site-packages\pytest_asyncio\plugin.py:458: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+backend\tests\live\billing\conftest.py:34: in app
+    return register_app()
+           ^^^^^^^^^^^^^^
+backend\core\registrar.py:144: in register_app
+    register_router(app)
+backend\core\registrar.py:254: in register_router
+    ensure_unique_route_names(app)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+app = <backend.core.registrar.register_app.<locals>.MyFastAPI object at 0x0000015195D07E00>
+
+    def ensure_unique_route_names(app: FastAPI) -> None:
+        """
+        \u68c0\u67e5\u8def\u7531\u540d\u79f0\u662f\u5426\u552f\u4e00
+    
+        :param app: FastAPI \u5e94\u7528\u5b9e\u4f8b
+        :return:
+        """
+        temp_routes = set()
+        for route in app.routes:
+            if isinstance(route, APIRoute):
+                if route.name in temp_routes:
+>                   raise ValueError(f'Non-unique route name: {route.name}')
+E                   ValueError: Non-unique route name: get_credit_usage
+
+backend\utils\health_check.py:28: ValueError
+____________ ERROR at setup of test_webhook_valid_signature_mocked ____________
+
+self = <Coroutine test_webhook_valid_signature_mocked>
+
+    def setup(self) -> None:
+        runner_fixture_id = f"_{self._loop_scope}_scoped_runner"
+        if runner_fixture_id not in self.fixturenames:
+            self.fixturenames.append(runner_fixture_id)
+>       return super().setup()
+               ^^^^^^^^^^^^^^^
+
+C:\Users\pault\AppData\Roaming\Python\Python313\site-packages\pytest_asyncio\plugin.py:458: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+backend\tests\live\billing\conftest.py:34: in app
+    return register_app()
+           ^^^^^^^^^^^^^^
+backend\core\registrar.py:144: in register_app
+    register_router(app)
+backend\core\registrar.py:254: in register_router
+    ensure_unique_route_names(app)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+app = <backend.core.registrar.register_app.<locals>.MyFastAPI object at 0x0000015195D07E00>
+
+    def ensure_unique_route_names(app: FastAPI) -> None:
+        """
+        \u68c0\u67e5\u8def\u7531\u540d\u79f0\u662f\u5426\u552f\u4e00
+    
+        :param app: FastAPI \u5e94\u7528\u5b9e\u4f8b
+        :return:
+        """
+        temp_routes = set()
+        for route in app.routes:
+            if isinstance(route, APIRoute):
+                if route.name in temp_routes:
+>                   raise ValueError(f'Non-unique route name: {route.name}')
+E                   ValueError: Non-unique route name: get_credit_usage
+
+backend\utils\health_check.py:28: ValueError
+_____________ ERROR at setup of test_scenario_free_to_pro_upgrade _____________
+
+self = <Coroutine test_scenario_free_to_pro_upgrade>
+
+    def setup(self) -> None:
+        runner_fixture_id = f"_{self._loop_scope}_scoped_runner"
+        if runner_fixture_id not in self.fixturenames:
+            self.fixturenames.append(runner_fixture_id)
+>       return super().setup()
+               ^^^^^^^^^^^^^^^
+
+C:\Users\pault\AppData\Roaming\Python\Python313\site-packages\pytest_asyncio\plugin.py:458: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+backend\tests\live\billing\conftest.py:34: in app
+    return register_app()
+           ^^^^^^^^^^^^^^
+backend\core\registrar.py:144: in register_app
+    register_router(app)
+backend\core\registrar.py:254: in register_router
+    ensure_unique_route_names(app)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+app = <backend.core.registrar.register_app.<locals>.MyFastAPI object at 0x0000015195D07E00>
+
+    def ensure_unique_route_names(app: FastAPI) -> None:
+        """
+        \u68c0\u67e5\u8def\u7531\u540d\u79f0\u662f\u5426\u552f\u4e00
+    
+        :param app: FastAPI \u5e94\u7528\u5b9e\u4f8b
+        :return:
+        """
+        temp_routes = set()
+        for route in app.routes:
+            if isinstance(route, APIRoute):
+                if route.name in temp_routes:
+>                   raise ValueError(f'Non-unique route name: {route.name}')
+E                   ValueError: Non-unique route name: get_credit_usage
+
+backend\utils\health_check.py:28: ValueError
+_______________ ERROR at setup of test_scenario_credit_purchase _______________
+
+self = <Coroutine test_scenario_credit_purchase>
+
+    def setup(self) -> None:
+        runner_fixture_id = f"_{self._loop_scope}_scoped_runner"
+        if runner_fixture_id not in self.fixturenames:
+            self.fixturenames.append(runner_fixture_id)
+>       return super().setup()
+               ^^^^^^^^^^^^^^^
+
+C:\Users\pault\AppData\Roaming\Python\Python313\site-packages\pytest_asyncio\plugin.py:458: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+backend\tests\live\billing\conftest.py:34: in app
+    return register_app()
+           ^^^^^^^^^^^^^^
+backend\core\registrar.py:144: in register_app
+    register_router(app)
+backend\core\registrar.py:254: in register_router
+    ensure_unique_route_names(app)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+app = <backend.core.registrar.register_app.<locals>.MyFastAPI object at 0x0000015195D07E00>
+
+    def ensure_unique_route_names(app: FastAPI) -> None:
+        """
+        \u68c0\u67e5\u8def\u7531\u540d\u79f0\u662f\u5426\u552f\u4e00
+    
+        :param app: FastAPI \u5e94\u7528\u5b9e\u4f8b
+        :return:
+        """
+        temp_routes = set()
+        for route in app.routes:
+            if isinstance(route, APIRoute):
+                if route.name in temp_routes:
+>                   raise ValueError(f'Non-unique route name: {route.name}')
+E                   ValueError: Non-unique route name: get_credit_usage
+
+backend\utils\health_check.py:28: ValueError
+============================== warnings summary ===============================
+backend/tests/live/billing/integration/test_endpoints.py::test_get_account_state
+  C:\Users\pault\AppData\Roaming\Python\Python313\site-packages\langchain_tavily\tavily_research.py:97: UserWarning: Field name "output_schema" in "TavilyResearch" shadows an attribute in parent "BaseTool"
+    class TavilyResearch(BaseTool):  # type: ignore[override, override]
+
+backend/tests/live/billing/integration/test_endpoints.py::test_get_account_state
+  C:\Users\pault\AppData\Roaming\Python\Python313\site-packages\langchain_tavily\tavily_research.py:97: UserWarning: Field name "stream" in "TavilyResearch" shadows an attribute in parent "BaseTool"
+    class TavilyResearch(BaseTool):  # type: ignore[override, override]
+
+backend/tests/live/billing/integration/test_endpoints.py: 51 warnings
+  C:\Users\pault\AppData\Roaming\Python\Python313\site-packages\pydantic\_internal\_generate_schema.py:319: PydanticDeprecatedSince20: `json_encoders` is deprecated. See https://docs.pydantic.dev/2.12/concepts/serialization/#custom-serializers for alternatives. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    warnings.warn(
+
+backend/tests/live/billing/integration/test_endpoints.py::test_get_account_state
+  C:\Users\pault\Documents\3. AI and Machine Learning\2. Deep Learning\1c. App\Projects\agents-backend\backend\app\agent\schema\mcp_setting.py:24: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class CodexConfigureRequest(BaseModel):
+
+backend/tests/live/billing/integration/test_endpoints.py::test_get_account_state
+  C:\Users\pault\Documents\3. AI and Machine Learning\2. Deep Learning\1c. App\Projects\agents-backend\backend\app\agent\schema\mcp_setting.py:59: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class ClaudeCodeConfigureRequest(BaseModel):
+
+backend/tests/live/billing/integration/test_endpoints.py::test_get_account_state
+  C:\Users\pault\Documents\3. AI and Machine Learning\2. Deep Learning\1c. App\Projects\agents-backend\backend\app\agent\schema\mcp_setting.py:98: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class MCPSettingInfo(BaseModel):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+ERROR backend/tests/live/billing/integration/test_endpoints.py::test_get_account_state
+ERROR backend/tests/live/billing/integration/test_endpoints.py::test_get_transactions
+ERROR backend/tests/live/billing/integration/test_endpoints.py::test_create_checkout_session
+ERROR backend/tests/live/billing/integration/test_webhooks.py::test_webhook_missing_signature
+ERROR backend/tests/live/billing/integration/test_webhooks.py::test_webhook_invalid_signature
+ERROR backend/tests/live/billing/integration/test_webhooks.py::test_webhook_valid_signature_mocked
+ERROR backend/tests/live/billing/scenarios/test_user_scenarios.py::test_scenario_free_to_pro_upgrade
+ERROR backend/tests/live/billing/scenarios/test_user_scenarios.py::test_scenario_credit_purchase
+======================= 56 warnings, 8 errors in 30.42s =======================

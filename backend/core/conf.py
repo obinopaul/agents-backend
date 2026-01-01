@@ -23,8 +23,8 @@ class Settings(BaseSettings):
 
     # FastAPI
     FASTAPI_API_V1_PATH: str = '/api/v1'
-    FASTAPI_TITLE: str = 'FastAPI'
-    FASTAPI_DESCRIPTION: str = 'FastAPI Best Architecture'
+    FASTAPI_TITLE: str = 'AgentsBackend'
+    FASTAPI_DESCRIPTION: str = 'Agents Backend Architecture'
     FASTAPI_DOCS_URL: str = '/docs'
     FASTAPI_REDOC_URL: str = '/redoc'
     FASTAPI_OPENAPI_URL: str | None = '/openapi'
@@ -606,6 +606,48 @@ class Settings(BaseSettings):
     LANGGRAPH_CHECKPOINT_POOL_MIN: int = 2
     LANGGRAPH_CHECKPOINT_POOL_MAX: int = 10
     LANGGRAPH_CHECKPOINT_POOL_TIMEOUT: int = 60
+
+    # --------------------------------------------------------------------------
+    # [Billing & Stripe Configuration]
+    # Payment processing, subscriptions, and credit management
+    # --------------------------------------------------------------------------
+    
+    # Stripe API Keys
+    STRIPE_SECRET_KEY: str = ''  # Stripe secret key (sk_...)
+    STRIPE_PUBLISHABLE_KEY: str = ''  # Stripe publishable key (pk_...)
+    STRIPE_WEBHOOK_SECRET: str = ''  # Webhook signing secret (whsec_...)
+    
+    # Free Tier Price ID
+    STRIPE_FREE_TIER_ID: str = ''  # $0/month subscription price ID
+    
+    # Subscription Tier Price IDs - Monthly
+    STRIPE_TIER_2_20_ID: str = ''  # Plus tier ~$20/month
+    STRIPE_TIER_6_50_ID: str = ''  # Pro tier ~$50/month
+    STRIPE_TIER_25_200_ID: str = ''  # Ultra tier ~$200/month
+    
+    # Subscription Tier Price IDs - Yearly
+    STRIPE_TIER_2_20_YEARLY_ID: str = ''  # Plus tier yearly
+    STRIPE_TIER_6_50_YEARLY_ID: str = ''  # Pro tier yearly
+    STRIPE_TIER_25_200_YEARLY_ID: str = ''  # Ultra tier yearly
+    
+    # Yearly Commitment Price IDs (discounted, locked for 12 months)
+    STRIPE_TIER_2_17_YEARLY_COMMITMENT_ID: str = ''  # Plus yearly commitment
+    STRIPE_TIER_6_42_YEARLY_COMMITMENT_ID: str = ''  # Pro yearly commitment
+    STRIPE_TIER_25_170_YEARLY_COMMITMENT_ID: str = ''  # Ultra yearly commitment
+    
+    # Credit Purchase Price IDs (one-time payments)
+    STRIPE_CREDITS_10_PRICE_ID: str = ''  # $10 credits
+    STRIPE_CREDITS_25_PRICE_ID: str = ''  # $25 credits
+    STRIPE_CREDITS_50_PRICE_ID: str = ''  # $50 credits
+    STRIPE_CREDITS_100_PRICE_ID: str = ''  # $100 credits
+    STRIPE_CREDITS_250_PRICE_ID: str = ''  # $250 credits
+    STRIPE_CREDITS_500_PRICE_ID: str = ''  # $500 credits
+    
+    # Billing Feature Flags
+    BILLING_ENABLED: bool = False  # Enable/disable billing features
+    BILLING_TRIAL_ENABLED: bool = False  # Enable free trials
+    BILLING_TRIAL_DURATION_DAYS: int = 7  # Trial duration
+    BILLING_FREE_TIER_AUTO_ENROLL: bool = True  # Auto-enroll new users to free tier
 
     @model_validator(mode='before')
     @classmethod

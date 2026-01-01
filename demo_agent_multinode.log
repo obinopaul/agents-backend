@@ -1,0 +1,83 @@
+2025-12-31 21:14:18,706 - backend.src.llms.llm - INFO - Initializing LLM provider: OpenAI
+2025-12-31 21:14:18,706 - backend.src.llms.llm - INFO - Creating OpenAI LLM: model=gpt-5.2
+2025-12-31 21:14:20,173 - backend.src.llms.llm - INFO - LLM provider 'OpenAI' initialized successfully
+2025-12-31 21:14:20,173 - backend.src.agents.agents - WARNING - Failed to load prompt template 'generic': Error loading template generic: 'generic.md' not found in search path: 'C:\\Users\\pault\\Documents\\3. AI and Machine Learning\\2. Deep Learning\\1c. App\\Projects\\agents-backend\\backend\\src\\prompts'
+2025-12-31 21:14:20,175 - backend.src.llms.llm - INFO - Creating OpenAI LLM: model=gpt-5.2
+2025-12-31 21:14:20,175 - backend.src.agents.agents - INFO - Agent 'MathAgent' total middleware count: 5
+2025-12-31 21:14:20,192 - backend.src.agents.agents - INFO - Agent 'MathAgent' created successfully with LangChain v1 create_agent
+2025-12-31 21:14:21,487 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-31 21:14:21,507 - __main__ - INFO - TOOL EXECUTION: Adding 5 + 3
+2025-12-31 21:14:22,511 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-31 21:14:22,522 - __main__ - INFO - TOOL EXECUTION: Multiplying 8 * 10
+2025-12-31 21:14:23,125 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-31 21:14:23,133 - backend.src.agents.agents - WARNING - Failed to load prompt template 'generic': Error loading template generic: 'generic.md' not found in search path: 'C:\\Users\\pault\\Documents\\3. AI and Machine Learning\\2. Deep Learning\\1c. App\\Projects\\agents-backend\\backend\\src\\prompts'
+2025-12-31 21:14:23,133 - backend.src.llms.llm - INFO - Creating OpenAI LLM: model=gpt-5.2
+2025-12-31 21:14:23,134 - backend.src.agents.agents - INFO - Agent 'GeneralAgent' total middleware count: 5
+2025-12-31 21:14:23,149 - backend.src.agents.agents - INFO - Agent 'GeneralAgent' created successfully with LangChain v1 create_agent
+2025-12-31 21:14:24,026 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-31 21:14:24,037 - __main__ - INFO - TOOL EXECUTION: Getting weather for Tokyo
+2025-12-31 21:14:24,830 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-31 21:14:24,839 - __main__ - ERROR - Demo failed: 'charmap' codec can't encode character '\u202f' in position 41: character maps to <undefined>
+Traceback (most recent call last):
+  File "C:\Users\pault\Documents\3. AI and Machine Learning\2. Deep Learning\1c. App\Projects\agents-backend\backend\tests\live\demo_agent_capabilities.py", line 208, in main
+    await scenario_2_default_middleware()
+  File "C:\Users\pault\Documents\3. AI and Machine Learning\2. Deep Learning\1c. App\Projects\agents-backend\backend\tests\live\demo_agent_capabilities.py", line 110, in scenario_2_default_middleware
+    await run_agent_interaction(agent, "What's the weather in Tokyo?")
+  File "C:\Users\pault\Documents\3. AI and Machine Learning\2. Deep Learning\1c. App\Projects\agents-backend\backend\tests\live\demo_agent_capabilities.py", line 67, in run_agent_interaction
+    print(f"  -> Content: {last_msg.content[:100]}..." if len(last_msg.content) > 100 else f"  -> Content: {last_msg.content}")
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Python313\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\u202f' in position 41: character maps to <undefined>
+Starting Manual Agent Capability Demo...
+
+============================================================
+ SCENARIO 1: Custom Middleware Configuration
+============================================================
+Goal: Demonstrate configuring retry limits and using tools.
+
+User: Calculate (5 + 3) * 10
+Agent: (Thinking...)
+  [SummarizationMiddleware.before_model] produced output
+  [ModelCallLimitMiddleware.before_model] produced output
+  [model] produced output
+  [ToolCallLimitMiddleware.after_model] produced output
+  [ModelCallLimitMiddleware.after_model] produced output
+  [tools] produced output
+  -> Content: 8
+  [SummarizationMiddleware.before_model] produced output
+  [ModelCallLimitMiddleware.before_model] produced output
+  [model] produced output
+  [ToolCallLimitMiddleware.after_model] produced output
+  [ModelCallLimitMiddleware.after_model] produced output
+  [tools] produced output
+  -> Content: 80
+  [SummarizationMiddleware.before_model] produced output
+  [ModelCallLimitMiddleware.before_model] produced output
+  [model] produced output
+  -> Content: \[
+(5+3)\times 10 = 8 \times 10 = 80
+\]
+  [ToolCallLimitMiddleware.after_model] produced output
+  [ModelCallLimitMiddleware.after_model] produced output
+
+[Timer] Scenario 1 finished in 4.4267s
+
+============================================================
+ SCENARIO 2: Default Production Middleware
+============================================================
+Goal: Demonstrate default middleware stack (Summarization, Limits, etc).
+
+User: What's the weather in Tokyo?
+Agent: (Thinking...)
+  [SummarizationMiddleware.before_model] produced output
+  [ModelCallLimitMiddleware.before_model] produced output
+  [model] produced output
+  [ToolCallLimitMiddleware.after_model] produced output
+  [ModelCallLimitMiddleware.after_model] produced output
+  [tools] produced output
+  -> Content: The weather in Tokyo is Sunny, 25°C
+  [SummarizationMiddleware.before_model] produced output
+  [ModelCallLimitMiddleware.before_model] produced output
+  [model] produced output

@@ -17,7 +17,6 @@ from langchain.agents.middleware import (
 from langchain_core.messages import SystemMessage
 
 from backend.core.conf import settings
-from backend.src.agents.tool_interceptor import wrap_tools_with_interceptor
 from backend.src.llms.llm import (
     get_llm,
     get_fallback_llm,
@@ -269,8 +268,6 @@ def create_agent(
     agent_type: str,
     tools: list,
     prompt_template: str,
-    pre_model_hook: callable = None,
-    interrupt_before_tools: Optional[List[str]] = None,
     middleware: Optional[Sequence[Any]] = None,
     use_default_middleware: bool = True,
     middleware_config: Optional[dict] = None,
@@ -285,9 +282,6 @@ def create_agent(
         agent_type: Type of agent (researcher, coder, etc.) - for logging purposes
         tools: List of tools available to the agent
         prompt_template: Name of the prompt template to use
-        pre_model_hook: Optional hook to preprocess state before model invocation
-                        (converted to middleware internally)
-        interrupt_before_tools: Optional list of tool names to interrupt before execution
         middleware: Optional list of additional/custom middleware instances
                     (appended after default middleware)
         use_default_middleware: Whether to include default production middleware
@@ -304,18 +298,6 @@ def create_agent(
         f"with {len(tools)} tools and template '{prompt_template}'"
     )
     
-    # Wrap tools with interrupt logic if specified
-    processed_tools = tools
-    if interrupt_before_tools:
-        logger.info(
-            f"Creating agent '{agent_name}' with tool-specific interrupts: {interrupt_before_tools}"
-        )
-        logger.debug(f"Wrapping {len(tools)} tools for agent '{agent_name}'")
-        processed_tools = wrap_tools_with_interceptor(tools, interrupt_before_tools)
-        logger.debug(f"Agent '{agent_name}' tool wrapping completed")
-    else:
-        logger.debug(f"Agent '{agent_name}' has no interrupt-before-tools configured")
-
     # Get the configured LLM (uses LLM_PROVIDER from settings)
     llm = get_llm()
     logger.debug(f"Agent '{agent_name}' using LLM provider from settings")
@@ -339,12 +321,6 @@ def create_agent(
         middleware_list.extend(default_mw)
         logger.debug(f"Added {len(default_mw)} default middleware for agent '{agent_name}'")
     
-    # Convert pre_model_hook to middleware if provided
-    if pre_model_hook:
-        compression_middleware = _create_context_compression_middleware(pre_model_hook)
-        middleware_list.append(compression_middleware)
-        logger.debug(f"Added context compression middleware for agent '{agent_name}'")
-    
     # Add custom/additional middleware
     if middleware:
         middleware_list.extend(middleware)
@@ -357,7 +333,7 @@ def create_agent(
     # See: https://docs.langchain.com/oss/python/langchain/agents
     agent = langchain_create_agent(
         model=llm,
-        tools=processed_tools,
+        tools=tools, # Use original tools
         system_prompt=system_prompt,
         middleware=middleware_list if middleware_list else (),
         name=agent_name,

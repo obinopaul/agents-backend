@@ -8,6 +8,7 @@ This directory contains detailed reference documentation for the Agents Backend 
 
 | Guide | Description |
 |-------|-------------|
+| [Billing & Credits](billing-credits.md) | Subscription tiers, credit management, Stripe integration |
 | [CLI Reference](cli-reference.md) | Complete FBA CLI commands, options, and examples |
 | [DeepAgents CLI](deepagents-cli.md) | Interactive AI coding assistant with sandbox integration |
 | [FastAPI Backend](fastapi-backend.md) | All API endpoints, services, CRUD, middleware, and plugins |

@@ -1,0 +1,56 @@
+============================= test session starts =============================
+platform win32 -- Python 3.13.5, pytest-9.0.1, pluggy-1.6.0
+rootdir: C:\Users\pault\Documents\3. AI and Machine Learning\2. Deep Learning\1c. App\Projects\agents-backend
+configfile: pyproject.toml
+plugins: anyio-4.12.0, Faker-25.0.0, langsmith-0.4.23, libtmux-0.53.0, asyncio-1.3.0, cov-7.0.0, django-4.5.2, mock-3.11.1, postgresql-7.0.2, sugar-1.1.1, xdist-3.3.1
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collected 0 items / 1 error
+
+=================================== ERRORS ====================================
+__ ERROR collecting backend/tests/live/billing/integration/test_webhooks.py ___
+backend\tests\live\billing\integration\test_webhooks.py:10: in <module>
+    app = register_app()
+          ^^^^^^^^^^^^^^
+backend\core\registrar.py:144: in register_app
+    register_router(app)
+backend\core\registrar.py:254: in register_router
+    ensure_unique_route_names(app)
+backend\utils\health_check.py:28: in ensure_unique_route_names
+    raise ValueError(f'Non-unique route name: {route.name}')
+E   ValueError: Non-unique route name: get_credit_usage
+------------------------------- Captured stdout -------------------------------
+2025-12-31 19:15:00.626 | WARNING  | - | Checkpoint saver is disabled
+============================== warnings summary ===============================
+..\..\..\..\..\..\AppData\Roaming\Python\Python313\site-packages\pydantic\_internal\_generate_schema.py:319: 61 warnings
+  C:\Users\pault\AppData\Roaming\Python\Python313\site-packages\pydantic\_internal\_generate_schema.py:319: PydanticDeprecatedSince20: `json_encoders` is deprecated. See https://docs.pydantic.dev/2.12/concepts/serialization/#custom-serializers for alternatives. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    warnings.warn(
+
+..\..\..\..\..\..\AppData\Roaming\Python\Python313\site-packages\langchain_tavily\tavily_research.py:97
+  C:\Users\pault\AppData\Roaming\Python\Python313\site-packages\langchain_tavily\tavily_research.py:97: UserWarning: Field name "output_schema" in "TavilyResearch" shadows an attribute in parent "BaseTool"
+    class TavilyResearch(BaseTool):  # type: ignore[override, override]
+
+..\..\..\..\..\..\AppData\Roaming\Python\Python313\site-packages\langchain_tavily\tavily_research.py:97
+  C:\Users\pault\AppData\Roaming\Python\Python313\site-packages\langchain_tavily\tavily_research.py:97: UserWarning: Field name "stream" in "TavilyResearch" shadows an attribute in parent "BaseTool"
+    class TavilyResearch(BaseTool):  # type: ignore[override, override]
+
+backend\utils\_await.py:75
+  C:\Users\pault\Documents\3. AI and Machine Learning\2. Deep Learning\1c. App\Projects\agents-backend\backend\utils\_await.py:75: DeprecationWarning: There is no current event loop
+    loop = asyncio.get_event_loop()
+
+backend\app\agent\schema\mcp_setting.py:24
+  C:\Users\pault\Documents\3. AI and Machine Learning\2. Deep Learning\1c. App\Projects\agents-backend\backend\app\agent\schema\mcp_setting.py:24: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class CodexConfigureRequest(BaseModel):
+
+backend\app\agent\schema\mcp_setting.py:59
+  C:\Users\pault\Documents\3. AI and Machine Learning\2. Deep Learning\1c. App\Projects\agents-backend\backend\app\agent\schema\mcp_setting.py:59: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class ClaudeCodeConfigureRequest(BaseModel):
+
+backend\app\agent\schema\mcp_setting.py:98
+  C:\Users\pault\Documents\3. AI and Machine Learning\2. Deep Learning\1c. App\Projects\agents-backend\backend\app\agent\schema\mcp_setting.py:98: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class MCPSettingInfo(BaseModel):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+ERROR backend/tests/live/billing/integration/test_webhooks.py - ValueError: N...
+!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+======================= 67 warnings, 1 error in 31.88s ========================
