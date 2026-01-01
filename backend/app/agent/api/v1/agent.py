@@ -32,6 +32,9 @@ from backend.core.conf import settings
 from backend.src.graph.checkpointer import checkpointer_manager
 from backend.src.rag.retriever import Resource
 from backend.src.services.session_sandbox_manager import SessionSandboxManager
+from backend.database.db import CurrentSession
+from backend.src.services.slides.slide_subscriber import slide_subscriber
+from backend.core.conf import settings
 
 # Import structured models for AG-UI Protocol
 from backend.app.agent.models import (
@@ -50,6 +53,139 @@ from backend.app.agent.models import (
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
+
+
+# =============================================================================
+# Robust JSON Serialization for SSE Events
+# =============================================================================
+# This handles non-serializable objects like LangChain's ToolRuntime, Pydantic
+# models, bytes, sets, and other complex types that may appear in tool events.
+
+def _make_serializable(obj: Any, seen: set = None) -> Any:
+    """Recursively convert any object to a JSON-serializable form.
+    
+    This is a defensive serializer that NEVER raises exceptions.
+    It handles:
+    - Pydantic models (v1 and v2)
+    - LangChain objects (ToolRuntime, BaseTool, etc.)
+    - Bytes, sets, tuples
+    - Circular references
+    - Any edge case with graceful fallback
+    
+    Args:
+        obj: Any Python object
+        seen: Set of id() values to detect circular references
+        
+    Returns:
+        JSON-serializable representation
+    """
+    if seen is None:
+        seen = set()
+    
+    # Handle None and primitives (most common case, fast path)
+    if obj is None:
+        return None
+    if isinstance(obj, (bool, int, float, str)):
+        return obj
+    
+    # Detect circular references
+    obj_id = id(obj)
+    if obj_id in seen:
+        return f"<circular ref: {type(obj).__name__}>"
+    
+    # Handle common iterables
+    if isinstance(obj, (list, tuple)):
+        seen.add(obj_id)
+        return [_make_serializable(item, seen) for item in obj]
+    
+    if isinstance(obj, set):
+        seen.add(obj_id)
+        return [_make_serializable(item, seen) for item in obj]
+    
+    if isinstance(obj, dict):
+        seen.add(obj_id)
+        result = {}
+        for k, v in obj.items():
+            # Skip private/internal keys
+            str_key = str(k) if not isinstance(k, str) else k
+            if str_key.startswith('_'):
+                continue
+            result[str_key] = _make_serializable(v, seen)
+        return result
+    
+    # Handle bytes
+    if isinstance(obj, bytes):
+        try:
+            return obj.decode('utf-8', errors='replace')
+        except Exception:
+            return f"<bytes: {len(obj)} bytes>"
+    
+    # Handle Pydantic v2 models (most common in FastAPI)
+    if hasattr(obj, 'model_dump'):
+        try:
+            seen.add(obj_id)
+            return _make_serializable(obj.model_dump(), seen)
+        except Exception:
+            pass
+    
+    # Handle Pydantic v1 models
+    if hasattr(obj, 'dict') and callable(getattr(obj, 'dict')):
+        try:
+            seen.add(obj_id)
+            return _make_serializable(obj.dict(), seen)
+        except Exception:
+            pass
+    
+    # Handle LangChain messages and tools with content attribute
+    if hasattr(obj, 'content'):
+        try:
+            return _make_serializable(obj.content, seen)
+        except Exception:
+            pass
+    
+    # Handle objects with __dict__ (general Python objects)
+    if hasattr(obj, '__dict__'):
+        try:
+            seen.add(obj_id)
+            # Filter out private attrs and callables
+            public_attrs = {
+                k: v for k, v in obj.__dict__.items()
+                if not k.startswith('_') and not callable(v)
+            }
+            if public_attrs:
+                return _make_serializable(public_attrs, seen)
+        except Exception:
+            pass
+    
+    # Handle callables/functions
+    if callable(obj):
+        return f"<{type(obj).__name__}>"
+    
+    # Ultimate fallback - type name (never raises)
+    return f"<{type(obj).__name__}>"
+
+
+def _safe_json_serialize(data: Any) -> str:
+    """Safely serialize any data to JSON string.
+    
+    This function NEVER raises an exception. It handles all edge cases
+    including ToolRuntime, complex LangChain objects, and circular references.
+    
+    Args:
+        data: Any Python object or data structure
+        
+    Returns:
+        JSON string representation (always succeeds)
+    """
+    try:
+        # First pass: make everything serializable
+        serializable = _make_serializable(data)
+        # Second pass: dump to JSON
+        return json.dumps(serializable, ensure_ascii=False)
+    except Exception as e:
+        # Absolute fallback - should never reach here
+        logger.warning(f"JSON serialization fallback triggered: {e}")
+        return json.dumps({"error": f"Serialization fallback: {str(data)[:200]}"})
 
 
 # =============================================================================
@@ -237,8 +373,12 @@ class AgentRequest(BaseModel):
 # =============================================================================
 
 def _make_event(event_type: str, data: dict) -> str:
-    """Create a Server-Sent Event (SSE) formatted string."""
-    json_data = json.dumps(data, ensure_ascii=False)
+    """Create a Server-Sent Event (SSE) formatted string.
+    
+    Uses _safe_json_serialize to handle non-serializable objects
+    like ToolRuntime, Pydantic models, etc.
+    """
+    json_data = _safe_json_serialize(data)
     return f"event: {event_type}\ndata: {json_data}\n\n"
 
 
@@ -267,6 +407,7 @@ async def _agent_stream_generator(
     enable_web_search: bool,
     enable_deep_thinking: bool,
     locale: str,
+    db_session: CurrentSession,  # Required for slide subscriber
 ):
     """
     Async generator for streaming agent workflow events.
@@ -313,7 +454,7 @@ async def _agent_stream_generator(
         
         # STEP 3: Wait for MCP server to be ready (with keep-alive events)
         # Get MCP URL for debugging
-        mcp_url = await sandbox.expose_port(6060)
+        mcp_url = await sandbox.expose_port(settings.SANDBOX_MCP_SERVER_PORT)
         logger.info(f"Agent stream: MCP URL = {mcp_url}")
         
         yield _make_event("status", {
@@ -365,6 +506,87 @@ async def _agent_stream_generator(
                 "message": "Tools ready",
                 "mcp_url": mcp_url,
             })
+            
+            # Explicitly register tools with the MCP server
+            # Required because the server uses on-demand registration optimizations
+            try:
+                async with httpx.AsyncClient() as client:
+                    # 1. Set credentials
+                    # Use a dummy key for now, or extract from user profile if needed
+                    # The session_id matches the thread_id for consistency
+                    cred_payload = {
+                        "user_api_key": "sandbox-key", 
+                        "session_id": thread_id
+                    }
+                    await client.post(f"{mcp_url}/credential", json=cred_payload)
+                    
+                    # 2. Set tool server URL and trigger registration
+                    # Tools communicate internally on localhost:6060
+                    # Using 127.0.0.1 to be safer inside container
+                    url_payload = {"tool_server_url": "http://127.0.0.1:6060"}
+                    logger.info(f"[DEBUG_SLIDES] Registering tools at {mcp_url}/tool-server-url with {url_payload}")
+                    
+                    reg_resp = await client.post(f"{mcp_url}/tool-server-url", json=url_payload)
+                    
+                    if reg_resp.status_code == 200:
+                        logger.info("[DEBUG_SLIDES] Agent stream: Sandbox tools registered successfully")
+                        yield _make_event("status", {
+                            "type": "tool_registration",
+                            "message": "Slides tools registered",
+                            "status": "success"
+                        })
+                        
+                        # [DEBUG PROBE] Immediately check if we can see the tools
+                        try:
+                            from langchain_mcp_adapters.client import MultiServerMCPClient
+                            logger.info("[DEBUG_SLIDES] PROBE: Checking if tools are visible via MCP client...")
+                            
+                            probe_servers = {
+                                "probe": {
+                                    "transport": "http",  # Tool Server uses HTTP
+                                    "url": f"{mcp_url}/mcp",  # Endpoint is /mcp
+                                }
+                            }
+                            probe_client = MultiServerMCPClient(probe_servers)
+                            # Give it a tiny moment?
+                            await asyncio.sleep(1)
+                            probe_tools = await probe_client.get_tools()
+                            
+                            probe_names = [t.name for t in probe_tools]
+                            logger.info(f"[DEBUG_SLIDES] PROBE: Found {len(probe_names)} tools: {probe_names}")
+                            
+                            yield _make_event("status", {
+                                "type": "tool_probe",
+                                "message": f"Probe found {len(probe_names)} tools",
+                                "tools": probe_names
+                            })
+                            
+                            # Clean up probe
+                            # probe_client doesn't have explicit close? usually context manager, but MultiServerMCPClient isn't one.
+                            # We'll just leave it be, it's ephemeral.
+                            
+                        except Exception as probe_error:
+                            logger.error(f"[DEBUG_SLIDES] PROBE FAILED: {probe_error}")
+                            yield _make_event("warning", {
+                                "type": "tool_probe_error",
+                                "message": f"Probe failed: {str(probe_error)}"
+                            })
+
+                    else:
+                        error_msg = f"Tool reg failed: {reg_resp.status_code} {reg_resp.text}"
+                        logger.error(f"[DEBUG_SLIDES] {error_msg}")
+                        yield _make_event("warning", {
+                            "type": "tool_registration_failed",
+                            "message": error_msg
+                        })
+                        
+            except Exception as reg_error:
+                error_msg = f"Tool reg error: {str(reg_error)}"
+                logger.error(f"[DEBUG_SLIDES] {error_msg}")
+                yield _make_event("warning", {
+                    "type": "tool_registration_error",
+                    "message": error_msg
+                })
         
         
         # STEP 4: MCP URL already obtained above, use it for workflow
@@ -501,7 +723,8 @@ async def _agent_stream_generator(
                     
                     # AG-UI Protocol: TOOL_CALL_ARGS (send full args as single delta)
                     if tool_input:
-                        args_str = json.dumps(tool_input) if isinstance(tool_input, dict) else str(tool_input)
+                        # Use safe serializer to handle ToolRuntime and other complex types
+                        args_str = _safe_json_serialize(tool_input)
                         yield _make_event("tool_call_args", tool_call.to_ag_ui_args_event(args_str))
                 
                 elif event_type == "on_tool_end":
@@ -522,6 +745,19 @@ async def _agent_stream_generator(
                         "toolName": tool_name,
                         "thread_id": thread_id,
                     })
+                    
+                    # Sync slide tool results to database (SlideWrite, SlideEdit, etc.)
+                    # This happens asynchronously and doesn't block the stream significantly
+                    try:
+                        await slide_subscriber.on_tool_complete(
+                            db_session=db_session,
+                            tool_name=tool_name,
+                            tool_input=event.get("data", {}).get("input", {}),
+                            tool_result=tool_output,
+                            thread_id=thread_id,
+                        )
+                    except Exception as e:
+                        logger.error(f"Failed to sync slide tool result: {e}")
             
             # Check graph state for interrupts after streaming completes
             # LangGraph signals interrupts via __interrupt__ in the state
@@ -585,7 +821,11 @@ async def _agent_stream_generator(
     },
     dependencies=[DependsJwtAuth],
 )
-async def agent_stream(request: AgentRequest, http_request: Request):
+async def agent_stream(
+    request: AgentRequest, 
+    http_request: Request,
+    db: CurrentSession,
+):
     """
     Stream agent responses with sandbox tool support.
     
@@ -661,6 +901,7 @@ async def agent_stream(request: AgentRequest, http_request: Request):
             enable_web_search=request.enable_web_search,
             enable_deep_thinking=request.enable_deep_thinking,
             locale=request.locale,
+            db_session=db,
         ),
         media_type="text/event-stream",
         headers={

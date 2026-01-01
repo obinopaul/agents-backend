@@ -1,0 +1,77 @@
+2026-01-01 06:35:34,354 - backend.tests.test_agents.agent_factory - INFO - Creating agent 'MathAgent' (type=assistant) with 2 tools and template 'generic'
+2026-01-01 06:35:34,354 - backend.src.llms.llm - INFO - Initializing LLM provider: OpenAI
+2026-01-01 06:35:34,354 - backend.src.llms.llm - INFO - Creating OpenAI LLM: model=gpt-5.2
+2026-01-01 06:35:35,970 - backend.src.llms.llm - INFO - LLM provider 'OpenAI' initialized successfully
+2026-01-01 06:35:35,971 - backend.tests.test_agents.agent_factory - WARNING - Failed to load prompt template 'generic': Error loading template generic: 'generic.md' not found in search path: 'C:\\Users\\pault\\Documents\\3. AI and Machine Learning\\2. Deep Learning\\1c. App\\Projects\\agents-backend\\backend\\src\\prompts'
+2026-01-01 06:35:35,972 - backend.tests.test_agents.agent_factory - INFO - interrupt_on specified but no checkpointer provided. Using MemorySaver.
+2026-01-01 06:35:35,972 - backend.tests.test_agents.agent_factory - INFO - Adding HumanInTheLoopMiddleware for tools: ['calculator_multiply']
+2026-01-01 06:35:35,972 - backend.tests.test_agents.agent_factory - INFO - Agent 'MathAgent' total middleware count: 1
+2026-01-01 06:35:35,987 - backend.tests.test_agents.agent_factory - INFO - Agent 'MathAgent' created successfully
+2026-01-01 06:35:37,636 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-01-01 06:35:37,657 - backend.tests.test_agents.agent_factory - INFO - Creating agent 'FileAgent' (type=assistant) with 1 tools and template 'generic'
+2026-01-01 06:35:37,657 - backend.tests.test_agents.agent_factory - WARNING - Failed to load prompt template 'generic': Error loading template generic: 'generic.md' not found in search path: 'C:\\Users\\pault\\Documents\\3. AI and Machine Learning\\2. Deep Learning\\1c. App\\Projects\\agents-backend\\backend\\src\\prompts'
+2026-01-01 06:35:37,657 - backend.tests.test_agents.agent_factory - INFO - interrupt_on specified but no checkpointer provided. Using MemorySaver.
+2026-01-01 06:35:37,657 - backend.tests.test_agents.agent_factory - INFO - Adding HumanInTheLoopMiddleware for tools: ['dangerous_delete']
+2026-01-01 06:35:37,657 - backend.tests.test_agents.agent_factory - INFO - Agent 'FileAgent' total middleware count: 1
+2026-01-01 06:35:37,669 - backend.tests.test_agents.agent_factory - INFO - Agent 'FileAgent' created successfully
+2026-01-01 06:35:40,595 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-01-01 06:35:40,606 - backend.tests.test_agents.agent_factory - INFO - Creating agent 'FreeAgent' (type=assistant) with 2 tools and template 'generic'
+2026-01-01 06:35:40,606 - backend.tests.test_agents.agent_factory - WARNING - Failed to load prompt template 'generic': Error loading template generic: 'generic.md' not found in search path: 'C:\\Users\\pault\\Documents\\3. AI and Machine Learning\\2. Deep Learning\\1c. App\\Projects\\agents-backend\\backend\\src\\prompts'
+2026-01-01 06:35:40,607 - backend.tests.test_agents.agent_factory - INFO - Agent 'FreeAgent' total middleware count: 0
+2026-01-01 06:35:40,615 - backend.tests.test_agents.agent_factory - INFO - Agent 'FreeAgent' created successfully
+2026-01-01 06:35:41,613 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-01-01 06:35:41,622 - __main__ - INFO - TOOL: calculator_multiply(7, 8)
+2026-01-01 06:35:42,587 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+============================================================
+ HumanInTheLoopMiddleware Tool Interrupt Demo
+============================================================
+
+============================================================
+ SCENARIO 1: Interrupt Specific Tool Only
+============================================================
+Config: interrupt_on={'calculator_multiply': {...}}
+Expected: calculator_add runs freely, calculator_multiply triggers interrupt
+
+User: Calculate (5 + 3) * 10
+  [model] produced output
+   -> Tool Call: calculator_add({'a': 5, 'b': 3})
+  [HumanInTheLoopMiddleware.after_model] produced output
+
+!!! Exception: TypeError: argument of type 'NoneType' is not iterable
+
+[Timer] Scenario 1 finished in 3.3030s
+
+============================================================
+ SCENARIO 2: InterruptOnConfig with allowed_decisions
+============================================================
+Config: interrupt_on={'dangerous_delete': {...}}
+
+User: Delete the file 'important_data.txt'
+  [model] produced output
+   -> I can’t help delete files—especially one named **important_data.txt**—because th...
+  [HumanInTheLoopMiddleware.after_model] produced output
+
+!!! Exception: TypeError: argument of type 'NoneType' is not iterable
+
+[Timer] Scenario 2 finished in 2.9493s
+
+============================================================
+ SCENARIO 3: No Interrupts (Baseline)
+============================================================
+Config: interrupt_on=None
+Expected: All tools run without pause
+
+User: Calculate 7 * 8
+  [model] produced output
+  [tools] produced output
+   -> 56...
+  [model] produced output
+   -> 7 * 8 = **56**...
+
+--- Stream Completed Successfully ---
+
+[Timer] Scenario 3 finished in 1.9873s
+
+============================================================
+ DEMO COMPLETED SUCCESSFULLY
+============================================================

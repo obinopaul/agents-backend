@@ -183,7 +183,7 @@ async def get_transactions_summary(
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.get("/credit-usage")
+@router.get("/credit-usage", name="billing_get_credit_usage")
 async def get_credit_usage(
     user_id: str = Depends(get_current_user_id),
     limit: int = Query(50, ge=1, le=100),

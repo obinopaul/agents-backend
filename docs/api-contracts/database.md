@@ -195,7 +195,39 @@
 
 ---
 
-## Sandbox Tables (`backend/src/sandbox/sandbox_server/db/`)
+### `slide_content` - Presentation Slides
+
+Persistent storage for HTML slides created by the agent. Enables dual-write architecture where agent writes to sandbox and slides are synced to database for fast frontend queries.
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `id` | BIGINT | Primary key (auto-increment) |
+| `thread_id` | VARCHAR(64) | Thread/session ID that owns this slide |
+| `presentation_name` | VARCHAR(255) | Name of the presentation |
+| `slide_number` | INT | Slide number (1-indexed) |
+| `slide_title` | VARCHAR(500) | Title of the slide |
+| `slide_content` | TEXT | Full HTML content of the slide |
+| `slide_metadata` | JSONB | Tool metadata (tool_name, timestamps) |
+| `created_time` | TIMESTAMP | Creation time |
+| `updated_time` | TIMESTAMP | Last update |
+
+**Unique Constraint:** `(thread_id, presentation_name, slide_number)` - `uq_slide_content_location`
+
+**Indexes:**
+- `ix_slide_content_thread_id` - Fast lookup by thread
+- `ix_slide_content_presentation_name` - Fast lookup by presentation
+
+**Example `slide_metadata`:**
+```json
+{
+  "tool_name": "SlideWrite",
+  "last_tool_execution": "2026-01-01T08:00:00Z"
+}
+```
+
+**Related Components:**
+- `backend/src/services/slides/` - Service layer
+- `backend/app/agent/api/v1/slides.py` - API endpoints
 
 ### `sandboxes` - Sandbox Records
 

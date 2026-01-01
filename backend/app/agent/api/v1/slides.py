@@ -6,10 +6,15 @@ Agent Slides API endpoints.
 
 This module provides endpoints for managing and exporting slides
 created by the agent in sandbox environments:
-- List presentations in a sandbox
+- List presentations in a sandbox (legacy sandbox-based)
 - List slides within a presentation
 - Get slide HTML content for preview
 - Export presentation to PDF
+
+NEW: Database-backed endpoints (thread_id based):
+- List presentations from database
+- Get slide content from database
+- Export to PDF from database
 """
 
 import io
@@ -17,13 +22,20 @@ import logging
 import re
 from typing import List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from fastapi.responses import Response, StreamingResponse
 from pydantic import BaseModel, Field
 
 from backend.common.response.response_schema import ResponseModel, ResponseSchemaModel
 from backend.common.security.jwt import DependsJwtAuth
+from backend.database.db import CurrentSession
 from backend.src.services.sandbox_service import sandbox_service
+from backend.src.services.slides import (
+    SlideService,
+    PresentationListResponse as DBPresentationListResponse,
+    SlideWriteRequest,
+    SlideWriteResponse,
+)
 from backend.src.sandbox.sandbox_server.models.exceptions import (
     SandboxAuthenticationError,
     SandboxNotFoundException,
@@ -554,3 +566,201 @@ async def download_presentation_zip(
     except Exception as e:
         logger.error(f"Failed to download presentation: {e}")
         handle_sandbox_exception(e)
+
+
+# ============================================================================
+# Database-Backed Endpoints (thread_id based)
+# ============================================================================
+
+@router.get(
+    "/db/presentations",
+    response_model=ResponseSchemaModel[DBPresentationListResponse],
+    summary="List presentations from database",
+    description="List all presentations stored in database for a thread.",
+    dependencies=[DependsJwtAuth],
+)
+async def list_db_presentations(
+    db: CurrentSession,
+    thread_id: str = Query(..., description="Thread ID to query"),
+):
+    """
+    List all presentations from the database for a specific thread.
+    
+    This endpoint queries the slide_content table instead of the sandbox.
+    More reliable and faster than sandbox-based listing.
+    """
+    try:
+        result = await SlideService.get_thread_presentations(
+            db_session=db,
+            thread_id=thread_id,
+        )
+        return ResponseModel(data=result)
+    except Exception as e:
+        logger.error(f"Failed to list presentations from DB: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        )
+
+
+@router.get(
+    "/db/slide",
+    summary="Get slide content from database",
+    description="Get HTML content of a specific slide from database.",
+    dependencies=[DependsJwtAuth],
+)
+async def get_db_slide(
+    db: CurrentSession,
+    thread_id: str = Query(..., description="Thread ID"),
+    presentation_name: str = Query(..., description="Presentation name"),
+    slide_number: int = Query(..., ge=1, description="Slide number (1-indexed)"),
+):
+    """
+    Get slide content from the database.
+    
+    Returns the HTML content stored in slide_content table.
+    """
+    try:
+        slide = await SlideService.get_slide_content(
+            db_session=db,
+            thread_id=thread_id,
+            presentation_name=presentation_name,
+            slide_number=slide_number,
+        )
+        
+        if not slide:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Slide {slide_number} not found in presentation '{presentation_name}'"
+            )
+        
+        return ResponseModel(
+            data={
+                "success": True,
+                "slide_number": slide.slide_number,
+                "presentation_name": slide.presentation_name,
+                "content": slide.slide_content,
+                "title": slide.slide_title,
+                "message": "Slide content retrieved successfully",
+            }
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to get slide from DB: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        )
+
+
+@router.post(
+    "/db/slide",
+    response_model=ResponseSchemaModel[SlideWriteResponse],
+    summary="Write slide to database",
+    description="Manually save a slide to the database (for testing).",
+    dependencies=[DependsJwtAuth],
+)
+async def write_db_slide(
+    db: CurrentSession,
+    request: SlideWriteRequest,
+    thread_id: str = Query(..., description="Thread ID"),
+):
+    """
+    Manually write a slide to the database.
+    
+    This is primarily for testing. In production, slides are saved
+    via the SlideEventSubscriber when the agent uses slide tools.
+    """
+    try:
+        result = await SlideService.execute_slide_write(
+            db_session=db,
+            thread_id=thread_id,
+            write_request=request,
+        )
+        return ResponseModel(data=result)
+    except Exception as e:
+        logger.error(f"Failed to write slide to DB: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        )
+
+
+@router.get(
+    "/db/download",
+    summary="Download PDF from database",
+    description="Export slides from database to PDF.",
+    response_class=Response,
+    dependencies=[DependsJwtAuth],
+)
+async def download_db_slides_pdf(
+    db: CurrentSession,
+    thread_id: str = Query(..., description="Thread ID"),
+    presentation_name: Optional[str] = Query(None, description="Specific presentation (optional)"),
+):
+    """
+    Export slides from database to PDF.
+    
+    Uses Playwright to render HTML slides and merge into PDF.
+    """
+    try:
+        # Import PDF service
+        try:
+            from backend.src.services.slides.pdf_service import convert_slides_to_pdf
+        except ImportError:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="PDF service not yet implemented"
+            )
+        
+        # Get slides from database
+        if presentation_name:
+            slides = await SlideService.get_all_slides_for_presentation(
+                db_session=db,
+                thread_id=thread_id,
+                presentation_name=presentation_name,
+            )
+        else:
+            # Get all slides from all presentations
+            presentations = await SlideService.get_thread_presentations(
+                db_session=db,
+                thread_id=thread_id,
+            )
+            slides = []
+            for pres in presentations.presentations:
+                slides.extend(pres.slides)
+        
+        if not slides:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="No slides found"
+            )
+        
+        # Convert to PDF
+        pdf_bytes = await convert_slides_to_pdf(slides)
+        
+        # Generate filename
+        filename = f"slides_{thread_id}"
+        if presentation_name:
+            filename = f"{presentation_name}_{thread_id}"
+        filename = re.sub(r'[^\w\-_]', '_', filename)
+        
+        return Response(
+            content=pdf_bytes,
+            media_type="application/pdf",
+            headers={
+                "Content-Disposition": f"attachment; filename={filename}.pdf",
+                "Content-Length": str(len(pdf_bytes)),
+            },
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to export slides as PDF from DB: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        )
+

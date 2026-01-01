@@ -617,28 +617,58 @@ async def _setup_and_execute_agent_step(
                 for tool_name in server_config["enabled_tools"]:
                     enabled_tools[tool_name] = server_name
 
+    # Add dynamic sandbox MCP server if URL is provided (from /agent/stream endpoint)
+    # This enables tools like SlideWrite/SlideEdit to be available without static config
+    if configurable.mcp_url:
+        logger.info(f"[DEBUG_SLIDES] Adding dynamic sandbox MCP server at {configurable.mcp_url}")
+        mcp_servers["sandbox"] = {
+            "transport": "http",  # Tool Server uses HTTP transport
+            "url": f"{configurable.mcp_url}/mcp",  # Endpoint is /mcp, not /sse
+        }
+    else:
+        logger.info("[DEBUG_SLIDES] No mcp_url found in configurable")
+
     # Build tools list starting with defaults
     loaded_tools = default_tools[:]
     
     # Load MCP tools if any MCP servers are configured
     if mcp_servers:
         try:
-            logger.info(f"Loading MCP tools from {len(mcp_servers)} server(s): {list(mcp_servers.keys())}")
+            logger.info(f"[DEBUG_SLIDES] Loading MCP tools from {len(mcp_servers)} server(s): {list(mcp_servers.keys())}")
             client = MultiServerMCPClient(mcp_servers)
             all_tools = await client.get_tools()
             
+            logger.info(f"[DEBUG_SLIDES] raw client.get_tools() returned {len(all_tools)} tools")
+            for t in all_tools:
+                logger.info(f"[DEBUG_SLIDES] Found tool: {t.name}")
+            
             for tool in all_tools:
-                if tool.name in enabled_tools:
+                # Determine which server this tool came from (MultiServerMCPClient may not expose this directly easily,
+                # but we can try to guess or just accept it if it's from the dynamic sandbox)
+                
+                # Logic:
+                # 1. If tool is in enabled_tools (from static config), accept it
+                # 2. If we have a dynamic sandbox, ACCCEPT ALL tools (assumed to be from sandbox)
+                #    This is safe because sandbox is isolated per session.
+                
+                is_static_allowed = tool.name in enabled_tools
+                is_dynamic_sandbox = bool(configurable.mcp_url)
+                
+                logger.info(f"[DEBUG_SLIDES] Checking tool {tool.name}: static={is_static_allowed}, dynamic={is_dynamic_sandbox}")
+                
+                if is_static_allowed or is_dynamic_sandbox:
+                    source = enabled_tools.get(tool.name, "sandbox" if is_dynamic_sandbox else "unknown")
+                    
                     # Add server attribution to tool description
                     tool.description = (
-                        f"Powered by '{enabled_tools[tool.name]}'.\n{tool.description}"
+                        f"Powered by '{source}'.\n{tool.description}"
                     )
                     loaded_tools.append(tool)
-                    logger.debug(f"Loaded MCP tool: {tool.name} from {enabled_tools[tool.name]}")
+                    logger.debug(f"Loaded MCP tool: {tool.name} from {source}")
             
             logger.info(f"Successfully loaded {len(loaded_tools) - len(default_tools)} MCP tools")
         except Exception as e:
-            logger.error(f"Failed to load MCP tools: {e}")
+            logger.error(f"[DEBUG_SLIDES] Failed to load MCP tools: {e}", exc_info=True)
             # Continue with default tools only
 
     # Create context compression hook
@@ -652,8 +682,8 @@ async def _setup_and_execute_agent_step(
         agent_type,
         loaded_tools,
         agent_type,  # Uses prompt template matching agent type
-        pre_model_hook,
-        interrupt_before_tools=configurable.interrupt_before_tools,
+        # pre_model_hook,
+        # interrupt_before_tools=configurable.interrupt_before_tools,
     )
     
     return await _execute_agent_step(state, agent, agent_type, config)
@@ -731,11 +761,12 @@ async def base_node(
     logger.info(f"[base_node] HITL config: always_require_feedback={configurable.always_require_feedback}, "
                 f"enable_feedback_tool={configurable.enable_feedback_tool}")
     
-    # Use 'researcher' as the agent type for robust prompting and MCP tool configuration
+    # Use 'general' as the agent type for ALL tools including slides, files, etc.
+    # The 'general' prompt emphasizes actually calling tools rather than just describing
     return await _setup_and_execute_agent_step(
         state,
         config,
-        "researcher",  # Use researcher type for MCP config compatibility
+        "general",  # General-purpose agent with full tool usage
         tools,
     )
 

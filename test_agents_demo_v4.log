@@ -1,0 +1,58 @@
+2026-01-01 06:40:41,577 - backend.tests.test_agents.agent_factory - INFO - Creating agent 'MathAgent' (type=assistant) with 2 tools and prompt_template 'generic'
+2026-01-01 06:40:41,577 - backend.src.llms.llm - INFO - Initializing LLM provider: OpenAI
+2026-01-01 06:40:43,299 - backend.src.llms.llm - INFO - Creating OpenAI LLM: model=gpt-5.2
+2026-01-01 06:40:45,993 - backend.src.llms.llm - INFO - LLM provider 'OpenAI' initialized successfully
+2026-01-01 06:40:45,993 - backend.tests.test_agents.agent_factory - INFO - interrupt_on specified but no checkpointer provided. Using MemorySaver.
+2026-01-01 06:40:45,994 - backend.tests.test_agents.agent_factory - INFO - Adding interrupt_on for tools: ['calculator_multiply']
+2026-01-01 06:40:46,379 - backend.tests.test_agents.agent_factory - INFO - Agent 'MathAgent' created successfully using deepagents
+2026-01-01 06:40:46,576 - backend.tests.test_agents.agent_factory - INFO - Creating agent 'FileAgent' (type=assistant) with 1 tools and prompt_template 'generic'
+2026-01-01 06:40:46,576 - backend.tests.test_agents.agent_factory - INFO - interrupt_on specified but no checkpointer provided. Using MemorySaver.
+2026-01-01 06:40:46,576 - backend.tests.test_agents.agent_factory - INFO - Adding interrupt_on for tools: ['dangerous_delete']
+2026-01-01 06:40:46,968 - backend.tests.test_agents.agent_factory - INFO - Agent 'FileAgent' created successfully using deepagents
+2026-01-01 06:40:46,973 - backend.tests.test_agents.agent_factory - INFO - Creating agent 'FreeAgent' (type=assistant) with 2 tools and prompt_template 'generic'
+2026-01-01 06:40:47,333 - backend.tests.test_agents.agent_factory - INFO - Agent 'FreeAgent' created successfully using deepagents
+============================================================
+ HumanInTheLoopMiddleware Tool Interrupt Demo
+============================================================
+
+============================================================
+ SCENARIO 1: Interrupt Specific Tool Only
+============================================================
+Config: interrupt_on={'calculator_multiply': {...}}
+Expected: calculator_add runs freely, calculator_multiply triggers interrupt
+
+User: Calculate (5 + 3) * 10
+  [PatchToolCallsMiddleware.before_agent] produced output
+
+!!! Exception: TypeError: 'Overwrite' object is not subscriptable
+
+[Timer] Scenario 1 finished in 4.9989s
+
+============================================================
+ SCENARIO 2: InterruptOnConfig with allowed_decisions
+============================================================
+Config: interrupt_on={'dangerous_delete': {...}}
+
+User: Delete the file 'important_data.txt'
+  [PatchToolCallsMiddleware.before_agent] produced output
+
+!!! Exception: TypeError: 'Overwrite' object is not subscriptable
+
+[Timer] Scenario 2 finished in 0.3975s
+
+============================================================
+ SCENARIO 3: No Interrupts (Baseline)
+============================================================
+Config: interrupt_on=None
+Expected: All tools run without pause
+
+User: Calculate 7 * 8
+  [PatchToolCallsMiddleware.before_agent] produced output
+
+!!! Exception: TypeError: 'Overwrite' object is not subscriptable
+
+[Timer] Scenario 3 finished in 0.3680s
+
+============================================================
+ DEMO COMPLETED SUCCESSFULLY
+============================================================
