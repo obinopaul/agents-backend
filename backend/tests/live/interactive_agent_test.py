@@ -222,9 +222,9 @@ class InteractiveAgentTester:
             if attempt == 2:
                 print("   ⚠️ MCP not ready yet. Attempting manual startup via E2B SDK...")
                 try:
-                    from e2b import Sandbox
-                    # Connect to the existing sandbox
-                    sbx = await Sandbox.connect(self.sandbox_id)
+                    from e2b import AsyncSandbox
+                    # Connect to the existing sandbox using async SDK
+                    sbx = await AsyncSandbox.connect(self.sandbox_id)
                     await sbx.commands.run("bash /app/start-services.sh &", timeout=5, background=True)
                     print("   ✅ Manual startup command sent")
                 except Exception as e:

@@ -15,6 +15,8 @@ from langchain.agents.middleware import (
     ModelFallbackMiddleware,
 )
 from langchain_core.messages import SystemMessage
+from langgraph.cache.base import BaseCache
+from langgraph.store.base import BaseStore
 
 from backend.core.conf import settings
 from backend.src.llms.llm import (
@@ -23,6 +25,26 @@ from backend.src.llms.llm import (
     get_fallback_model_identifiers,
 )
 from backend.src.prompts.template import get_prompt_template
+from backend.src.agents.middleware.persistent_task_middleware import (
+    PersistentTaskMiddleware,
+)
+from backend.src.agents.middleware.view_image_middleware import (
+    ViewImageMiddleware,
+)
+from backend.src.agents.middleware.background_middleware import (
+    BackgroundSubagentMiddleware,
+)
+from backend.src.agents.subagents import create_default_subagents
+
+# Optional: SubAgent support
+try:
+    from deepagents.middleware.subagents import SubAgentMiddleware
+    from deepagents.middleware.patch_tool_calls import PatchToolCallsMiddleware
+    SUBAGENT_AVAILABLE = True
+except ImportError:
+    SubAgentMiddleware = None
+    PatchToolCallsMiddleware = None
+    SUBAGENT_AVAILABLE = False
 
 logger = logging.getLogger(__name__)
 
@@ -51,6 +73,10 @@ def build_default_middleware(
     enable_model_call_limit: bool = None,
     enable_tool_call_limit: bool = None,
     enable_model_fallback: bool = None,
+    enable_persistent_tasks: bool = True,  # Enable persistent task middleware
+    enable_view_image: bool = True,  # Enable view image middleware
+    enable_background_tasks: bool = False,  # Enable background subagent execution (opt-in)
+    background_task_timeout: float = 60.0,  # Timeout for background tasks in seconds
     summarization_trigger_tokens: int = None,
     summarization_keep_messages: int = None,
     model_max_retries: int = None,
@@ -68,6 +94,8 @@ def build_default_middleware(
     """Build a list of default middleware for production agents.
     
     This function creates essential middleware for robust agent operation:
+    - PersistentTaskMiddleware: Task management with sections and persistence
+    - ViewImageMiddleware: Enable vision models to see images from URLs/sandbox
     - ModelFallbackMiddleware: Try alternative models when primary fails
     - SummarizationMiddleware: Compress long conversations to fit context windows
     - ModelRetryMiddleware: Retry failed model calls with exponential backoff
@@ -85,6 +113,10 @@ def build_default_middleware(
         enable_model_call_limit: Enable model call limits
         enable_tool_call_limit: Enable tool call limits
         enable_model_fallback: Enable fallback to alternative models
+        enable_persistent_tasks: Enable persistent task middleware
+        enable_view_image: Enable view image middleware for vision models
+        enable_background_tasks: Enable background/parallel subagent execution (opt-in)
+        background_task_timeout: Timeout for background tasks in seconds (default: 60)
         summarization_trigger_tokens: Token count to trigger summarization
         summarization_keep_messages: Number of recent messages to preserve
         model_max_retries: Max retries for model calls
@@ -149,6 +181,49 @@ def build_default_middleware(
         fallback_models = get_fallback_model_identifiers()
     
     middleware = []
+    
+    # PersistentTaskMiddleware - persistent task management with sections
+    # Uses LangGraph Store for persistence across sessions
+    if enable_persistent_tasks:
+        middleware.append(PersistentTaskMiddleware())
+        logger.debug("Added PersistentTaskMiddleware for persistent task management")
+    
+    # ViewImageMiddleware - enables vision models to see images
+    # Intercepts view_image tool calls and injects images into message history
+    if enable_view_image:
+        middleware.append(ViewImageMiddleware(validate_urls=True, strict_validation=True))
+        logger.debug("Added ViewImageMiddleware for vision model support")
+    
+    # Background & Subagent Setup (opt-in)
+    # The BackgroundSubagentMiddleware relies on SubAgentMiddleware to execute tasks
+    if enable_background_tasks:
+        bg_registry = None
+        bg_middleware_instance = BackgroundSubagentMiddleware(
+            timeout=background_task_timeout,
+            enabled=True,
+        )
+        bg_registry = bg_middleware_instance.registry
+        
+        # Add Background Middleware FIRST (to intercept 'background_task' and rewrite)
+        middleware.append(bg_middleware_instance)
+        logger.debug(f"Added BackgroundSubagentMiddleware (timeout={background_task_timeout}s)")
+        
+        # Add SubAgentMiddleware (Required for background task execution)
+        if SUBAGENT_AVAILABLE and SubAgentMiddleware is not None:
+             # Create default subagents injected with counter middleware
+             # We use get_llm() as the default model
+             model = get_llm()
+             subs = create_default_subagents(registry=bg_registry, model=model)
+             
+             middleware.append(SubAgentMiddleware(
+                 default_model=model,
+                 default_tools=[], # agents.py doesn't have tool access
+                 subagents=subs,
+                 general_purpose_agent=True
+             ))
+             logger.debug("Added SubAgentMiddleware (required for background tasks)")
+        else:
+             logger.warning("Background tasks enabled but SubAgentMiddleware not available - execution may fail")
     
     # Model fallback middleware - tries alternative models on failure
     # Should be first to catch failures and route to fallback models
@@ -271,6 +346,13 @@ def create_agent(
     middleware: Optional[Sequence[Any]] = None,
     use_default_middleware: bool = True,
     middleware_config: Optional[dict] = None,
+    *,
+    # LangGraph features (for parity with deep_agents.py)
+    store: BaseStore = None,
+    cache: BaseCache = None,
+    context_schema: type[Any] = None,
+    response_format: Any = None,
+    debug: bool = False,
 ):
     """Factory function to create agents with consistent configuration.
 
@@ -289,6 +371,11 @@ def create_agent(
         middleware_config: Optional dict to configure default middleware.
                           Keys: enable_summarization, enable_model_retry, enable_tool_retry,
                                 enable_model_call_limit, enable_tool_call_limit, etc.
+        store: Optional BaseStore for persistent storage across runs.
+        cache: Optional BaseCache for response caching.
+        context_schema: Optional schema for typed agent context.
+        response_format: Optional structured output response format.
+        debug: Enable debug mode for verbose logging.
 
     Returns:
         A configured agent graph (CompiledStateGraph)
@@ -333,11 +420,15 @@ def create_agent(
     # See: https://docs.langchain.com/oss/python/langchain/agents
     agent = langchain_create_agent(
         model=llm,
-        tools=tools, # Use original tools
+        tools=tools,
         system_prompt=system_prompt,
         middleware=middleware_list if middleware_list else (),
         name=agent_name,
-        debug=False,  # Set to True for verbose logging
+        debug=debug,
+        store=store,
+        cache=cache,
+        context_schema=context_schema,
+        response_format=response_format,
     )
     
     logger.info(f"Agent '{agent_name}' created successfully with LangChain v1 create_agent")

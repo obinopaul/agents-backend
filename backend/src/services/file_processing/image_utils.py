@@ -21,9 +21,10 @@ JPEG_QUALITY = 85
 PNG_COMPRESS_LEVEL = 6
 
 
+
 def is_image_mime(mime_type: str) -> bool:
     """
-    Check if MIME type is an image (excluding SVG).
+    Check if MIME type is an image.
     
     Args:
         mime_type: MIME type string
@@ -33,7 +34,10 @@ def is_image_mime(mime_type: str) -> bool:
     """
     if not mime_type:
         return False
-    return mime_type.startswith("image/") and mime_type != "image/svg+xml"
+    # SVG is now supported for conversion
+    if mime_type == "image/svg+xml":
+        return True
+    return mime_type.startswith("image/")
 
 
 def get_image_dimensions(image_bytes: bytes) -> Optional[Tuple[int, int]]:
@@ -49,8 +53,16 @@ def get_image_dimensions(image_bytes: bytes) -> Optional[Tuple[int, int]]:
     try:
         from PIL import Image
         
-        img = Image.open(io.BytesIO(image_bytes))
-        return img.size
+        # Determine format if possible
+        try:
+            img = Image.open(io.BytesIO(image_bytes))
+            return img.size
+        except Exception:
+            # Maybe it's an SVG?
+            if b"<svg" in image_bytes[:500] or b"<!DOCTYPE svg" in image_bytes[:500]:
+                # Can't easily get dimensions of SVG without parsing
+                pass
+            return None
     except ImportError:
         logger.warning("Pillow not installed, cannot get image dimensions")
         return None
@@ -70,9 +82,10 @@ def compress_image(
     Compress and resize an image.
     
     This function:
+    - Converts SVG to PNG
     - Resizes images larger than max dimensions
     - Compresses based on output format
-    - Converts RGBA/transparent images to RGB with white background
+    - Converts RGBA/transparent images to RGB with white background (for JPEG)
     
     Args:
         image_bytes: Raw image bytes
@@ -87,6 +100,37 @@ def compress_image(
     try:
         from PIL import Image
         
+        # Special handling for SVG
+        if mime_type == "image/svg+xml" or (b"<svg" in image_bytes[:500]):
+            try:
+                from svglib.svglib import svg2rlg
+                from reportlab.graphics import renderPM
+                import tempfile
+                import os
+                
+                logger.info("Converting SVG to PNG...")
+                with tempfile.NamedTemporaryFile(suffix='.svg', delete=False) as temp_svg:
+                    temp_svg.write(image_bytes)
+                    temp_svg_path = temp_svg.name
+                
+                try:
+                    drawing = svg2rlg(temp_svg_path)
+                    png_buffer = io.BytesIO()
+                    renderPM.drawToFile(drawing, png_buffer, fmt='PNG')
+                    image_bytes = png_buffer.getvalue()
+                    mime_type = "image/png"  # Update mime type
+                    logger.info(f"SVG converted to PNG ({len(image_bytes)} bytes)")
+                finally:
+                    if os.path.exists(temp_svg_path):
+                        os.unlink(temp_svg_path)
+            except ImportError:
+                logger.warning("svglib or reportlab not installed, skipping SVG conversion")
+                return image_bytes, mime_type
+            except Exception as e:
+                logger.warning(f"SVG conversion failed: {e}")
+                # Fallback to returning original (viewer might support SVG)
+                return image_bytes, mime_type
+
         img = Image.open(io.BytesIO(image_bytes))
         original_size = img.size
         
@@ -100,10 +144,16 @@ def compress_image(
                 background.paste(img, mask=img.split()[-1])
             else:
                 background.paste(img)
+            # Only flatten to background if saving as JPEG (no transparency support)
+            # For PNG/WebP we might want to keep transparency, but function sets all to RGB for JPEG target usually
+            # Let's keep existing logic: compress_image usually optimizes for size which implies JPEG often.
+            # But let's be smart: if output is PNG/WEBP, keep transparency if possible?
+            # The original code flattened everything. Let's start with flatten for consistency unless we change logic.
             img = background
         
         # Resize if larger than max dimensions
         width, height = img.size
+        # ... (Rest of resizing logic is standard)
         if width > max_width or height > max_height:
             ratio = min(max_width / width, max_height / height)
             new_width = int(width * ratio)

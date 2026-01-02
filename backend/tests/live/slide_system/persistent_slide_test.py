@@ -1,13 +1,21 @@
 #!/usr/bin/env python3
 """
-Interactive Slide System Test - Testing Slide Creation via Agent Endpoint
+Persistent Slide System Test - Creates Sandbox and Keeps It Alive
 
-This script tests the slide system end-to-end by:
-1. Using the /agent/agent/stream endpoint (which handles sandbox + MCP internally)
-2. Asking the agent to create presentation slides
-3. Verifying slides are accessible via API endpoints
+This script is for DEBUGGING database slide storage issues.
+It creates slides via agent, then KEEPS THE SANDBOX ALIVE for manual testing.
 
-Based on test_agent_endpoints.py pattern which uses the production agent workflow.
+Key differences from interactive_slide_test.py:
+1. Does NOT delete sandbox at end
+2. Outputs all credentials for manual testing (JWT, sandbox_id, thread_id)
+3. Waits for user to press Enter before exiting
+4. Keeps sandbox alive for extended testing
+
+Use this to:
+- Create slides in sandbox
+- Manually test database endpoints
+- Debug SlideEventSubscriber flow
+- Query PostgreSQL directly
 
 Prerequisites:
     - FastAPI backend running at localhost:8000
@@ -16,8 +24,7 @@ Prerequisites:
     - Database with slide_content table (alembic upgrade head)
 
 Usage:
-    python backend/tests/live/slide_system/interactive_slide_test.py
-    python backend/tests/live/slide_system/interactive_slide_test.py --auto
+    python backend/tests/live/slide_system/persistent_slide_test.py
 """
 
 import asyncio
@@ -50,7 +57,7 @@ TEST_PASSWORD = "TestPass123!"
 
 
 # =============================================================================
-# SSE Event Parsing (from test_agent_endpoints.py)
+# SSE Event Parsing
 # =============================================================================
 
 @dataclass
@@ -107,43 +114,46 @@ def parse_sse_chunk(chunk: str) -> List[SSEEvent]:
 
 
 # =============================================================================
-# Slide System Tester
+# Persistent Slide Tester
 # =============================================================================
 
-class InteractiveSlideTester:
+class PersistentSlideTester:
     """
-    Tests the slide system via the /agent/agent/stream endpoint.
+    Creates slides and keeps sandbox ALIVE for debugging.
     
-    This uses the production agent workflow which handles sandbox creation
-    and MCP setup internally via SessionSandboxManager.
+    Unlike InteractiveSlideTester, this:
+    - Does NOT delete the sandbox
+    - Outputs all credentials for manual testing
+    - Waits indefinitely for user to finish testing
     """
     
-    def __init__(self, args):
-        self.args = args
+    def __init__(self):
         self.token = None
         self.client = None
         self.sandbox_id = None
-        self.thread_id = f"slide-test-{uuid.uuid4().hex[:8]}"
+        self.mcp_url = None
+        self.thread_id = f"persistent-test-{uuid.uuid4().hex[:8]}"
         self.events: List[SSEEvent] = []
+        self.tool_events: List[Dict] = []  # Track tool calls for debugging
 
     async def setup(self):
         """Initialize HTTP client and authenticate."""
         print("\n" + "=" * 70)
-        print("🎨 Slide System Interactive Test")
+        print("🔧 PERSISTENT Slide System Test (Debug Mode)")
         print(f"   Thread ID: {self.thread_id}")
         print(f"   {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         print("=" * 70)
         
-        # Initialize HTTP client with long timeout for agent streaming
+        # Initialize HTTP client with long timeout
         self.client = httpx.AsyncClient(
             timeout=httpx.Timeout(
                 connect=10.0,
-                read=300.0,  # 5 min for slide creation
+                read=300.0,
                 write=10.0,
                 pool=10.0
             ),
             headers={
-                'User-Agent': 'SlideTester/1.0',
+                'User-Agent': 'PersistentSlideTester/1.0',
                 'Content-Type': 'application/json'
             }
         )
@@ -190,30 +200,54 @@ class InteractiveSlideTester:
                 print(f"   ✅ Processing (module={module})")
             elif data_type == "sandbox_ready":
                 self.sandbox_id = event.data.get("sandbox_id", "")
-                print(f"   ✅ Sandbox ready: {self.sandbox_id[:20]}...")
+                print(f"   ✅ Sandbox ready: {self.sandbox_id}")
             elif data_type == "mcp_check":
                 print("   ⏳ Checking MCP server...")
             elif data_type == "mcp_ready":
-                print("   ✅ MCP server ready")
+                self.mcp_url = event.data.get("mcp_url", "")
+                print(f"   ✅ MCP server ready: {self.mcp_url}")
             elif data_type == "mcp_waiting":
                 elapsed = event.data.get("elapsed_seconds", "?")
                 print(f"   ⏳ Waiting for MCP... ({elapsed}s)")
             elif data_type == "agent_start":
                 print("   ✅ Agent workflow started")
+            elif data_type == "tool_registration":
+                print("   📋 Tools registered")
+            elif data_type == "tool_probe":
+                tools = event.data.get("tools", [])
+                print(f"   📋 Found {len(tools)} tools")
             elif data_type == "complete":
                 print("   ✅ Workflow complete")
             else:
                 print(f"   📋 Status: {data_type}")
         
         elif event_type == "message":
-            content = event.data.get("content", "")[:100]
+            content = event.data.get("content", "")[:80]
             if content:
                 print(f"   💬 {content}...")
         
-        elif event_type == "tool":
-            tool_name = event.data.get("name", "?")
-            tool_type = event.data.get("type", "?")
-            print(f"   🔧 Tool {tool_type}: {tool_name}")
+        elif event_type == "tool_call_start":
+            tool_name = event.data.get("toolName", "?")
+            tool_id = event.data.get("toolCallId", "?")[:8]
+            print(f"   🔧 Tool START: {tool_name} (id={tool_id}...)")
+            self.tool_events.append({
+                "type": "start",
+                "name": tool_name,
+                "id": event.data.get("toolCallId", "?")
+            })
+        
+        elif event_type == "tool_call_end":
+            tool_id = event.data.get("toolCallId", "?")[:8]
+            print(f"   🔧 Tool END: (id={tool_id}...)")
+            self.tool_events.append({
+                "type": "end",
+                "id": event.data.get("toolCallId", "?")
+            })
+        
+        elif event_type == "tool_result":
+            tool_name = event.data.get("toolName", "?")
+            content = str(event.data.get("content", ""))[:100]
+            print(f"   🔧 Tool RESULT ({tool_name}): {content}...")
         
         elif event_type == "warning":
             message = event.data.get("message", "?")
@@ -223,26 +257,18 @@ class InteractiveSlideTester:
             message = event.data.get("message", "?")
             print(f"   ❌ Error: {message}")
 
-    async def run_slide_creation(self, task: str, step_label: str = "Step 2") -> bool:
-        """
-        Run the agent to create slides using /agent/agent/stream endpoint.
-        
-        Args:
-            task: The slide creation task description
-            step_label: Log label for this step
-            
-        Returns:
-            True if successful, False otherwise
-        """
-        print(f"\n📋 {step_label}: Running agent task...")
-        print(f"   Task: {task}")
+    async def run_slide_creation(self, task: str) -> bool:
+        """Run the agent to create slides."""
+        print(f"\n📋 Step 2: Creating slides via agent...")
+        print(f"   Task: {task[:100]}...")
         
         start_time = datetime.now()
         self.events = []
+        self.tool_events = []
         
         try:
             request_body = {
-                "module": "general",  # Use general module with all tools
+                "module": "general",
                 "messages": [
                     {"role": "user", "content": task}
                 ],
@@ -280,8 +306,16 @@ class InteractiveSlideTester:
             
             duration = (datetime.now() - start_time).total_seconds()
             print(f"\n   ✅ Agent completed in {duration:.1f}s")
+            
+            # Summary of tool events
+            print(f"\n   📊 Tool Events Summary:")
+            print(f"      Total tool calls: {len([e for e in self.tool_events if e['type'] == 'start'])}")
+            for e in self.tool_events:
+                if e['type'] == 'start':
+                    print(f"      - {e['name']}")
+            
             return True
-
+            
         except Exception as e:
             import traceback
             print(f"   ❌ Error: {e}")
@@ -330,32 +364,90 @@ class InteractiveSlideTester:
                 data = response.json().get('data', {})
                 total = data.get('total', 0)
                 presentations = data.get('presentations', [])
-                print(f"   ✅ Found {total} presentation(s) in database")
+                print(f"   {'✅' if total > 0 else '❌'} Found {total} presentation(s) in database")
                 for pres in presentations:
                     print(f"      • {pres.get('name')} ({pres.get('slide_count')} slides)")
                 return total > 0
             else:
                 print(f"   ⚠️ Database API returned: {response.status_code}")
-                # Note: This endpoint requires SlideEventSubscriber integration
-                print("   ℹ️  Slides may not sync to DB without SlideEventSubscriber integration")
                 return False
                 
         except Exception as e:
             print(f"   ⚠️ Error: {e}")
             return False
 
-    async def run_auto_test(self):
-        """Run automated slide creation and verification test."""
-        print("\n" + "=" * 70)
-        print("🧪 Running Automated Slide System Test")
-        print("=" * 70)
-
-        # Step 1.5: Verify tools
-        print("\n📋 Step 1.5: Verifying available tools...")
-        tool_check_task = "List ONLY the tools you have access to. Do not explain, just list them."
-        await self.run_slide_creation(tool_check_task, "Step 1.5")
+    async def test_manual_db_write(self) -> bool:
+        """Test writing a slide directly to database (bypasses agent)."""
+        print("\n📋 Step 5: Testing direct database write...")
         
-        # Step 2: Create simple presentation
+        try:
+            # Write a test slide directly via POST /db/slide endpoint
+            test_slide = {
+                "presentation_name": "DirectWriteTest",
+                "slide_number": 1,
+                "title": "Test Slide",
+                "content": "<html><body><h1>Direct Write Test</h1><p>This slide was written directly to DB.</p></body></html>"
+            }
+            
+            response = await self.client.post(
+                f'{BASE_URL}/agent/sandboxes/db/slide',
+                params={'thread_id': self.thread_id},
+                json=test_slide
+            )
+            
+            if response.status_code == 200:
+                data = response.json().get('data', {})
+                if data.get('success'):
+                    print(f"   ✅ Direct write successful! slide_id={data.get('slide_id')}")
+                    return True
+                else:
+                    print(f"   ❌ Write failed: {data.get('error')}")
+                    return False
+            else:
+                print(f"   ❌ API returned: {response.status_code}")
+                resp_text = response.text[:200]
+                print(f"   Response: {resp_text}")
+                return False
+                
+        except Exception as e:
+            import traceback
+            print(f"   ❌ Error: {e}")
+            traceback.print_exc()
+            return False
+
+    def print_credentials(self):
+        """Print all credentials for manual testing."""
+        print("\n" + "=" * 70)
+        print("🔑 CREDENTIALS FOR MANUAL TESTING")
+        print("=" * 70)
+        print(f"   Thread ID:    {self.thread_id}")
+        print(f"   Sandbox ID:   {self.sandbox_id or 'N/A'}")
+        print(f"   MCP URL:      {self.mcp_url or 'N/A'}")
+        print(f"\n   JWT Token (first 50 chars):")
+        print(f"   {self.token[:50] if self.token else 'N/A'}...")
+        print(f"\n   Full JWT Token (for curl/httpie):")
+        print(f"   Authorization: Bearer {self.token}")
+        print("=" * 70)
+        
+        print("\n📋 MANUAL TEST COMMANDS:")
+        print("-" * 70)
+        print(f"# List presentations from database:")
+        print(f"curl -H 'Authorization: Bearer {self.token[:30]}...' \\")
+        print(f"     '{BASE_URL}/agent/sandboxes/db/presentations?thread_id={self.thread_id}'")
+        print()
+        print(f"# List presentations from sandbox:")
+        if self.sandbox_id:
+            print(f"curl -H 'Authorization: Bearer {self.token[:30]}...' \\")
+            print(f"     '{BASE_URL}/agent/sandboxes/{self.sandbox_id}/presentations'")
+        print()
+        print("# Check PostgreSQL directly:")
+        print("docker exec -it agents_backend_postgres psql -U postgres -d agents_backend \\")
+        print(f"    -c \"SELECT * FROM slide_content WHERE thread_id='{self.thread_id}';\"")
+        print("-" * 70)
+
+    async def run(self):
+        """Main test flow."""
+        # Step 2: Create slides
         task = """
 You are a slide creation assistant. 
 CRITICAL: You MUST use the 'SlideWrite' tool to create the slides. 
@@ -372,111 +464,64 @@ Content: A closing slide with "Thank you".
 Use proper HTML formatting. Each slide should be valid HTML with basic styling.
 """
         
-        # Run agent to create slides
-        success = await self.run_slide_creation(task, "Step 2")
+        success = await self.run_slide_creation(task)
         
-        if success:
-            # Verify slides
-            sandbox_ok = await self.verify_slides_sandbox()
-            db_ok = await self.verify_slides_database()
-            
-            print("\n" + "=" * 70)
-            print("📊 Test Results")
-            print("=" * 70)
-            print(f"   Agent execution: {'✅ Pass' if success else '❌ Fail'}")
-            print(f"   Sandbox slides:  {'✅ Pass' if sandbox_ok else '⚠️ Failed/Empty'}")
-            print(f"   Database slides: {'✅ Pass' if db_ok else '⚠️ Requires SlideEventSubscriber'}")
-            print("=" * 70)
-        else:
-            print("\n❌ Agent failed to create slides")
-
-    async def run_interactive(self):
-        """Run interactive session."""
-        print("\n💬 Interactive Mode - Enter slide creation commands")
-        print("-" * 70)
-        print("Example: 'Create a 3-slide presentation about Python'")
-        print("Type 'verify' to check slides, 'exit' to quit")
-        print("-" * 70)
+        # Step 3 & 4: Verify
+        sandbox_ok = await self.verify_slides_sandbox()
+        db_ok = await self.verify_slides_database()
         
-        while True:
-            try:
-                user_input = await asyncio.get_event_loop().run_in_executor(
-                    None, input, "\nYou: "
-                )
-                
-                cmd = user_input.strip().lower()
-                
-                if cmd in ["exit", "quit", "q"]:
-                    break
-                elif cmd == "verify":
-                    await self.verify_slides_sandbox()
-                    await self.verify_slides_database()
-                elif cmd:
-                    await self.run_slide_creation(user_input, "Interactive Step")
-                    
-            except KeyboardInterrupt:
-                print("\n\n⚠️ Interrupted")
-                break
-            except Exception as e:
-                print(f"\n❌ Error: {e}")
+        # Step 5: Test direct DB write
+        direct_write_ok = await self.test_manual_db_write()
+        
+        # After direct write, check DB again
+        if direct_write_ok:
+            print("\n📋 Step 6: Re-checking database after direct write...")
+            await self.verify_slides_database()
+        
+        # Print results
+        print("\n" + "=" * 70)
+        print("📊 Test Results")
+        print("=" * 70)
+        print(f"   Agent execution:     {'✅ Pass' if success else '❌ Fail'}")
+        print(f"   Sandbox slides:      {'✅ Pass' if sandbox_ok else '⚠️ Failed/Empty'}")
+        print(f"   Database slides:     {'✅ Pass' if db_ok else '❌ NOT SYNCED'}")
+        print(f"   Direct DB write:     {'✅ Pass' if direct_write_ok else '❌ Failed'}")
+        print("=" * 70)
+        
+        # Print credentials
+        self.print_credentials()
+        
+        # Wait for user
+        print("\n" + "=" * 70)
+        print("⏸️  SANDBOX IS STILL RUNNING - Use credentials above for manual testing")
+        print("   Press Enter when done to exit (sandbox will remain active)...")
+        print("=" * 70)
+        
+        try:
+            await asyncio.get_event_loop().run_in_executor(None, input)
+        except KeyboardInterrupt:
+            pass
 
     async def cleanup(self):
-        """Cleanup resources."""
+        """Cleanup - but DO NOT delete sandbox!"""
         print("\n📋 Cleanup...")
-        
-        # Delete sandbox if captured
-        if self.sandbox_id and self.client:
-            try:
-                response = await self.client.delete(
-                    f'{BASE_URL}/agent/sandboxes/sandboxes/{self.sandbox_id}'
-                )
-                if response.status_code == 200:
-                    print("   ✅ Sandbox deleted")
-                else:
-                    print(f"   ⚠️ Sandbox delete returned {response.status_code}")
-            except Exception as e:
-                print(f"   ⚠️ Sandbox cleanup error: {e}")
+        print("   ⚠️ NOTE: Sandbox is LEFT RUNNING for manual testing!")
+        print(f"   ⚠️ Sandbox ID: {self.sandbox_id}")
+        print("   ⚠️ You can delete it later via API or it will auto-expire")
         
         # Close HTTP client
         if self.client:
             await self.client.aclose()
         
-        print("👋 Done!")
-
-
-def parse_arguments():
-    parser = argparse.ArgumentParser(
-        description="Interactive Slide System Test - Create slides via agent and verify",
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog="""
-Examples:
-  # Automated test
-  python interactive_slide_test.py --auto
-  
-  # Interactive mode
-  python interactive_slide_test.py
-        """
-    )
-    parser.add_argument(
-        "--auto", 
-        action="store_true",
-        help="Run automated test instead of interactive mode"
-    )
-    return parser.parse_args()
+        print("👋 Done! (Sandbox still active)")
 
 
 async def main():
-    args = parse_arguments()
-    tester = InteractiveSlideTester(args)
+    tester = PersistentSlideTester()
     
     try:
         await tester.setup()
-        
-        if args.auto:
-            await tester.run_auto_test()
-        else:
-            await tester.run_interactive()
-            
+        await tester.run()
     finally:
         await tester.cleanup()
 

@@ -10,8 +10,8 @@ from typing import Any
 import structlog
 from langchain_core.messages import HumanMessage
 
-from backend.src.agents.middleware.background.middleware import BackgroundSubagentMiddleware
-from backend.src.agents.middleware.background.tools import extract_result_content
+from backend.src.agents.middleware.background_middleware.middleware import BackgroundSubagentMiddleware
+from backend.src.agents.middleware.background_middleware.tools import extract_result_content
 
 logger = structlog.get_logger(__name__)
 

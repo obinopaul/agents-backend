@@ -29,7 +29,7 @@ from langgraph.types import Command, interrupt
 
 from backend.src.agents import create_agent
 from backend.src.config.configuration import Configuration
-from backend.src.llms.llm import get_llm, get_llm_token_limit
+from backend.src.llms.llm import get_llm
 from backend.src.prompts.template import apply_prompt_template
 from backend.src.tools import (
     crawl_tool,
@@ -387,13 +387,6 @@ async def _execute_agent_step(
             )
         )
 
-    # Add citation reminder
-    messages.append(
-        HumanMessage(
-            content="IMPORTANT: DO NOT include inline citations in the text. Instead, track all sources and include a References section at the end using link reference format. Include an empty line between each citation for better readability. Use this format for each reference:\n- [Source Title](URL)\n\n- [Another Source](URL)",
-            name="system",
-        )
-    )
 
     agent_input = {"messages": messages}
 
@@ -428,27 +421,6 @@ async def _execute_agent_step(
         agent_input["messages"] = validated_messages
     except Exception as validation_error:
         logger.error(f"Error validating agent input messages: {validation_error}")
-    
-    # Apply context compression to prevent token overflow
-    llm_token_limit = get_llm_token_limit()
-    if llm_token_limit:
-        try:
-            token_count_before = sum(
-                len(str(msg.content).split()) for msg in agent_input.get("messages", []) if hasattr(msg, "content")
-            )
-            compressed_state = ContextManager(llm_token_limit, preserve_prefix_message_count=3).compress_messages(
-                {"messages": agent_input["messages"]}
-            )
-            agent_input["messages"] = compressed_state.get("messages", [])
-            token_count_after = sum(
-                len(str(msg.content).split()) for msg in agent_input.get("messages", []) if hasattr(msg, "content")
-            )
-            logger.info(
-                f"Context compression for {agent_name}: {len(compressed_state.get('messages', []))} messages, "
-                f"estimated tokens before: ~{token_count_before}, after: ~{token_count_after}"
-            )
-        except Exception as compression_error:
-            logger.warning(f"Context compression failed: {compression_error}")
     
     # Execute the agent
     try:

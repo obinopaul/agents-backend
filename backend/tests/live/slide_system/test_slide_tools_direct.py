@@ -48,6 +48,7 @@ class DirectSlideToolTester:
     def __init__(self):
         self.token = None
         self.sandbox_id = None
+        self.provider_sandbox_id = None  # E2B SDK needs this for direct connection
         self.mcp_url = None
         self.client = None
         self.mcp_client = None
@@ -133,8 +134,10 @@ class DirectSlideToolTester:
         if r.status_code == 200:
             data = r.json().get('data', {})
             self.sandbox_id = data.get('sandbox_id')
+            self.provider_sandbox_id = data.get('provider_sandbox_id')  # E2B SDK needs this
             self.mcp_url = data.get('mcp_url')
             print(f"   ✅ Sandbox: {self.sandbox_id}")
+            print(f"   ✅ E2B Provider ID: {self.provider_sandbox_id}")
             print(f"   ✅ MCP URL: {self.mcp_url}")
             return True
         print(f"   ❌ Sandbox creation failed: {r.status_code} - {r.text}")
@@ -156,7 +159,7 @@ class DirectSlideToolTester:
             return False
     
     async def _wait_for_mcp_server(self, max_wait_seconds=60) -> bool:
-        """Wait for MCP server - same as interactive_agent_test.py."""
+        """Wait for MCP server - includes manual startup fallback like interactive_agent_test.py."""
         start = datetime.now()
         attempt = 0
         
@@ -167,9 +170,19 @@ class DirectSlideToolTester:
                 print(f"   ✅ MCP server is ready (attempt {attempt})")
                 return True
             
-            # Skip manual startup - it was causing 404s and confusion
-            # The backend's create_sandbox should handle startup.
-            # If it fails consistently, it's a backend config issue, not something client should fix.
+            # If it's been a few attempts and still not ready, try manual startup via E2B SDK
+            # This is a critical fallback from interactive_agent_test.py that makes it work
+            if attempt == 2:
+                print("   ⚠️ MCP not ready yet. Attempting manual startup via E2B SDK...")
+                try:
+                    from e2b import AsyncSandbox
+                    # Connect using provider_sandbox_id (E2B's actual ID, not our internal ID)
+                    sbx = await AsyncSandbox.connect(self.provider_sandbox_id)
+                    await sbx.commands.run("bash /app/start-services.sh &", timeout=5, background=True)
+                    print("   ✅ Manual startup command sent")
+                except Exception as e:
+                    print(f"   ⚠️ Manual startup failed (ignoring): {e}")
+            
             if attempt == 10:
                 print("   ⚠️ MCP still not ready after 10 attempts...")
             
@@ -210,14 +223,13 @@ class DirectSlideToolTester:
             return False
         
         # Step 2: Set tool server URL (triggers tool registration)
-        # CRITICAL: Use internal localhost URL, NOT the external mcp_url!
-        # The MCP server inside the sandbox communicates with tools on localhost:6060
+        # Use the external MCP URL - E2B forwards this to internal port
+        # Must match the pattern from interactive_agent_test.py which works
         print("   ⏳ Registering tools (this may take 30-60 seconds)...")
         try:
-            internal_tool_url = "http://127.0.0.1:6060"  # Internal sandbox URL
             r = await self.client.post(
                 f"{self.mcp_url}/tool-server-url",
-                json={"tool_server_url": internal_tool_url},
+                json={"tool_server_url": self.mcp_url},
                 timeout=120.0  # Tool registration can take a while
             )
             if r.status_code != 200:

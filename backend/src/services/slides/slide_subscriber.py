@@ -69,10 +69,16 @@ class SlideEventSubscriber:
         Returns:
             bool: True if slide was saved, False otherwise
         """
+        # Debug: Log all tool completions to see what's being called
+        print(f"DEBUG: SlideEventSubscriber.on_tool_complete called: tool_name={tool_name}, thread_id={thread_id}", flush=True)
+        print(f"DEBUG: Tool input keys: {list(tool_input.keys()) if isinstance(tool_input, dict) else 'Not a dict'}", flush=True)
+        
         if tool_name not in SLIDE_TOOLS:
+            # Log when we skip non-slide tools
+            print(f"DEBUG: Skipping non-slide tool: {tool_name}", flush=True)
             return False
 
-        logger.info(f"Handling slide tool result for: {tool_name}")
+        print(f"DEBUG: Handling slide tool result for: {tool_name}. Result type: {type(tool_result)}", flush=True)
 
         try:
             if tool_name == SLIDE_APPLY_PATCH_TOOL:
@@ -116,22 +122,64 @@ class SlideEventSubscriber:
         slide_content = None
         slide_title = tool_input.get("title", "")
 
-        # Handle different result structures
+        # Handle different result structures:
+        # 1. MCP FastMCPToolResult with structured_content.user_display_content
+        # 2. Direct dict with content/new_content
+        # 3. List format
+        # 4. String format
+        user_display = {}
+        
+        logger.info(f"Analyzing tool_result structure for {tool_name}")
+        
         if isinstance(tool_result, dict):
-            user_display = tool_result
+            # Check for MCP structured_content first
+            if "structured_content" in tool_result:
+                logger.info("Found structured_content in tool_result")
+                sc = tool_result.get("structured_content", {})
+                udc = sc.get("user_display_content", {})
+                if isinstance(udc, dict):
+                    user_display = udc
+            # Check for user_display_content directly
+            elif "user_display_content" in tool_result:
+                logger.info("Found user_display_content in tool_result")
+                udc = tool_result.get("user_display_content", {})
+                if isinstance(udc, dict):
+                    user_display = udc
+            else:
+                # Direct dict with content
+                logger.info("Using tool_result as direct dict")
+                user_display = tool_result
         elif isinstance(tool_result, list) and len(tool_result) > 0:
-            user_display = tool_result[0]
-        else:
-            user_display = {}
+            logger.info("Using first item of tool_result list")
+            user_display = tool_result[0] if isinstance(tool_result[0], dict) else {}
+        elif hasattr(tool_result, 'structured_content'):
+            # Handle FastMCPToolResult object
+            logger.info("Converting FastMCPToolResult object")
+            sc = getattr(tool_result, 'structured_content', {}) or {}
+            udc = sc.get("user_display_content", {})
+            if isinstance(udc, dict):
+                user_display = udc
 
+        # Extract slide content based on tool type
         if tool_name == SLIDE_WRITE_TOOL:
             slide_content = user_display.get("content", "")
         elif tool_name == SLIDE_EDIT_TOOL:
             slide_content = user_display.get("new_content", "")
+        
+        # Also try the 'content' key from tool_input as fallback
+        # since the tool input actually contains the slide HTML
+        if not slide_content and tool_name == SLIDE_WRITE_TOOL:
+            slide_content = tool_input.get("content", "")
+            if slide_content:
+                print(f"DEBUG: Using content from tool_input for {tool_name} (Length: {len(slide_content)})", flush=True)
+            else:
+                print(f"DEBUG: No content in tool_input for {tool_name}", flush=True)
 
         if not slide_content:
-            logger.warning(f"No content found in {tool_name} result")
+            print(f"DEBUG: No content found in {tool_name} result (input keys: {list(tool_input.keys())}, result type: {type(tool_result).__name__})", flush=True)
             return
+
+        print(f"DEBUG: Saving slide to database: presentation='{presentation_name}', slide={slide_number}, title='{slide_title}', content_len={len(slide_content)}", flush=True)
 
         # Save to database
         await SlideService.save_slide_to_db(

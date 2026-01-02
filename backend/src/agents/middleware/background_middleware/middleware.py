@@ -16,8 +16,9 @@ from langchain_core.messages import ToolMessage
 from langgraph.prebuilt.tool_node import ToolCallRequest
 from langgraph.types import Command
 
-from backend.src.agents.middleware.background.registry import BackgroundTaskRegistry
-from backend.src.agents.middleware.background.tools import (
+from backend.src.agents.middleware.background_middleware.registry import BackgroundTaskRegistry
+from backend.src.agents.middleware.background_middleware.tools import (
+    create_background_task_tool,
     create_task_progress_tool,
     create_wait_tool,
 )
@@ -95,10 +96,11 @@ class BackgroundSubagentMiddleware(AgentMiddleware):
         self._pending_results: dict[str, Any] = {}
 
         # Create native tools for this middleware
-        # These allow the main agent to wait for and check on background tasks
+        # These allow the main agent to spawn, wait for, and check background tasks
         self.tools = [
-            create_wait_tool(self),
-            create_task_progress_tool(self.registry),
+            create_background_task_tool(),  # The tool agent calls to spawn background subagents
+            create_wait_tool(self),          # Wait for background task results
+            create_task_progress_tool(self.registry),  # Check task progress
         ]
 
     def wrap_tool_call(
@@ -131,8 +133,8 @@ class BackgroundSubagentMiddleware(AgentMiddleware):
         tool_call = request.tool_call
         tool_name = tool_call.get("name", "")
 
-        # Only intercept 'task' tool calls when enabled
-        if not self.enabled or tool_name != "task":
+        # Only intercept 'background_task' tool calls when enabled
+        if not self.enabled or tool_name != "background_task":
             return await handler(request)
 
         # Extract task details
@@ -168,7 +170,28 @@ class BackgroundSubagentMiddleware(AgentMiddleware):
             """Execute the subagent in the background."""
             # Context already has task_id from parent
             try:
+                # Rewrite tool name to 'task' so SubAgentMiddleware (or similar) handles it
+                # We need to modify the request object or create a new one
+                if tool_name == "background_task":
+                    # Create a modified request for the handler
+                    # We can't easily modify the ToolCallRequest object as it might be pydantic
+                    # So we modify the dictionary inside it if accessible, or wrap execution
+                    
+                    # Assuming handler respects the tool_call payload in the request
+                    # We modify the tool_call name in place if possible, or assume the handler
+                    # logic (SubAgentMiddleware) looks at the call.
+                    
+                    # NOTE: Since we can't easily fabricate a new ToolCallRequest that matches
+                    # local runtime types without importing them, and passing modified dicts
+                    # might be risky, we rely on the fact that SubAgentMiddleware checks
+                    # the tool name. 
+                    
+                    # Hack: We mutate the tool_call dict in the request if it's mutable
+                    if isinstance(request.tool_call, dict):
+                        request.tool_call["name"] = "task"
+                        
                 result = await handler(request)
+                
                 logger.debug(
                     "Background subagent completed",
                     tool_call_id=tool_call_id,
@@ -211,7 +234,7 @@ class BackgroundSubagentMiddleware(AgentMiddleware):
         return ToolMessage(
             content=pseudo_result,
             tool_call_id=tool_call_id,
-            name="task",
+            name="background_task",
         )
 
     def after_agent(

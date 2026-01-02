@@ -488,6 +488,9 @@ class Settings(BaseSettings):
     BING_SEARCH_API_KEY: str = ''
     SEARX_HOST: str = ''
     JINA_API_KEY: str = ''
+    EXA_API_KEY: str = ''  # For People Search tool (Exa.ai)
+    SEMANTIC_SCHOLAR_API_KEY: str = ''  # For Paper Search tool (Semantic Scholar)
+    NCBI_API_KEY: str = ''  # For Paper Search tool (NCBI)
 
     # --------------------------------------------------------------------------
     # [Expanded RAG Configuration]

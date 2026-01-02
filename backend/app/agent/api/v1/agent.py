@@ -51,6 +51,7 @@ from backend.app.agent.models import (
 )
 
 logger = logging.getLogger(__name__)
+print("DEBUG: IMPORTING agent.py +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++", flush=True)
 
 router = APIRouter()
 
@@ -410,6 +411,7 @@ async def _agent_stream_generator(
     db_session: CurrentSession,  # Required for slide subscriber
     user_api_key: str,  # User's JWT token for MCP authentication
 ):
+    print(f"DEBUG: _agent_stream_generator STARTED (thread_id={thread_id}, module={module_name})", flush=True)
     """
     Async generator for streaming agent workflow events.
     
@@ -597,6 +599,7 @@ async def _agent_stream_generator(
                 version="v2",
             ):
                 event_type = event.get("event", "")
+                print(f"DEBUG: EVENT RECEIVED: {event_type} - Name: {event.get('name', 'N/A')}", flush=True)
                 
                 if event_type == "on_chat_model_stream":
                     chunk = event.get("data", {}).get("chunk")
@@ -718,6 +721,10 @@ async def _agent_stream_generator(
                     # Sync slide tool results to database (SlideWrite, SlideEdit, etc.)
                     # This happens asynchronously and doesn't block the stream significantly
                     try:
+                        print(f"DEBUG: Received on_tool_end event for {tool_name} (id={tool_run_id})", flush=True)
+                        if tool_name in ["SlideWrite", "SlideEdit", "slide_apply_patch"]:
+                             print(f"DEBUG: Calling slide_subscriber for {tool_name}", flush=True)
+                        
                         await slide_subscriber.on_tool_complete(
                             db_session=db_session,
                             tool_name=tool_name,

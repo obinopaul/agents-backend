@@ -1,2 +1,0 @@
-Tier Key: none
-Full Subscription: {'tier_key': 'none', 'tier_display_name': 'No Plan', 'status': 'no_subscription', 'is_trial': False, 'trial_status': None, 'trial_ends_at': None, 'can_purchase_credits': False}

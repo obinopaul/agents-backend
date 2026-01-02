@@ -14,9 +14,13 @@ Usage:
 
     # Create agent with the middleware
     middleware = [ViewImageMiddleware(validate_urls=True)]
+    # Create agent with the middleware
+    middleware = [ViewImageMiddleware(validate_urls=True)]
     agent = create_agent(model=model, tools=[view_image], middleware=middleware)
 
-    # Agent can then call view_image to load images for vision analysis
+    # 1. User uploads file via backend/app/agent/api/v1/files.py
+    # 2. Agent receives URL (e.g., S3 signed URL)
+    # 3. Agent calls view_image(urls=[...]) to analyze it
 
 Dependencies:
     aiohttp>=3.8.0
@@ -375,6 +379,10 @@ class ViewImageMiddleware(AgentMiddleware):
         self.validate_urls = validate_urls
         self.strict_validation = strict_validation
         self.sandbox = sandbox
+        
+        # Auto-register the view_image tool (following PersistentTaskMiddleware pattern)
+        # The AgentMiddleware base class automatically makes this tool available
+        self.tools = [create_view_image_tool(sandbox=sandbox)]
 
     def wrap_tool_call(
         self,

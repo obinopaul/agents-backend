@@ -34,6 +34,7 @@ from backend.src.services.file_processing.fast_parse import (
 from backend.src.services.file_processing.storage import (
     FileStorageBackend,
     LocalFileStorage,
+    S3FileStorage,
     get_storage_backend,
     reset_storage_backend,
 )

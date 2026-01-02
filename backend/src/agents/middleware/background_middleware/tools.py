@@ -13,10 +13,62 @@ import structlog
 from langchain_core.tools import StructuredTool
 
 if TYPE_CHECKING:
-    from backend.src.agents.middleware.background.middleware import BackgroundSubagentMiddleware
-    from backend.src.agents.middleware.background.registry import BackgroundTask, BackgroundTaskRegistry
+    from backend.src.agents.middleware.background_middleware.middleware import BackgroundSubagentMiddleware
+    from backend.src.agents.middleware.background_middleware.registry import BackgroundTask, BackgroundTaskRegistry
 
 logger = structlog.get_logger(__name__)
+
+
+def create_background_task_tool() -> StructuredTool:
+    """Create the background_task tool for spawning background subagents.
+
+    This tool is intercepted by BackgroundSubagentMiddleware, which spawns
+    the actual subagent execution as a background asyncio task.
+
+    Returns:
+        A StructuredTool for spawning background subagents
+    """
+
+    def background_task(
+        description: str,
+        subagent_type: str = "general-purpose",
+    ) -> str:
+        """Spawn a background subagent for long-running or parallel tasks.
+
+        Use this when you want to:
+        - Run multiple research tasks in parallel
+        - Start a long-running task while continuing other work
+        - Delegate complex tasks without blocking
+
+        The subagent runs in the background. Use wait(task_number=N) to get
+        results when ready, or wait() to get all results.
+
+        Args:
+            description: Detailed instructions for the subagent. Be specific
+                about what you want it to do and what output you expect.
+            subagent_type: Type of subagent to spawn. Options:
+                - "general-purpose": Default, can handle any task
+                - "research": Optimized for research and information gathering
+                - "coding": Optimized for code generation and analysis
+                - "analysis": Optimized for data analysis and reasoning
+
+        Returns:
+            Confirmation with Task-N ID for tracking progress
+        """
+        # This is a placeholder - BackgroundSubagentMiddleware intercepts
+        # and handles the actual execution
+        return f"Spawning background subagent: {description[:100]}..."
+
+    return StructuredTool.from_function(
+        name="background_task",
+        description=(
+            "Spawn a background subagent for long-running or parallel tasks. "
+            "Unlike the blocking 'task' tool, this returns immediately while "
+            "the subagent runs in the background. Use wait(task_number=N) to "
+            "get results when ready. Great for parallel research or long operations."
+        ),
+        func=background_task,
+    )
 
 
 def create_wait_tool(middleware: BackgroundSubagentMiddleware) -> StructuredTool:
