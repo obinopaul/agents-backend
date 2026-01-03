@@ -91,7 +91,6 @@ def load_yaml_config(file_path: str) -> Dict[str, Any]:
                 "timeout": settings.CRAWLER_TIMEOUT,
                 "navi_timeout": settings.CRAWLER_NAVI_TIMEOUT,
             },
-            "ENABLE_PYTHON_REPL": settings.ENABLE_PYTHON_REPL,
             "TOOL_INTERRUPTS": {
                 "interrupt_before": settings.TOOL_INTERRUPTS_BEFORE
             },

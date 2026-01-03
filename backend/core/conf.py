@@ -416,8 +416,6 @@ class Settings(BaseSettings):
     # Uses provider:model format or just model name for same provider as primary
     MIDDLEWARE_FALLBACK_MODELS: str = ''
 
-    # Python REPL (Sandbox Execution)
-    ENABLE_PYTHON_REPL: bool = False
 
     # Tool Interrupts (Human-in-the-loop)
     TOOL_INTERRUPTS_BEFORE: list[str] = []

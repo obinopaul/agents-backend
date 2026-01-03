@@ -1,7 +1,6 @@
 """
 Session-based sandbox manager for lazy initialization.
 
-This follows the II-Agent pattern:
 1. Check if session already has a sandbox
 2. If yes, reconnect to it
 3. If no, create new sandbox and link to session

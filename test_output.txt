@@ -1,81 +1,35 @@
 
 ======================================================================
-  BACKGROUND MIDDLEWARE - TEST SUITE
-  Option B Implementation: background_task tool
+≡ƒÄ» Skills Loading Test
+   Base URL: http://127.0.0.1:8000
+   2026-01-03 13:15:00
 ======================================================================
 
-======================================================================
-  Test 1: Imports and Module Structure
-======================================================================
-  [PASS] - All imports successful
-  [PASS] - BackgroundSubagentMiddleware
-  [PASS] - BackgroundSubagentOrchestrator
-  [PASS] - BackgroundTaskRegistry
-  [PASS] - create_background_task_tool
+≡ƒôï Step 1: Authenticating...
+   Login failed: 502 - <html>
+
+<head><title>502 Bad Gateway</title></head>
+
+<body>
+
+<center><h1>502 Bad Gateway</h1></center>
+
+<hr><center>nginx/1.29.4</center>
+
+</body>
+
+</html>
+
+
+   Γ¥î Login failed. Make sure:
+      - Backend is running at http://127.0.0.1:8000
+      - Test user exists (run: python backend/tests/live/create_test_user.py)
+
+≡ƒôï Step 3: Cleanup...
+   Γ£à Cleanup complete
 
 ======================================================================
-  Test 2: Middleware Instantiation
-======================================================================
-  [PASS] - Default instantiation
-  [PASS] - enabled=True by default
-  [PASS] - timeout=60.0 by default
-  [PASS] - Custom timeout
-         timeout=120.0
-  [PASS] - Custom enabled
+Γ£à All 0 tests passed!
 
+   Total duration: 0.0s
 ======================================================================
-  Test 3: Tools Registration
-======================================================================
-  [PASS] - tools list exists
-  [PASS] - 3 tools registered
-         found 3
-  [PASS] - background_task tool
-  [PASS] - wait tool
-  [PASS] - task_progress tool
-  [PASS] - background_task has description
-         desc length: 263
-
-======================================================================
-  Test 4: Registry Functionality
-======================================================================
-2026-01-02 17:23:03 [info     ] Registered background task     description='Test background task' display_id=Task-1 subagent_type=research task_id=test-task-1 task_number=1
-  [PASS] - Task registered
-  [PASS] - Task ID correct
-  [PASS] - Task number is 1
-         number=1
-  [PASS] - Display ID is Task-1
-         id=Task-1
-2026-01-02 17:23:03 [info     ] Registered background task     description='Second test task' display_id=Task-2 subagent_type=analysis task_id=test-task-2 task_number=2
-  [PASS] - Second task number is 2
-  [PASS] - Task count is 2
-2026-01-02 17:23:03 [debug    ] Cleared background task registry
-  [PASS] - Registry cleared
-
-======================================================================
-  Test 5: deep_agents.py Integration
-======================================================================
-  [PASS] - LLM retrieved
-  [FAIL] - deep_agents integration
-         'system_prompt'
-
-======================================================================
-  Test 6: Tool Interception (background_task)
-======================================================================
-2026-01-02 17:23:04 [info     ] Registered background task     description='Test task' display_id=Task-1 subagent_type=research task_id=call_123 task_number=1
-2026-01-02 17:23:04 [info     ] Intercepting task tool call for background execution description='Test task' display_id=Task-1 subagent_type=research task_number=1 tool_call_id=call_123
-  [PASS] - Returns ToolMessage
-  [PASS] - Message name is background_task
-  [PASS] - Contains Task-N reference
-         content preview: Background subagent deployed: **Task-1**
-- Type: research
-- Task: Test task
-- Status: Running in bac...
-  [PASS] - Other tools pass through
-
-======================================================================
-  SUMMARY
-======================================================================
-
-  Tests Passed: 5/6
-  [WARN] Some tests failed. Check the logs above.
-2026-01-02 17:23:04 [debug    ] Background subagent completed  display_id=Task-1 result_type=ToolMessage tool_call_id=call_123

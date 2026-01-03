@@ -250,7 +250,6 @@ async def create_mcp(workspace_dir: str, custom_mcp_config: Dict = None, port: i
 
     # OPTIMIZATION: Removed auto-registration at startup to speed up MCP server boot.
     # Tools are now registered on-demand when /credential + /tool-server-url are called.
-    # This follows the II-Agent pattern where tools are registered only once,
     # reducing startup time by ~30-40 seconds.
     #
     # The /health endpoint is now available immediately without waiting for tool registration.

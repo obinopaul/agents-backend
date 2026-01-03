@@ -142,16 +142,22 @@ COPY backend/docker/sandbox/claude_template.json /home/pn/.claude.json
 # COPY Template files
 COPY .templates /app/agents_backend/.templates
 
+# COPY Skills library for agent injection at runtime
+# Skills are baked into /app/skills/ and selectively copied to workspace on sandbox creation
+# Three categories: basic (general), scientific_skills (scientific), scientific_writer (academic)
+COPY backend/src/skills /app/skills
+
 # Dependencies already installed with pip above
 
 
 RUN mkdir /workspace
 WORKDIR /workspace
 
-# Create a startup script to run both services
+# Create startup and utility scripts
 COPY backend/docker/sandbox/start-services.sh /app/start-services.sh
 COPY backend/docker/sandbox/entrypoint.sh /app/entrypoint.sh
-RUN chmod +x /app/start-services.sh /app/entrypoint.sh
+COPY backend/docker/sandbox/inject-skills.sh /app/inject-skills.sh
+RUN chmod +x /app/start-services.sh /app/entrypoint.sh /app/inject-skills.sh
 
 # Fix ownership and permissions for multi-user access
 # Architecture:

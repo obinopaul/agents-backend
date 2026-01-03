@@ -8,7 +8,7 @@ This module provides the node implementations for a streamlined 3-node graph:
 
 Key Features:
 - Full MCP server integration via MultiServerMCPClient
-- All tools: web_search, crawl, RAG retriever, python_repl, request_human_input
+- All tools: web_search, crawl, RAG retriever, request_human_input
 - Context compression for large token contexts
 - Structured HITL with proper decision types
 - Web search validation
@@ -36,7 +36,6 @@ from backend.src.tools import (
     get_retriever_tool,
     get_web_search_tool,
     human_feedback_tool,
-    python_repl_tool,
     HITL_TOOL_MARKER,
 )
 from backend.src.tools.search import LoggedTavilySearch
@@ -711,10 +710,6 @@ async def base_node(
         logger.info("[base_node] Web search tools added")
     else:
         logger.info("[base_node] Web search is disabled, using only local tools")
-    
-    # Add Python REPL tool for code execution
-    tools.append(python_repl_tool)
-    logger.debug("[base_node] Python REPL tool added")
     
     # Add retriever tool if resources are available (RAG)
     retriever_tool = get_retriever_tool(state.get("resources", []))

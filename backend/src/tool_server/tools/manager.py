@@ -5,7 +5,6 @@ OPTIMIZATION: All heavy imports are done INSIDE functions (lazy imports).
 This means importing this module is fast - the heavy tool classes are only
 imported when get_sandbox_tools() is actually called.
 
-This follows the II-Agent pattern where the MCP server can start and expose
 /health immediately, and tools are only loaded when needed.
 """
 from typing import Dict

@@ -1,0 +1,21 @@
+
+======================================================================
+≡ƒÄ» Skills Loading Test
+   Base URL: http://127.0.0.1:8001
+   2026-01-03 13:18:13
+======================================================================
+
+≡ƒôï Step 1: Authenticating...
+   Login error: Server disconnected without sending a response.
+   Γ¥î Login failed. Make sure:
+      - Backend is running at http://127.0.0.1:8001
+      - Test user exists (run: python backend/tests/live/create_test_user.py)
+
+≡ƒôï Step 3: Cleanup...
+   Γ£à Cleanup complete
+
+======================================================================
+Γ£à All 0 tests passed!
+
+   Total duration: 0.0s
+======================================================================

@@ -64,17 +64,20 @@ git clone https://github.com/obinopaul/agents-backend.git && cd agents-backend
 cp backend/.env.example backend/.env
 # Edit backend/.env with your API keys (OpenAI, E2B, Tavily, etc.)
 
-# 3️⃣ Start everything with one command
+# 3️⃣ Build the E2B template
+e2b template build -c backend
+
+# 4️⃣ Start everything with one command
 docker-compose up -d --build
 
-# 4️⃣ Verify the database is created (runs Alembic migrations)
+# 5️⃣ Verify the database is created (runs Alembic migrations)
 docker-compose exec agents_backend_server bash -c "cd /agents_backend/backend && alembic upgrade head"
 
-# 5️⃣ Create a test user for login (required for authentication)
+# 6️⃣ Create a test user for login (required for authentication)
 python backend/tests/create_test_user.py
 # Default credentials: sandbox_test / TestPass123!
 
-# 6️⃣ Test the setup (optional but recommended)
+# 7️⃣ Test the setup (optional but recommended)
 python backend/tests/live/interactive_agent_test.py
 ```
 
@@ -963,7 +966,6 @@ Complete PowerPoint manipulation toolkit.
 | **File Operations** | Read/write/search files | [`tools/file_ops.py`](backend/src/tools/file_ops.py) |
 | **Grep** | Pattern matching | [`tools/grep.py`](backend/src/tools/grep.py) |
 | **Glob** | File pattern matching | [`tools/glob.py`](backend/src/tools/glob.py) |
-| **Python REPL** | Interactive Python | [`tools/python_repl.py`](backend/src/tools/python_repl.py) |
 | **Tavily Search** | AI web search | [`tools/tavily.py`](backend/src/tools/tavily.py) |
 | **InfoQuest Search** | Custom search tool | [`tools/infoquest_search/`](backend/src/tools/infoquest_search/) |
 | **TTS** | Text-to-speech | [`tools/tts.py`](backend/src/tools/tts.py) |

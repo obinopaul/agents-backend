@@ -21,7 +21,6 @@ depends_on: Union[str, Sequence[str], None] = None
 def upgrade() -> None:
     """Add sandbox_id column to agent_session_metrics table.
     
-    This enables session-based sandbox reuse, matching the II-Agent pattern:
     - Each session can be linked to a sandbox
     - When a session requests a sandbox, we first check if one is already linked
     - This avoids creating duplicate sandboxes for the same chat session

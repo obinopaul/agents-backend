@@ -66,6 +66,9 @@ from backend.src.agents.middleware.background_middleware import (
     BackgroundSubagentOrchestrator,
 )
 
+# SandboxSkillsMiddleware for loading skills from sandbox workspace
+from backend.src.agents.middleware.skills_middleware import SandboxSkillsMiddleware
+
 # Optional: SubAgent support from deepagents package
 try:
     from deepagents.middleware.subagents import (
@@ -206,6 +209,8 @@ def build_deep_middleware(
     # Background subagent settings
     enable_background_tasks: bool = False,
     background_task_timeout: float = 60.0,
+    # Skills middleware settings (sandbox accessed via runtime.context)
+    enable_skills: bool = False,
 ) -> list[AgentMiddleware]:
     """Build the deep agent middleware stack.
     
@@ -246,6 +251,8 @@ def build_deep_middleware(
         enable_prompt_caching: Enable Anthropic prompt caching.
         enable_background_tasks: Enable background/parallel subagent execution (opt-in).
         background_task_timeout: Timeout for background tasks in seconds (default: 60).
+        enable_skills: Enable skills middleware for sandbox environments.
+        sandbox: Sandbox instance for loading skills (required if enable_skills=True).
         
     Returns:
         List of configured middleware instances.
@@ -291,8 +298,8 @@ def build_deep_middleware(
     
     # 1. TodoListMiddleware - Adds write_todos tool for task planning
     # Todos are stored in agent state, not external files
-    middleware.append(TodoListMiddleware())
-    logger.debug("Added TodoListMiddleware for task planning")
+    # middleware.append(TodoListMiddleware())
+    # logger.debug("Added TodoListMiddleware for task planning")
     
     # 2. PersistentTaskMiddleware - Persistent task management with sections
     # Uses LangGraph Store for persistence across sessions
@@ -469,6 +476,15 @@ def build_deep_middleware(
     if custom_middleware:
         middleware.extend(custom_middleware)
         logger.debug(f"Added {len(custom_middleware)} custom middleware")
+    
+    # -------------------------------------------------------------------------
+    # Skills Middleware (loads skills from sandbox workspace)
+    # Sandbox is accessed from runtime.context['sandbox'] at execution time
+    # -------------------------------------------------------------------------
+    
+    if enable_skills:
+        middleware.append(SandboxSkillsMiddleware())
+        logger.debug("Added SandboxSkillsMiddleware (sandbox accessed via runtime.context)")
     
     return middleware
 

@@ -231,8 +231,6 @@ class SandboxTable:
 
     async def get_sandbox_for_session(self, session_id: str) -> Optional[Sandbox]:
         """Get the sandbox linked to a specific session via SessionMetrics.
-        
-        This matches II-Agent's session_has_sandbox pattern.
 
         Args:
             session_id: The session ID to look up
@@ -270,8 +268,6 @@ class SandboxTable:
 
     async def update_session_sandbox(self, session_id: str, sandbox_id: str) -> bool:
         """Link a sandbox to a session by updating SessionMetrics.sandbox_id.
-        
-        This matches II-Agent's update_sandbox_id pattern.
 
         Args:
             session_id: The session ID to update

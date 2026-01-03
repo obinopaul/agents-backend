@@ -140,8 +140,7 @@ The frontend sends back:
 │              ▼                                                  │
 │  ┌─────────────────────────┐                                    │
 │  │         base            │  (main agent execution)            │
-│  │  - web_search           │                                    │
-│  │  - python_repl          │                                    │
+│  │  - web_search           │                                                                 │
 │  │  - RAG retriever        │                                    │
 │  │  - request_human_input  │ ◄── Agent triggers HITL            │
 │  │  - MCP tools            │                                    │

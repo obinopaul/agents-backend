@@ -1,6 +1,5 @@
 """Credit management service functions.
 
-Adapted from ii-agent credit service for the FastAPI backend.
 Provides atomic credit operations with bonus credits used first.
 """
 

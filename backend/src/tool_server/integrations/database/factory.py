@@ -6,7 +6,7 @@ from .config import DatabaseConfig
 
 
 NEON_DB_KEY_ERROR_MSG = (
-    "PLEASE SET NEONDB KEY.... ask user to redeploy ii-agent with neondb key for this tool to work, or for now please use sqlite"
+    "PLEASE SET NEONDB KEY.... ask user to redeploy agents-backend server with neondb key for this tool to work, or for now please use sqlite"
 )
 
 

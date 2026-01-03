@@ -6,6 +6,7 @@ from typing import Optional
 from backend.src.sandbox.sandbox_server.config import SandboxConfig
 from backend.src.sandbox.sandbox_server.lifecycle.sandbox_controller import SandboxController
 from backend.src.sandbox.sandbox_server.sandboxes.base import BaseSandbox
+from backend.src.config.skill_config import get_skill_folder, AgentCategory
 from backend.common.log import log
 
 
@@ -49,12 +50,12 @@ class SandboxService:
         user_id: str, 
         session_id: Optional[str] = None,
         template_id: Optional[str] = None,
-        write_mcp_credentials: bool = True
+        write_mcp_credentials: bool = True,
+        agent_category: AgentCategory | None = None,
     ) -> BaseSandbox:
         """
         Get an existing sandbox for the session or create a new one.
         
-        This implements the II-Agent pattern:
         1. If session_id provided, check if session already has a linked sandbox
         2. If sandbox exists and is running, connect to it (reuse)
         3. If no sandbox, create a new one and link it to the session
@@ -63,6 +64,7 @@ class SandboxService:
         :param session_id: Optional session ID (for session-based sandbox reuse)
         :param template_id: Optional sandbox template ID
         :param write_mcp_credentials: If True, write user's MCP credentials to sandbox
+        :param agent_category: Agent category for skill injection ("general", "scientific", "academic")
         :return: Sandbox instance
         """
         from backend.src.sandbox.sandbox_server.db.manager import Sandboxes
@@ -92,7 +94,38 @@ class SandboxService:
         if write_mcp_credentials:
             await self._write_mcp_credentials(user_id, sandbox)
         
+        # STEP 5: Inject skills based on agent category
+        if agent_category is not None:
+            await self._inject_skills(sandbox, agent_category)
+        
         return sandbox
+    
+    async def _inject_skills(
+        self,
+        sandbox: BaseSandbox,
+        agent_category: AgentCategory,
+    ) -> None:
+        """
+        Inject skills into the sandbox workspace.
+        
+        Runs /app/inject-skills.sh to copy the appropriate skill folder's
+        contents to /workspace/.deepagents/skills/ (flat structure).
+        
+        :param sandbox: Sandbox instance
+        :param agent_category: Agent category ("general", "scientific", "academic")
+        """
+        try:
+            skill_folder = get_skill_folder(agent_category)
+            log.info(f"Injecting skills for category '{agent_category}' (folder: {skill_folder})")
+            
+            result = await sandbox.run_command(f"/app/inject-skills.sh {skill_folder}")
+            
+            # Log first 500 chars of output for debugging
+            log.info(f"Skills injection complete: {result[:500] if result else 'no output'}")
+            
+        except Exception as e:
+            log.warning(f"Failed to inject skills for category '{agent_category}': {e}")
+            # Don't fail sandbox creation if skill injection fails
 
     async def _write_mcp_credentials(self, user_id: str, sandbox: BaseSandbox) -> None:
         """

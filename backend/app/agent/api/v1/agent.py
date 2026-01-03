@@ -562,6 +562,30 @@ async def _agent_stream_generator(
         
         # STEP 4: MCP URL already obtained above, use it for workflow
         
+        # STEP 4.5: Load skills from sandbox (optional)
+        # Skills are pre-injected into /workspace/.deepagents/skills/ by sandbox_service
+        skills_prompt_section = ""
+        try:
+            from backend.src.agents.middleware.skills_middleware.sandbox_load import (
+                list_skills_from_sandbox,
+                format_skills_for_prompt,
+            )
+            skills = await list_skills_from_sandbox(sandbox)
+            if skills:
+                skills_prompt_section = format_skills_for_prompt(skills)
+                logger.info(f"Agent stream: Loaded {len(skills)} skills from sandbox")
+                yield _make_event("status", {
+                    "type": "skills_loaded",
+                    "message": f"Loaded {len(skills)} skills",
+                    "skill_count": len(skills),
+                    "skill_names": [s.get("name", "") for s in skills[:10]],  # First 10
+                })
+            else:
+                logger.debug("Agent stream: No skills found in sandbox")
+        except Exception as e:
+            logger.warning(f"Agent stream: Failed to load skills: {e}")
+            # Continue without skills - not fatal
+        
         # STEP 5: Build workflow input
         # Messages are already in LangChain v1 format (string or list of content blocks)
         workflow_input = {
@@ -570,6 +594,10 @@ async def _agent_stream_generator(
             "auto_accepted_plan": auto_accepted_plan,
             "enable_background_investigation": enable_background_investigation,
         }
+        
+        # Inject skills section into workflow input if available
+        if skills_prompt_section:
+            workflow_input["skills_prompt"] = skills_prompt_section
         
         workflow_config = {
             "configurable": {

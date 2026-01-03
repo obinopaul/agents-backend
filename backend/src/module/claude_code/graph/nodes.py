@@ -19,7 +19,6 @@ from backend.src.tools import (
     crawl_tool,
     get_retriever_tool,
     get_web_search_tool,
-    python_repl_tool,
 )
 from backend.src.tools.search import LoggedTavilySearch
 from backend.src.utils.context_manager import ContextManager, validate_message_content
@@ -1250,13 +1249,13 @@ async def coder_node(
 ) -> Command[Literal["research_team"]]:
     """Coder node that do code analysis."""
     logger.info("Coder node is coding.")
-    logger.debug(f"[coder_node] Starting coder agent with python_repl_tool")
+    logger.debug(f"[coder_node] Starting coder agent")
     
     return await _setup_and_execute_agent_step(
         state,
         config,
         "coder",
-        [python_repl_tool],
+        [],
     )
 
 

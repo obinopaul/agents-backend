@@ -11,5 +11,6 @@
 # const sandbox = await Sandbox.create('vg6mdf4wgu5qoijamwb5')
 
 team_id = "aa3fc779-c133-42ae-97a3-e8e534bfd0f3"
+start_cmd = "backend"
 dockerfile = "backend\\e2b.Dockerfile"
 template_id = "vg6mdf4wgu5qoijamwb5"

@@ -56,7 +56,7 @@ EXACTLY what happens, step-by-step:
 └─────────────────────────────────────────────────────────────────────────────┘
 
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│ STEP 3: SANDBOX GET OR CREATE (Session-based reuse - II-Agent pattern)      │
+│ STEP 3: SANDBOX GET OR CREATE (Session-based reuse - Agents-Backend pattern)│
 │                                                                              │
 │ The backend FIRST checks if this session already has a sandbox.             │
 │ If yes, connect to it. If no, create a new one and link it.                 │
@@ -70,7 +70,7 @@ EXACTLY what happens, step-by-step:
 │     → create_sandbox() or connect()                                          │
 │   - backend/src/sandbox/sandbox_server/sandboxes/e2b.py → E2BSandbox.create()│
 │                                                                              │
-│ What happens (II-Agent pattern - now implemented!):                          │
+│ What happens (Agents-Backend pattern - now implemented!):                          │
 │   1. SandboxService.get_or_create_sandbox(user_id, session_id) called        │
 │   2. IF session already has sandbox:                                         │
 │      → Get sandbox_id from SessionMetrics.sandbox_id                         │

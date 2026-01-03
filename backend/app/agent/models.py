@@ -11,7 +11,7 @@ This module provides Pydantic models and dataclasses for structured handling of:
 - Reasoning/thinking blocks
 
 These models are designed to:
-1. Keep code structured and type-safe (inspired by II-Agent patterns)
+1. Keep code structured and type-safe 
 2. Work seamlessly with LangChain v1's content_blocks format
 3. Support AG-UI Protocol events for streaming
 

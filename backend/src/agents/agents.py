@@ -34,6 +34,7 @@ from backend.src.agents.middleware.view_image_middleware import (
 from backend.src.agents.middleware.background_middleware import (
     BackgroundSubagentMiddleware,
 )
+from backend.src.agents.middleware.skills_middleware import SandboxSkillsMiddleware
 from backend.src.agents.subagents import create_default_subagents
 
 # Optional: SubAgent support
@@ -76,6 +77,7 @@ def build_default_middleware(
     enable_persistent_tasks: bool = True,  # Enable persistent task middleware
     enable_view_image: bool = True,  # Enable view image middleware
     enable_background_tasks: bool = False,  # Enable background subagent execution (opt-in)
+    enable_skills: bool = False,  # Enable skills middleware (sandbox loaded from runtime.context)
     background_task_timeout: float = 60.0,  # Timeout for background tasks in seconds
     summarization_trigger_tokens: int = None,
     summarization_keep_messages: int = None,
@@ -116,6 +118,7 @@ def build_default_middleware(
         enable_persistent_tasks: Enable persistent task middleware
         enable_view_image: Enable view image middleware for vision models
         enable_background_tasks: Enable background/parallel subagent execution (opt-in)
+        enable_skills: Enable skills middleware (sandbox accessed via runtime.context)
         background_task_timeout: Timeout for background tasks in seconds (default: 60)
         summarization_trigger_tokens: Token count to trigger summarization
         summarization_keep_messages: Number of recent messages to preserve
@@ -301,41 +304,14 @@ def build_default_middleware(
             f"(thread_limit={tool_call_thread_limit}, run_limit={tool_call_run_limit})"
         )
     
+    # SandboxSkillsMiddleware - loads skills from sandbox workspace
+    # Sandbox is accessed from runtime.context['sandbox'] at execution time
+    if enable_skills:
+        middleware.append(SandboxSkillsMiddleware())
+        logger.debug("Added SandboxSkillsMiddleware (sandbox accessed via runtime.context)")
+    
     return middleware
 
-
-def _create_context_compression_middleware(compress_fn: callable):
-    """Create middleware for context compression before model calls.
-    
-    Uses the wrap_model_call decorator to create async middleware that compresses
-    messages before they're sent to the model.
-    
-    Note: The middleware function MUST be async to support both sync and async
-    invocation patterns (invoke/ainvoke, stream/astream).
-    
-    Args:
-        compress_fn: Function that takes state dict and returns compressed state
-        
-    Returns:
-        A middleware function compatible with create_agent
-    """
-    @wrap_model_call
-    async def context_compression_middleware(request: ModelRequest, handler) -> ModelResponse:
-        """Compress context before model invocation (async version)."""
-        try:
-            messages = request.state.get("messages", [])
-            if messages:
-                compressed_state = compress_fn({"messages": messages})
-                compressed_messages = compressed_state.get("messages", messages)
-                # Override the request with compressed messages
-                new_state = {**request.state, "messages": compressed_messages}
-                return await handler(request.override(state=new_state))
-        except Exception as e:
-            logger.warning(f"Context compression middleware failed: {e}")
-        
-        return await handler(request)
-    
-    return context_compression_middleware
 
 
 def create_agent(

@@ -23,7 +23,6 @@ You have access to many dynamically loaded tools. Check your available tools lis
 - **crawl_tool**: Read content from URLs
 
 ### Code Execution
-- **python_repl_tool**: Execute Python code
 - **Bash**: Run shell commands
 
 ### Browser Tools
