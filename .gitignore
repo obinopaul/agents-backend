@@ -9,7 +9,7 @@ venv/
 .pytest_cache/
 .claude/
 .*/.env
-.env.*
+deploy/backend/docker-compose/.env.server
 .env
 
 # Python-generated files
@@ -24,6 +24,7 @@ wheels/
 .venv
 venv/
 env/
+*.local
 
 # uv files
 .python-version
@@ -32,7 +33,6 @@ uv.lock
 # dotenv
 .env
 *.env
-**/.env.*
 **/.env
 !env.example
 
