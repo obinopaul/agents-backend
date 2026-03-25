@@ -1,0 +1,275 @@
+@import url('https://fonts.googleapis.com/css2?family=Carlito:wght@400;700&family=Inter:wght@400;600;700&family=Noto+Sans:wght@400;600;700&display=swap');
+
+:root {
+  --font-segoe: "Segoe UI", "Inter", "Noto Sans", "Helvetica Neue", Arial, sans-serif;
+  --font-calibri: "Calibri", "Carlito", "Inter", "Noto Sans", "Helvetica Neue", Arial, sans-serif;
+  --font-default: var(--font-segoe);
+}
+
+.app {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: #f3f2f1;
+  font-family: var(--font-default);
+  overflow: hidden; /* Prevent body scroll */
+  transition: margin-right 0.3s ease;
+}
+
+.app.sidebar-open {
+  margin-right: 340px;
+}
+
+/* Header Styles */
+.header {
+  background-color: #217346;
+  color: white;
+  padding: 0 16px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.header h1 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.header-icon {
+  background: white;
+  color: #217346;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 2px;
+  font-weight: bold;
+  font-size: 12px;
+}
+
+/* Toolbar Styles */
+.toolbar {
+  background: #f3f2f1;
+  padding: 6px 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 1px solid #e1dfdd;
+  flex-shrink: 0;
+}
+
+.btn {
+  padding: 4px 12px;
+  border: 1px solid transparent;
+  border-radius: 2px;
+  font-size: 13px;
+  font-weight: 400;
+  cursor: pointer;
+  transition: all 0.1s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  background: white;
+  border-color: #e1dfdd;
+}
+
+.btn:hover {
+  background-color: #faf9f8;
+  border-color: #d2d0ce;
+}
+
+.btn:active {
+  background-color: #edebe9;
+  transform: translateY(1px);
+}
+
+.btn-primary {
+  background-color: white;
+  color: #217346;
+  border-color: #217346;
+}
+
+.btn-primary:hover {
+  background-color: #e6f2ea;
+}
+
+.btn-secondary {
+  background-color: white;
+  color: #323130;
+}
+
+.btn-success {
+  background-color: #217346;
+  color: white;
+  border-color: #217346;
+}
+
+.btn-success:hover {
+  background-color: #107c10;
+  border-color: #107c10;
+}
+
+.formatting-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: 12px;
+}
+
+.font-select {
+  height: 28px;
+  font-size: 13px;
+  padding: 4px 8px;
+  border: 1px solid #e1dfdd;
+  border-radius: 2px;
+  background: white;
+  color: #323130;
+}
+
+.font-size-input {
+  width: 56px;
+  height: 28px;
+  border: 1px solid #e1dfdd;
+  border-radius: 2px;
+  padding: 4px;
+  font-size: 13px;
+  color: #323130;
+}
+
+.format-button {
+  width: 28px;
+  height: 28px;
+  border: 1px solid #e1dfdd;
+  border-radius: 2px;
+  background: white;
+  cursor: pointer;
+  font-weight: 700;
+  color: #323130;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.format-button:hover {
+  background-color: #faf9f8;
+}
+
+.format-button.active {
+  background-color: #e6f2ea;
+  border-color: #217346;
+  color: #217346;
+}
+
+.color-control {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: #605e5c;
+}
+
+.color-control input[type="color"] {
+  width: 28px;
+  height: 28px;
+  border: 1px solid #e1dfdd;
+  border-radius: 2px;
+  padding: 0;
+  background: white;
+}
+
+.file-name-container {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #605e5c;
+  background: white;
+  padding: 2px 8px;
+  border-radius: 2px;
+  border: 1px solid #e1dfdd;
+}
+
+.file-name {
+  font-weight: 600;
+  color: #323130;
+}
+
+/* Spreadsheet Container */
+.spreadsheet-container {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  padding: 0; /* Remove padding to be flush */
+  position: relative;
+}
+
+.spreadsheet-wrapper {
+  flex: 1;
+  background: white;
+  overflow: hidden;
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+/* JSpreadsheet Overrides */
+.jexcel_container {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.jexcel_content {
+  width: 100% !important;
+  height: 100% !important;
+  overflow: auto !important; /* Ensure scrollbars appear */
+}
+
+.jexcel {
+  font-family: var(--font-default);
+  width: 100% !important;
+}
+
+.jexcel > thead > tr > td {
+  background-color: #f3f2f1 !important;
+  border-right: 1px solid #d2d0ce !important;
+  border-bottom: 1px solid #d2d0ce !important;
+  font-weight: 600;
+  color: #323130;
+  font-size: 13px;
+}
+
+.jexcel > tbody > tr > td {
+  border-right: 1px solid #e1dfdd !important;
+  border-bottom: 1px solid #e1dfdd !important;
+  color: #323130;
+  font-size: 13px;
+}
+
+/* Ensure Calibri and Segoe UI selections render with web-safe fallbacks */
+.jexcel td[style*="font-family: Calibri"],
+.jexcel td[style*="font-family:Calibri"],
+.jexcel td[style*="font-family:\"Calibri\""],
+.jexcel td[style*="font-family: 'Calibri'"] {
+  font-family: var(--font-calibri) !important;
+}
+
+.jexcel td[style*="font-family: Segoe UI"],
+.jexcel td[style*="font-family:Segoe UI"],
+.jexcel td[style*="font-family:\"Segoe UI\""],
+.jexcel td[style*="font-family: 'Segoe UI'"] {
+  font-family: var(--font-segoe) !important;
+}
+
+/* Hide the JSpreadsheet branding if possible/allowed or just minimal style */
+.jexcel_about {
+  display: none !important;
+}

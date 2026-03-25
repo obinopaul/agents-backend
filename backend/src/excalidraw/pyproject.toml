@@ -1,0 +1,270 @@
+[build-system]
+requires = [
+    "hatchling",
+]
+build-backend = "hatchling.build"
+
+[project]
+name = "excalidraw-mcp"
+version = "0.35.1"
+description = "Unofficial MCP server for Excalidraw diagram management with canvas sync"
+readme = "README.md"
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: BSD License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: System :: Monitoring",
+]
+authors = [
+    { name = "Les Leslie", email = "les@wedgwoodwebworks.com" },
+]
+requires-python = ">=3.13"
+dependencies = [
+    "fastmcp>=2.11.3",
+    "httpx[http2]>=0.28.1",
+    "oneiric>=0.3.6",
+    "pydantic>=2.11.7",
+    "psutil>=6.1.1",
+    "pyjwt>=2.10.1",
+    "cryptography>=45.0.6",
+    "typer>=0.15.1",
+    "rich>=13.9.4",
+    "mcp-common>=0.4.7",
+]
+
+[project.license]
+text = "BSD-3-CLAUSE"
+
+[project.scripts]
+excalidraw-mcp = "excalidraw_mcp.cli:app"
+
+[project.urls]
+Homepage = "https://github.com/lesleslie/excalidraw-mcp"
+Repository = "https://github.com/lesleslie/excalidraw-mcp"
+
+[tool.excalidraw-mcp]
+mcp_http_port = 3032
+mcp_http_host = "127.0.0.1"
+canvas_server_url = "http://localhost:3031"
+http_enabled = true
+
+[tool.hatch.build.targets.wheel]
+packages = [
+    "excalidraw_mcp",
+]
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+addopts = [
+    "-ra",
+    "--strict-markers",
+    "--strict-config",
+    "--cov=excalidraw_mcp",
+    "--cov-report=term-missing:skip-covered",
+    "--cov-report=html:htmlcov",
+    "--cov-report=xml",
+    "--cov-fail-under=85",
+    "--junitxml=pytest-results.xml",
+    "--tb=short",
+    "-p",
+    "no:warnings",
+]
+testpaths = [
+    "tests",
+]
+python_files = [
+    "test_*.py",
+]
+python_classes = [
+    "Test*",
+]
+python_functions = [
+    "test_*",
+]
+timeout = 300
+markers = [
+    "unit: Unit tests for individual components",
+    "integration: Integration tests between components",
+    "e2e: End-to-end tests with canvas server",
+    "slow: Slow tests (>1s)",
+    "security: Security-focused tests",
+    "performance: Performance and load tests",
+    "smoke: Quick smoke tests for basic functionality",
+    "regression: Regression tests for known issues",
+    "api: API endpoint tests",
+    "websocket: WebSocket communication tests",
+    "mcp: MCP protocol tests",
+    "canvas: Canvas server interaction tests",
+    "external: Tests requiring external services",
+    "benchmark: mark test as a benchmark",
+    "database: marks test as database test",
+    "no_leaks: detect asyncio task leaks",
+]
+filterwarnings = [
+    "error",
+    "ignore::UserWarning",
+    "ignore::DeprecationWarning",
+    "ignore::pytest.PytestUnraisableExceptionWarning",
+]
+
+[tool.ruff]
+target-version = "py313"
+line-length = 88
+fix = true
+unsafe-fixes = true
+show-fixes = true
+output-format = "full"
+
+[tool.ruff.format]
+docstring-code-format = true
+
+[tool.ruff.lint]
+extend-select = [
+    "C901",
+    "F",
+    "I",
+    "UP",
+]
+ignore = [
+    "E402",
+    "F821",
+]
+fixable = [
+    "ALL",
+]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 13
+
+[tool.pyright]
+verboseOutput = true
+include = [
+    "excalidraw_mcp",
+]
+exclude = [
+    "scratch",
+    ".venv",
+    "build",
+    "dist",
+    "tests/*",
+    "examples/*",
+    "excalidraw_mcp/mcp/*",
+    "excalidraw_mcp/plugins/*",
+]
+extraPaths = [
+    ".venv/lib/python3.13/site-packages/",
+]
+typeCheckingMode = "strict"
+reportMissingTypeStubs = false
+reportOptionalMemberAccess = "warning"
+reportOptionalCall = "warning"
+reportUnknownMemberType = "warning"
+reportUnknownVariableType = false
+reportUnknownArgumentType = "warning"
+reportInvalidTypeForm = "warning"
+reportUnknownLambdaType = "warning"
+reportUnknownParameterType = "warning"
+reportPrivateUsage = "warning"
+reportUnnecessaryTypeIgnoreComment = "warning"
+reportUnnecessaryComparison = "warning"
+reportConstantRedefinition = "warning"
+pythonVersion = "3.13"
+
+[tool.bandit]
+target = [
+    "excalidraw_mcp",
+]
+skips = [
+    "B101",
+    "B110",
+    "B112",
+    "B404",
+    "B603",
+    "B607",
+]
+exclude_dirs = [
+    "tests/data",
+]
+
+[tool.vulture]
+min_confidence = 86
+paths = [
+    "excalidraw_mcp",
+]
+ignore_names = [
+    "cls",
+]
+
+[tool.refurb]
+enable_all = true
+quiet = true
+python_version = "3.13"
+
+[tool.complexipy]
+default_pattern = "**/*.py"
+exclude_patterns = [
+    "**/tests/**",
+    "**/test_*.py",
+]
+max_complexity = 15
+
+[tool.codespell]
+skip = "*/data/*"
+quiet-level = 3
+ignore-words-list = "COo,sade"
+
+[tool.creosote]
+paths = [
+    "excalidraw_mcp",
+]
+deps-file = "pyproject.toml"
+exclude-deps = [
+    "hatchling",
+    "pre-commit",
+    "pytest",
+    "pytest-asyncio",
+    "pytest-cov",
+    "pytest-mock",
+    "pytest-xdist",
+    "pytest-benchmark",
+    "pyfiglet",
+    "pyyaml",
+    "uv",
+    "tomli-w",
+    "google-crc32c",
+    "pytest-timeout",
+    "keyring",
+    "inflection",
+    "pydantic",
+    "pydantic-settings",
+    "pyleak",
+    "bandit",
+    "vulture",
+    "pyright",
+    "creosote",
+    "refurb",
+    "complexipy",
+    "codespell",
+    "fastapi",
+    "fastmcp",
+    "uvicorn",
+    "websockets",
+    "watchdog",
+    "ruff",
+    "cryptography",
+    "pyjwt",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.4.1",
+    "pytest-asyncio>=1.1.0",
+    "pytest-cov>=6.2.1",
+    "pytest-mock>=3.14.1",
+    "respx>=0.22.0",
+    "session-buddy>=0.1.3",
+]

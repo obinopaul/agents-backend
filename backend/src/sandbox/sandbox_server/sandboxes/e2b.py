@@ -1,0 +1,504 @@
+import asyncio
+from datetime import datetime, timezone
+from functools import wraps
+import logging
+from typing import IO, AsyncIterator, Literal, Optional, TYPE_CHECKING
+
+from e2b import CommandResult
+from e2b_code_interpreter import AsyncSandbox
+from e2b.sandbox_async.sandbox_api import SandboxQuery
+from backend.src.sandbox.sandbox_server.config import SandboxConfig
+from backend.src.sandbox.sandbox_server.sandboxes.base import BaseSandbox
+from backend.src.sandbox.sandbox_server.models.exceptions import (
+    SandboxAuthenticationError,
+    SandboxNotFoundException,
+    SandboxTimeoutException,
+    SandboxNotInitializedError,
+    SandboxGeneralException,
+)
+from e2b.exceptions import NotFoundException, AuthenticationException, TimeoutException
+
+if TYPE_CHECKING:
+    from backend.src.sandbox.sandbox_server.lifecycle.queue import SandboxQueueScheduler
+
+logger = logging.getLogger(__name__)
+
+TIMEOUT_AFTER_PAUSE_SECONDS = 600
+DEFAULT_TIMEOUT = 3600
+
+
+def e2b_exception_handler(func):
+    @wraps(func)
+    async def wrapper(*args, **kwargs):
+        try:
+            return await func(*args, **kwargs)
+        except NotFoundException:
+            raise SandboxNotFoundException(args[0])
+        except AuthenticationException as e:
+            raise SandboxAuthenticationError(e.args[0])
+        except TimeoutException:
+            raise SandboxTimeoutException(args[0], func.__name__)
+        except Exception as e:
+            raise SandboxGeneralException(
+                f"Failed to {func.__name__} for sandbox {args[0]}: {e}"
+            )
+
+    return wrapper
+
+
+class E2BSandbox(BaseSandbox):
+    """E2B sandbox provider for managing remote code execution environments."""
+
+    def __init__(
+        self,
+        sandbox: AsyncSandbox,
+        sandbox_id: str,
+        queue: Optional["SandboxQueueScheduler"],
+    ):
+        super().__init__()
+        self._sandbox = sandbox
+        self._sandbox_id = sandbox_id
+        self._queue = queue
+
+    def _ensure_sandbox(self):
+        if not self._sandbox and not self._sandbox_id:
+            raise SandboxNotInitializedError(
+                f"Sandbox not initialized: {self._sandbox_id}"
+            )
+
+    @property
+    def provider_sandbox_id(self):
+        self._ensure_sandbox()
+        return self._sandbox.sandbox_id
+
+    @property
+    def sandbox_id(self):
+        return self._sandbox_id
+
+    @classmethod
+    def _ensure_credentials(cls, config: SandboxConfig):
+        if not config.e2b_api_key or not config.e2b_template_id:
+            raise SandboxAuthenticationError("E2B API key and template ID are required")
+
+    @classmethod
+    @e2b_exception_handler
+    async def create(
+        cls,
+        config: SandboxConfig,
+        queue: Optional["SandboxQueueScheduler"],
+        sandbox_id: str,
+        metadata: Optional[dict] = None,
+        sandbox_template_id: Optional[str] = None,
+    ):
+        cls._ensure_credentials(config)
+        
+        # Build environment variables to pass to the sandbox
+        # NOTE: These env vars are NOT available to start_cmd (it runs before they're injected)
+        # but they WILL be available to subsequent sandbox.commands.run() calls
+        sandbox_envs = {}
+        if config.openai_api_key:
+            sandbox_envs["OPENAI_API_KEY"] = config.openai_api_key
+        if config.anthropic_api_key:
+            sandbox_envs["ANTHROPIC_API_KEY"] = config.anthropic_api_key
+        if config.google_api_key:
+            sandbox_envs["GOOGLE_API_KEY"] = config.google_api_key
+        if config.voyage_api_key:
+            sandbox_envs["VOYAGE_API_KEY"] = config.voyage_api_key
+        
+        sandbox = await AsyncSandbox.create(
+            sandbox_template_id if sandbox_template_id else config.e2b_template_id,
+            api_key=config.e2b_api_key,
+            metadata=metadata,
+            envs=sandbox_envs if sandbox_envs else None,
+        )
+        instance = cls(
+            sandbox,
+            sandbox_id=sandbox_id,
+            queue=queue,
+        )
+        await instance._set_timeout(
+            config.timeout_seconds, config.pause_before_timeout_seconds
+        )
+        
+        # Services are started by E2B's start_cmd, but OPENAI_API_KEY isn't available yet
+        # because start_cmd runs BEFORE runtime envs are injected.
+        # We need to inject the API key and restart Graphiti after sandbox creation.
+        if config.openai_api_key or config.anthropic_api_key or config.google_api_key:
+            # Prepare credentials dict
+            credentials = {
+                "openai": config.openai_api_key,
+                "anthropic": config.anthropic_api_key,
+                "gemini": config.google_api_key,
+                "voyage": config.voyage_api_key,
+            }
+            asyncio.create_task(
+                cls._inject_api_key_and_restart_graphiti(sandbox, credentials, sandbox_id)
+            )
+        
+        logger.info(f"Sandbox {sandbox_id} created successfully (API key injection initiated in background)")
+        
+        return instance
+    
+    @classmethod
+    async def _inject_api_key_and_restart_graphiti(
+        cls,
+        sandbox: AsyncSandbox,
+        credentials: dict, 
+        sandbox_id: str,
+    ):
+        """
+        Inject provider API keys into running Graphiti service via API.
+        
+        This replaces the old hacky method of writing to /tmp/sandbox_env and restarting the process.
+        Uses the new /credential endpoint on the Graphiti MCP server.
+        """
+        import json
+        
+        try:
+            logger.info(f"[{sandbox_id}] Injecting credentials ({list(credentials.keys())}) to Graphiti via API...")
+            
+            # Prepare secure payload - map to what Graphiti endpoint expects
+            # The endpoint expects keys like "user_api_key" (legacy) or provider-specific keys
+            # We will send a rich payload that the updated endpoint can parse
+            payload_dict = {
+                "credentials": credentials
+            }
+            
+            # For backward compatibility if needed, set user_api_key to OpenAI key
+            if credentials.get("openai"):
+                payload_dict["user_api_key"] = credentials["openai"]
+            elif credentials.get("anthropic"):
+                 payload_dict["user_api_key"] = credentials["anthropic"]
+            elif credentials.get("gemini"):
+                 payload_dict["user_api_key"] = credentials["gemini"]
+            
+            # Prepare secure payload
+            payload = json.dumps(payload_dict)
+            # Escape for bash usage: replace single quotes with '\''
+            payload_bash = payload.replace("'", "'\\''")
+            
+            # Curl command: silent (-s), fail on error (-f), POST, JSON body
+            # We target localhost:8500 where Graphiti runs
+            cmd = f"curl -s -f -X POST http://localhost:8500/credential -H 'Content-Type: application/json' -d '{payload_bash}'"
+            
+            # Retry loop to wait for service startup (up to 60s)
+            max_retries = 30
+            for i in range(max_retries):
+                # Use sh to avoid complex escaping issues, just run the curl
+                result = await sandbox.commands.run(
+                    "bash",
+                    args=["-c", cmd],
+                    timeout=5,
+                    background=False
+                )
+                
+                if result.exit_code == 0:
+                    logger.info(f"[{sandbox_id}] Successfully injected credentials to Graphiti API")
+                    return
+                
+                if i % 5 == 0:
+                    logger.info(f"[{sandbox_id}] Waiting for Graphiti API (attempt {i+1}/{max_retries})...")
+                
+                await asyncio.sleep(2)
+            
+            logger.error(f"[{sandbox_id}] Failed to inject API key: Graphiti API unreachable after {max_retries*2}s")
+            # Log the last error output for debugging
+            if result.stderr or result.stdout:
+                logger.error(f"[{sandbox_id}] Curl output: {result.stderr or result.stdout}")
+
+        except Exception as e:
+            logger.error(f"[{sandbox_id}] Background API key injection failed: {e}")
+
+    @classmethod
+    async def resume(
+        cls,
+        provider_sandbox_id: str,
+        config: SandboxConfig,
+        queue: Optional["SandboxQueueScheduler"],
+        sandbox_id: str,
+    ):
+        cls._ensure_credentials(config)
+        sandbox = await AsyncSandbox.resume(
+            provider_sandbox_id,
+            api_key=config.e2b_api_key,
+        )
+        instance = cls(
+            sandbox,
+            sandbox_id=sandbox_id,
+            queue=queue,
+        )
+        await instance._set_timeout(config.timeout_seconds)
+        return instance
+
+    @classmethod
+    @e2b_exception_handler
+    async def delete(
+        cls,
+        provider_sandbox_id: str,
+        config: SandboxConfig,
+        queue: Optional["SandboxQueueScheduler"],
+        sandbox_id: str,
+    ):
+        """Delete a sandbox instance."""
+        cls._ensure_credentials(config)
+        if await cls.is_paused(config, sandbox_id):
+            logger.info(f"Resuming sandbox {sandbox_id} for deletion")
+            sandbox = await AsyncSandbox.resume(
+                provider_sandbox_id, api_key=config.e2b_api_key
+            )
+        else:
+            sandbox = await AsyncSandbox.connect(
+                provider_sandbox_id, api_key=config.e2b_api_key
+            )
+        await sandbox.kill()
+        if queue:
+            await queue.cancel_message(sandbox_id)
+
+    @classmethod
+    @e2b_exception_handler
+    async def stop(
+        cls,
+        provider_sandbox_id: str,
+        config: SandboxConfig,
+        queue: Optional["SandboxQueueScheduler"],
+        sandbox_id: str,
+    ):
+        cls._ensure_credentials(config)
+        if not await cls.is_paused(config, sandbox_id):
+            sandbox = await AsyncSandbox.connect(
+                provider_sandbox_id, api_key=config.e2b_api_key
+            )
+            await sandbox.pause()
+            if queue:
+                await queue.cancel_message(sandbox_id)
+        else:
+            logger.info(f"Sandbox {sandbox_id} is already paused, skipping pause")
+
+    @classmethod
+    @e2b_exception_handler
+    async def schedule_timeout(
+        cls,
+        provider_sandbox_id: str,
+        sandbox_id: str,
+        config: SandboxConfig,
+        queue: Optional["SandboxQueueScheduler"],
+        timeout_seconds: int,
+    ):
+        cls._ensure_credentials(config)
+        if not await cls.is_paused(config, sandbox_id):
+            sandbox = cls(
+                await AsyncSandbox.connect(
+                    provider_sandbox_id, api_key=config.e2b_api_key
+                ),
+                sandbox_id=sandbox_id,
+                queue=queue,
+            )
+            await sandbox._set_timeout(timeout_seconds)
+        else:
+            logger.info(
+                f"Sandbox {sandbox_id} is already paused, skipping timeout scheduling"
+            )
+
+    @classmethod
+    @e2b_exception_handler
+    async def connect(
+        cls,
+        provider_sandbox_id: str,
+        config: SandboxConfig,
+        queue: Optional["SandboxQueueScheduler"],
+        sandbox_id: str,
+    ) -> "E2BSandbox":
+        """Connect to an existing sandbox instance.
+
+        Returns:
+            Sandbox instance
+        """
+        cls._ensure_credentials(config)
+        sandbox = cls(
+            await AsyncSandbox.connect(
+                provider_sandbox_id,
+                api_key=config.e2b_api_key,
+            ),
+            sandbox_id=sandbox_id,
+            queue=queue,
+        )
+        await sandbox._set_timeout(config.timeout_seconds)
+        return sandbox
+
+    @e2b_exception_handler
+    async def _set_timeout(
+        self,
+        timeout: int = DEFAULT_TIMEOUT,
+        pause_before_timeout: int = TIMEOUT_AFTER_PAUSE_SECONDS,
+    ):
+        # Actual timeout and delete the sandbox
+        await self._sandbox.set_timeout(timeout + pause_before_timeout)
+
+        # Schedule timeout with queue if available
+        if self._queue and self._sandbox_id:
+            # PAUSE BEFORE TIMEOUT WITH QUEUE
+            await self._queue.schedule_message(
+                sandbox_id=self._sandbox_id,
+                action="pause",
+                delay_seconds=timeout,
+                metadata={
+                    "reason": "idle",
+                    "created_at": datetime.now(timezone.utc).isoformat(),
+                },
+            )
+            logger.info(
+                f"Scheduled timeout for sandbox {self._sandbox_id} in {timeout // 60} minutes"
+            )
+
+    async def get_host(self) -> str:
+        self._ensure_sandbox()
+        return f"{self.provider_sandbox_id}.{self._sandbox.connection_config.domain}"
+
+    async def expose_port(self, port: int) -> str:
+        self._ensure_sandbox()
+        return f"https://{self._sandbox.get_host(port)}"
+
+    @e2b_exception_handler
+    async def read_file(self, file_path: str) -> str:
+        """Read a file from the sandbox.
+
+        Args:
+            file_path: Path to the file in the sandbox
+
+        Returns:
+            File content as string
+        """
+        self._ensure_sandbox()
+        return await self._sandbox.files.read(file_path, format="text")
+
+    @e2b_exception_handler
+    async def write_file(self, file_content: str | bytes | IO, file_path: str):
+        """Write content to a file in the sandbox.
+
+        Args:
+            file_content: Content to write
+            file_path: Path to the file in the sandbox
+
+        Returns:
+            True if written successfully
+        """
+        self._ensure_sandbox()
+        await self._sandbox.files.write(file_path, file_content)
+        return True
+
+    @e2b_exception_handler
+    async def upload_file(
+        self, file_content: str | bytes | IO, remote_file_path: str
+    ) -> bool:
+        """Upload a file to the sandbox.
+
+        Args:
+            file_content: Content of the file
+            remote_file_path: Path to the file in the sandbox
+
+        Returns:
+            True if uploaded successfully
+        """
+        self._ensure_sandbox()
+        if await self._sandbox.files.exists(remote_file_path):
+            logger.error(f"File {remote_file_path} already exists")
+            return False
+        await self._sandbox.files.write(remote_file_path, file_content)
+        return True
+
+    @e2b_exception_handler
+    async def delete_file(self, file_path: str) -> bool:
+        """Delete a file from the sandbox.
+
+        Args:
+            file_path: Path to the file in the sandbox
+
+        Returns:
+            True if deleted successfully
+        """
+        self._ensure_sandbox()
+        await self._sandbox.files.remove(file_path)
+        return True
+
+    @e2b_exception_handler
+    async def download_file(
+        self, remote_file_path: str, format: Literal["text", "bytes"] = "text"
+    ) -> Optional[str | bytes | AsyncIterator[bytes]]:
+        """Download a file from the sandbox.
+
+        Args:
+            remote_file_path: Path to the file in the sandbox
+            format: Format of the file content ("text", "bytes", or "stream")
+
+        Returns:
+            File content as string, bytes, or iterator of bytes
+        """
+        self._ensure_sandbox()
+        content = await self._sandbox.files.read(path=remote_file_path, format=format)
+        if isinstance(content, bytes):
+            return content
+        elif isinstance(content, bytearray):
+            return bytes(content)
+        elif isinstance(content, str):
+            return content.encode('utf-8')
+        else:
+            raise ValueError(f"Unsupported file content type: {type(content)}")
+
+    async def download_file_stream(self, remote_file_path: str) -> AsyncIterator[bytes]:
+        """Download a file from the sandbox."""
+        self._ensure_sandbox()
+        return await self._sandbox.files.read(path=remote_file_path, format="stream")
+
+    @e2b_exception_handler
+    async def run_cmd(self, command: str, background: bool = False) -> str:
+        """Run a command in the sandbox.
+        """
+        self._ensure_sandbox()
+        result = await self._sandbox.commands.run(command, background=background)
+        if not isinstance(result, CommandResult):   
+            raise Exception(f"Command {command} failed: {result.error}")
+        if result.exit_code != 0:
+            raise Exception(f"Command {command} failed: {result.error}")
+        return result.stdout
+
+    @e2b_exception_handler
+    async def cancel_timeout(self):
+        """Cancel any scheduled timeout for this sandbox."""
+        if self._queue and self._sandbox_id:
+            await self._queue.cancel_message(self._sandbox_id)
+
+    @e2b_exception_handler
+    async def create_directory(
+        self, directory_path: str, exist_ok: bool = False
+    ) -> bool:
+        """Create a directory in the sandbox.
+
+        Args:
+            directory_path: Path to the directory in the sandbox
+
+        Returns:
+            True if created successfully
+        """
+        self._ensure_sandbox()
+        exist = await self._sandbox.files.make_dir(directory_path)
+        if not exist and not exist_ok:
+            raise Exception(f"Directory {directory_path} already exists")
+        return True
+
+    @classmethod
+    async def is_paused(cls, config: SandboxConfig, sandbox_id: str) -> bool:
+        """Check if a sandbox is paused.
+        
+        Uses database status instead of E2B API to avoid SDK version issues
+        with SandboxState enum types.
+        """
+        from backend.src.sandbox.sandbox_server.db.manager import Sandboxes
+        
+        try:
+            sandbox_data = await Sandboxes.get_sandbox_by_id(sandbox_id)
+            if sandbox_data:
+                return str(sandbox_data.status) == "paused"
+            return False
+        except Exception as e:
+            logger.warning(f"Could not check pause status for {sandbox_id}: {e}")
+            return False

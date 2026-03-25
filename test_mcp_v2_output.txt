@@ -1,0 +1,81 @@
+============================================================
+TEST 1: List tools
+============================================================
+  + Exception Group Traceback (most recent call last):
+  |   File "C:\Users\pault\Documents\3. AI and Machine Learning\2. Deep Learning\1c. App\Projects\agents-backend\test_mcp_v2.py", line 179, in <module>
+  |     asyncio.run(main())
+  |     ~~~~~~~~~~~^^^^^^^^
+  |   File "C:\Python313\Lib\asyncio\runners.py", line 195, in run
+  |     return runner.run(main)
+  |            ~~~~~~~~~~^^^^^^
+  |   File "C:\Python313\Lib\asyncio\runners.py", line 118, in run
+  |     return self._loop.run_until_complete(task)
+  |            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  |   File "C:\Python313\Lib\asyncio\base_events.py", line 725, in run_until_complete
+  |     return future.result()
+  |            ~~~~~~~~~~~~~^^
+  |   File "C:\Users\pault\Documents\3. AI and Machine Learning\2. Deep Learning\1c. App\Projects\agents-backend\test_mcp_v2.py", line 22, in main
+  |     tools = await client.get_tools()
+  |             ^^^^^^^^^^^^^^^^^^^^^^^^
+  |   File "C:\Users\pault\AppData\Roaming\Python\Python313\site-packages\langchain_mcp_adapters\client.py", line 197, in get_tools
+  |     tools_list = await asyncio.gather(*load_mcp_tool_tasks)
+  |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |   File "C:\Users\pault\AppData\Roaming\Python\Python313\site-packages\langchain_mcp_adapters\tools.py", line 478, in load_mcp_tools
+  |     async with create_session(
+  |                ~~~~~~~~~~~~~~^
+  |         connection, mcp_callbacks=mcp_callbacks
+  |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |     ) as tool_session:
+  |     ^
+  |   File "C:\Python313\Lib\contextlib.py", line 235, in __aexit__
+  |     await self.gen.athrow(value)
+  |   File "C:\Users\pault\AppData\Roaming\Python\Python313\site-packages\langchain_mcp_adapters\sessions.py", line 410, in create_session
+  |     async with _create_streamable_http_session(**params) as session:
+  |                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  |   File "C:\Python313\Lib\contextlib.py", line 235, in __aexit__
+  |     await self.gen.athrow(value)
+  |   File "C:\Users\pault\AppData\Roaming\Python\Python313\site-packages\langchain_mcp_adapters\sessions.py", line 311, in _create_streamable_http_session
+  |     streamablehttp_client(
+  |     ~~~~~~~~~~~~~~~~~~~~~^
+  |         url,
+  |         ^^^^
+  |     ...<5 lines>...
+  |         **kwargs,
+  |         ^^^^^^^^^
+  |     ) as (read, write, _),
+  |     ^
+  |   File "C:\Python313\Lib\contextlib.py", line 235, in __aexit__
+  |     await self.gen.athrow(value)
+  |   File "C:\Users\pault\AppData\Roaming\Python\Python313\site-packages\mcp\client\streamable_http.py", line 717, in streamablehttp_client
+  |     async with streamable_http_client(
+  |                ~~~~~~~~~~~~~~~~~~~~~~^
+  |         url,
+  |         ^^^^
+  |         http_client=client,
+  |         ^^^^^^^^^^^^^^^^^^^
+  |         terminate_on_close=terminate_on_close,
+  |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |     ) as streams:
+  |     ^
+  |   File "C:\Python313\Lib\contextlib.py", line 235, in __aexit__
+  |     await self.gen.athrow(value)
+  |   File "C:\Users\pault\AppData\Roaming\Python\Python313\site-packages\mcp\client\streamable_http.py", line 647, in streamable_http_client
+  |     async with anyio.create_task_group() as tg:
+  |                ~~~~~~~~~~~~~~~~~~~~~~~^^
+  |   File "C:\Users\pault\AppData\Roaming\Python\Python313\site-packages\anyio\_backends\_asyncio.py", line 783, in __aexit__
+  |     raise BaseExceptionGroup(
+  |         "unhandled errors in a TaskGroup", self._exceptions
+  |     ) from None
+  | ExceptionGroup: unhandled errors in a TaskGroup (1 sub-exception)
+  +-+---------------- 1 ----------------
+    | Traceback (most recent call last):
+    |   File "C:\Users\pault\AppData\Roaming\Python\Python313\site-packages\mcp\client\streamable_http.py", line 565, in handle_request_async
+    |     await self._handle_post_request(ctx)
+    |   File "C:\Users\pault\AppData\Roaming\Python\Python313\site-packages\mcp\client\streamable_http.py", line 358, in _handle_post_request
+    |     response.raise_for_status()
+    |     ~~~~~~~~~~~~~~~~~~~~~~~~~^^
+    |   File "C:\Users\pault\AppData\Roaming\Python\Python313\site-packages\httpx\_models.py", line 829, in raise_for_status
+    |     raise HTTPStatusError(message, request=request, response=self)
+    | httpx.HTTPStatusError: Server error '502 Bad Gateway' for url 'https://6060-i7uz83d71717vspt3j292.e2b.app/mcp'
+    | For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/502
+    +------------------------------------

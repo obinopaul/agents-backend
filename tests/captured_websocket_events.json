@@ -1,0 +1,50 @@
+{
+  "description": "Events captured from IIAgentWebSocketAdapter.process_event() pipeline",
+  "total_sse_events_fed": 8,
+  "total_websocket_events_emitted": 2,
+  "websocket_events": [
+    {
+      "type": "tool_call",
+      "content": {
+        "tool_call_id": "019c38bb-bda4-7e02-a9f7-18c2129a0c35",
+        "tool_name": "web_search",
+        "tool_display_name": "Searching Web",
+        "tool_input": {
+          "query": "Python 3.13 new features"
+        },
+        "run_id": "run-test-001"
+      },
+      "run_id": "run-test-001"
+    },
+    {
+      "type": "tool_result",
+      "content": {
+        "tool_call_id": "019c38bb-bda4-7e02-a9f7-18c2129a0c35",
+        "tool_name": "web_search",
+        "tool_display_name": "Searching Web",
+        "result": "[{\"type\": \"page\", \"url\": \"https://docs.python.org/3.13/whatsnew/3.13.html\", \"title\": \"What's New In Python 3.13\", \"content\": \"Python 3.13 introduces several new features including...\", \"score\": 0.95}, {\"type\": \"page\", \"url\": \"https://realpython.com/python313-new-features/\", \"title\": \"Python 3.13: Cool New Features\", \"content\": \"The latest version of Python brings exciting improvements...\", \"score\": 0.88}]",
+        "is_error": false,
+        "run_id": "run-test-001"
+      },
+      "run_id": "run-test-001"
+    }
+  ],
+  "final_message_state": [
+    {
+      "action": {
+        "type": "web_search",
+        "data": {
+          "tool_call_id": "019c38bb-bda4-7e02-a9f7-18c2129a0c35",
+          "tool_name": "web_search",
+          "tool_display_name": "Searching Web",
+          "tool_input": {
+            "query": "Python 3.13 new features"
+          },
+          "run_id": "run-test-001",
+          "result": "[{\"type\": \"page\", \"url\": \"https://docs.python.org/3.13/whatsnew/3.13.html\", \"title\": \"What's New In Python 3.13\", \"content\": \"Python 3.13 introduces several new features including...\", \"score\": 0.95}, {\"type\": \"page\", \"url\": \"https://realpython.com/python313-new-features/\", \"title\": \"Python 3.13: Cool New Features\", \"content\": \"The latest version of Python brings exciting improvements...\", \"score\": 0.88}]",
+          "isResult": true
+        }
+      }
+    }
+  ]
+}

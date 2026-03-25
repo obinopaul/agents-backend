@@ -1,0 +1,12 @@
+.env
+**/node_modules
+excel_agent.egg-info
+**/__pycache__
+.logfire/
+.cursor/
+.qodo/
+.DS_Store
+.ruff_cache/
+.pytest_cache/
+
+eval_outputs/

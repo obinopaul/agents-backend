@@ -1,0 +1,130 @@
+[*] Waiting 300 seconds for agents_backend_postgres:5432
+INFO  [alembic.runtime.migration] Context impl PostgresqlImpl.
+[+] agents_backend_postgres:5432 is available after 0 seconds
+[*] Waiting 300 seconds for agents_backend_redis:6379
+[+] agents_backend_redis:6379 is available after 0 seconds
+INFO  [alembic.runtime.migration] Will assume transactional DDL.
+2026-01-28 14:21:05,655 INFO Included extra file "/etc/supervisor/conf.d/agents_backend_server.conf" during parsing
+2026-01-28 14:21:05,655 INFO Set uid to user 0 succeeded
+2026-01-28 14:21:05,659 INFO RPC interface 'supervisor' initialized
+2026-01-28 14:21:05,659 CRIT Server 'unix_http_server' running without any HTTP authentication checking
+2026-01-28 14:21:05,660 INFO supervisord started with pid 16
+2026-01-28 14:21:06,664 INFO spawned: 'agents_backend_server' with pid 17
+2026-01-28 14:21:07,903 INFO success: agents_backend_server entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2026-01-28 14:21:38,216 WARN exited: agents_backend_server (exit status 1; not expected)
+2026-01-28 14:21:39,220 INFO spawned: 'agents_backend_server' with pid 46
+2026-01-28 14:21:40,376 INFO success: agents_backend_server entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2026-01-28 14:21:56,392 WARN exited: agents_backend_server (exit status 1; not expected)
+2026-01-28 14:21:57,396 INFO spawned: 'agents_backend_server' with pid 67
+2026-01-28 14:21:58,593 INFO success: agents_backend_server entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2026-01-28 14:22:12,973 WARN exited: agents_backend_server (exit status 1; not expected)
+2026-01-28 14:22:13,977 INFO spawned: 'agents_backend_server' with pid 88
+2026-01-28 14:22:15,139 INFO success: agents_backend_server entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2026-01-28 14:22:29,235 WARN exited: agents_backend_server (exit status 1; not expected)
+2026-01-28 14:22:30,238 INFO spawned: 'agents_backend_server' with pid 109
+2026-01-28 14:22:31,414 INFO success: agents_backend_server entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2026-01-28 14:22:46,762 WARN exited: agents_backend_server (exit status 1; not expected)
+2026-01-28 14:22:47,765 INFO spawned: 'agents_backend_server' with pid 130
+2026-01-28 14:22:48,930 INFO success: agents_backend_server entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2026-01-28 14:23:03,800 WARN exited: agents_backend_server (exit status 1; not expected)
+2026-01-28 14:23:04,803 INFO spawned: 'agents_backend_server' with pid 151
+2026-01-28 14:23:05,972 INFO success: agents_backend_server entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2026-01-28 14:23:20,287 WARN exited: agents_backend_server (exit status 1; not expected)
+2026-01-28 14:23:21,291 INFO spawned: 'agents_backend_server' with pid 172
+2026-01-28 14:23:22,468 INFO success: agents_backend_server entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2026-01-28 14:23:37,067 WARN exited: agents_backend_server (exit status 1; not expected)
+2026-01-28 14:23:38,071 INFO spawned: 'agents_backend_server' with pid 193
+2026-01-28 14:23:39,308 INFO success: agents_backend_server entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2026-01-28 14:24:00,314 WARN exited: agents_backend_server (exit status 1; not expected)
+2026-01-28 14:24:01,318 INFO spawned: 'agents_backend_server' with pid 214
+2026-01-28 14:24:02,494 INFO success: agents_backend_server entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2026-01-28 14:24:19,604 WARN exited: agents_backend_server (exit status 1; not expected)
+2026-01-28 14:24:20,607 INFO spawned: 'agents_backend_server' with pid 235
+2026-01-28 14:24:21,790 INFO success: agents_backend_server entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2026-01-28 14:24:39,499 WARN exited: agents_backend_server (exit status 1; not expected)
+2026-01-28 14:24:40,502 INFO spawned: 'agents_backend_server' with pid 256
+2026-01-28 14:24:41,664 INFO success: agents_backend_server entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2026-01-28 14:25:00,722 WARN exited: agents_backend_server (exit status 1; not expected)
+2026-01-28 14:25:01,726 INFO spawned: 'agents_backend_server' with pid 277
+2026-01-28 14:25:02,899 INFO success: agents_backend_server entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2026-01-28 14:25:18,267 WARN exited: agents_backend_server (exit status 1; not expected)
+2026-01-28 14:25:19,271 INFO spawned: 'agents_backend_server' with pid 298
+2026-01-28 14:25:20,440 INFO success: agents_backend_server entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2026-01-28 14:25:36,492 WARN exited: agents_backend_server (exit status 1; not expected)
+2026-01-28 14:25:37,496 INFO spawned: 'agents_backend_server' with pid 319
+2026-01-28 14:25:38,681 INFO success: agents_backend_server entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2026-01-28 14:25:55,671 WARN exited: agents_backend_server (exit status 1; not expected)
+2026-01-28 14:25:56,675 INFO spawned: 'agents_backend_server' with pid 340
+2026-01-28 14:25:57,862 INFO success: agents_backend_server entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2026-01-28 14:26:12,986 WARN exited: agents_backend_server (exit status 1; not expected)
+2026-01-28 14:26:13,989 INFO spawned: 'agents_backend_server' with pid 361
+2026-01-28 14:26:15,133 INFO success: agents_backend_server entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2026-01-28 14:26:29,629 WARN exited: agents_backend_server (exit status 1; not expected)
+2026-01-28 14:26:30,633 INFO spawned: 'agents_backend_server' with pid 382
+2026-01-28 14:26:31,801 INFO success: agents_backend_server entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2026-01-28 14:26:47,301 WARN exited: agents_backend_server (exit status 1; not expected)
+2026-01-28 14:26:48,305 INFO spawned: 'agents_backend_server' with pid 403
+2026-01-28 14:26:49,538 INFO success: agents_backend_server entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2026-01-28 14:27:05,049 WARN exited: agents_backend_server (exit status 1; not expected)
+2026-01-28 14:27:06,052 INFO spawned: 'agents_backend_server' with pid 424
+2026-01-28 14:27:07,226 INFO success: agents_backend_server entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2026-01-28 14:27:22,348 WARN exited: agents_backend_server (exit status 1; not expected)
+2026-01-28 14:27:23,352 INFO spawned: 'agents_backend_server' with pid 445
+2026-01-28 14:27:24,520 INFO success: agents_backend_server entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2026-01-28 14:27:40,552 WARN exited: agents_backend_server (exit status 1; not expected)
+2026-01-28 14:27:41,555 INFO spawned: 'agents_backend_server' with pid 466
+2026-01-28 14:27:42,702 INFO success: agents_backend_server entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2026-01-28 14:27:59,585 WARN exited: agents_backend_server (exit status 1; not expected)
+2026-01-28 14:28:00,589 INFO spawned: 'agents_backend_server' with pid 487
+2026-01-28 14:28:01,815 INFO success: agents_backend_server entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2026-01-28 14:28:17,636 WARN exited: agents_backend_server (exit status 1; not expected)
+2026-01-28 14:28:18,639 INFO spawned: 'agents_backend_server' with pid 508
+2026-01-28 14:28:19,808 INFO success: agents_backend_server entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2026-01-28 14:28:34,796 WARN exited: agents_backend_server (exit status 1; not expected)
+2026-01-28 14:28:35,800 INFO spawned: 'agents_backend_server' with pid 529
+2026-01-28 14:28:36,957 INFO success: agents_backend_server entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2026-01-28 14:28:53,690 WARN exited: agents_backend_server (exit status 1; not expected)
+2026-01-28 14:28:54,694 INFO spawned: 'agents_backend_server' with pid 550
+2026-01-28 14:28:55,840 INFO success: agents_backend_server entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2026-01-28 14:29:10,326 WARN exited: agents_backend_server (exit status 1; not expected)
+2026-01-28 14:29:11,330 INFO spawned: 'agents_backend_server' with pid 571
+2026-01-28 14:29:12,615 INFO success: agents_backend_server entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2026-01-28 14:29:28,088 WARN exited: agents_backend_server (exit status 1; not expected)
+2026-01-28 14:29:29,091 INFO spawned: 'agents_backend_server' with pid 592
+2026-01-28 14:29:30,246 INFO success: agents_backend_server entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2026-01-28 14:29:46,340 WARN exited: agents_backend_server (exit status 1; not expected)
+2026-01-28 14:29:47,343 INFO spawned: 'agents_backend_server' with pid 613
+2026-01-28 14:29:48,519 INFO success: agents_backend_server entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2026-01-28 14:30:03,924 WARN exited: agents_backend_server (exit status 1; not expected)
+2026-01-28 14:30:04,927 INFO spawned: 'agents_backend_server' with pid 634
+2026-01-28 14:30:06,116 INFO success: agents_backend_server entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2026-01-28 14:30:21,351 WARN exited: agents_backend_server (exit status 1; not expected)
+2026-01-28 14:30:22,355 INFO spawned: 'agents_backend_server' with pid 655
+2026-01-28 14:30:23,568 INFO success: agents_backend_server entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2026-01-28 14:30:38,843 WARN exited: agents_backend_server (exit status 1; not expected)
+2026-01-28 14:30:39,847 INFO spawned: 'agents_backend_server' with pid 676
+2026-01-28 14:30:41,014 INFO success: agents_backend_server entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2026-01-28 14:30:57,109 WARN exited: agents_backend_server (exit status 1; not expected)
+2026-01-28 14:30:58,113 INFO spawned: 'agents_backend_server' with pid 697
+2026-01-28 14:30:59,289 INFO success: agents_backend_server entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2026-01-28 14:31:14,857 WARN exited: agents_backend_server (exit status 1; not expected)
+2026-01-28 14:31:15,861 INFO spawned: 'agents_backend_server' with pid 724
+2026-01-28 14:31:17,057 INFO success: agents_backend_server entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2026-01-28 14:31:32,878 WARN exited: agents_backend_server (exit status 1; not expected)
+2026-01-28 14:31:33,881 INFO spawned: 'agents_backend_server' with pid 745
+2026-01-28 14:31:35,140 INFO success: agents_backend_server entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2026-01-28 14:31:51,142 WARN exited: agents_backend_server (exit status 1; not expected)
+2026-01-28 14:31:52,146 INFO spawned: 'agents_backend_server' with pid 772
+2026-01-28 14:31:53,301 INFO success: agents_backend_server entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2026-01-28 14:32:08,501 WARN exited: agents_backend_server (exit status 1; not expected)
+2026-01-28 14:32:09,505 INFO spawned: 'agents_backend_server' with pid 793
+2026-01-28 14:32:10,645 INFO success: agents_backend_server entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2026-01-28 14:32:26,705 WARN exited: agents_backend_server (exit status 1; not expected)
+2026-01-28 14:32:27,709 INFO spawned: 'agents_backend_server' with pid 821
+2026-01-28 14:32:28,866 INFO success: agents_backend_server entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2026-01-28 14:32:44,549 WARN exited: agents_backend_server (exit status 1; not expected)
+2026-01-28 14:32:45,552 INFO spawned: 'agents_backend_server' with pid 842
+2026-01-28 14:32:46,708 INFO success: agents_backend_server entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2026-01-28 14:33:01,985 WARN exited: agents_backend_server (exit status 1; not expected)
+2026-01-28 14:33:02,988 INFO spawned: 'agents_backend_server' with pid 863
+2026-01-28 14:33:04,143 INFO success: agents_backend_server entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)

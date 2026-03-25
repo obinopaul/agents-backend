@@ -1,0 +1,172 @@
+============================= test session starts =============================
+platform win32 -- Python 3.13.5, pytest-9.0.1, pluggy-1.6.0 -- C:\Users\pault\anaconda3\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\pault\Documents\3. AI and Machine Learning\2. Deep Learning\1c. App\Projects\agents-backend
+configfile: pyproject.toml
+plugins: anyio-4.12.0, Faker-25.0.0, langsmith-0.4.23, libtmux-0.53.0, asyncio-1.3.0, cov-7.0.0, django-4.5.2, mock-3.11.1, postgresql-7.0.2, sugar-1.1.1, xdist-3.3.1
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 1 item
+
+backend/tests/test_agent_asset_optimization.py::test_agent_stream_generator_uploads_large_tool_image FAILED [100%]
+
+================================== FAILURES ===================================
+____________ test_agent_stream_generator_uploads_large_tool_image _____________
+
+self = <AsyncMock name='process_and_stage_asset' id='2545205179936'>
+
+    def assert_called_once(self):
+        """assert that the mock was called only once.
+        """
+        if not self.call_count == 1:
+            msg = ("Expected '%s' to have been called once. Called %s times.%s"
+                   % (self._mock_name or 'mock',
+                      self.call_count,
+                      self._calls_repr()))
+>           raise AssertionError(msg)
+E           AssertionError: Expected 'process_and_stage_asset' to have been called once. Called 0 times.
+
+C:\Users\pault\anaconda3\Lib\unittest\mock.py:958: AssertionError
+
+During handling of the above exception, another exception occurred:
+
+    @pytest.mark.asyncio
+    async def test_agent_stream_generator_uploads_large_tool_image():
+        # Setup
+        thread_id = "test-thread-agent"
+        user_id = "test-user-agent"
+        module_name = "general"
+    
+        # Large base64 image mock
+        base64_data = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAAAAAA6fptVAAAACklEQVR4nGNiAAAABgDNjd8qAAAAAElFTkSuQmCC" # 1x1 pixel dot
+        mime_type = "image/png"
+    
+        # Mock Event from Graph
+        tool_output_list = [
+            {"type": "text", "text": "Here is the image:"},
+            {
+                "type": "image",
+                "source": {
+                    "type": "base64",
+                    "media_type": mime_type,
+                    "data": base64_data
+                }
+            }
+        ]
+    
+        mock_event = {
+            "event": "on_tool_end",
+            "name": "generate_image",
+            "run_id": "call_456",
+            "data": {
+                "output": tool_output_list,
+                "input": {"prompt": "draw a dot"}
+            }
+        }
+    
+        # Mocks
+        graph = MagicMock()
+        # Mock astream_events to yield the mock_event
+        async def event_generator(*args, **kwargs):
+            yield mock_event
+    
+        # Configure graph mocking
+        mock_compiled_graph = MagicMock()
+        mock_compiled_graph.astream_events = event_generator
+    
+        # Mock checkpointer manager context manager
+        mock_cm = AsyncMock()
+        mock_cm.__aenter__.return_value = mock_compiled_graph
+    
+        with patch("backend.src.graph.checkpointer.checkpointer_manager.get_graph_with_checkpointer", return_value=mock_cm), \
+             patch("backend.src.graph.checkpointer.checkpointer_manager.warm_up_connection", return_value=True), \
+             patch("backend.app.agent.api.v1.agent.process_and_stage_asset", new_callable=AsyncMock) as mock_upload, \
+             patch("backend.app.agent.api.v1.agent.create_sse_adapter") as mock_adapter_factory, \
+             patch("backend.app.agent.api.v1.agent.SessionSandboxManager") as MockSandboxManager:
+    
+            # Setup specific mocks
+            mock_upload.return_value = ("http://s3.fake/agent_image.png", None)
+    
+            sandbox_manager = MockSandboxManager.return_value
+            sandbox_manager.get_sandbox = AsyncMock(return_value=(MagicMock(sandbox_id="sandbox_1"), True))
+    
+            mock_adapter = MagicMock()
+            mock_adapter_factory.return_value = mock_adapter
+            mock_adapter.session_event.return_value = "event: session\ndata: {}\n\n"
+            mock_adapter.status_update.return_value = "event: status\ndata: {}\n\n"
+            # We care about tool_result
+            mock_adapter.tool_result = MagicMock(return_value="event: tool_result_adapter\n\n")
+    
+            # Execute generator
+            events = []
+            async for event in _agent_stream_generator(
+                graph=graph,
+                module_name=module_name,
+                messages=[],
+                thread_id=thread_id,
+                sandbox_manager=sandbox_manager,
+                resources=[],
+                max_plan_iterations=1,
+                max_step_num=1,
+                max_search_results=1,
+                auto_accepted_plan=True,
+                interrupt_feedback=None,
+                enable_background_investigation=False,
+                enable_web_search=False,
+                locale="en-US",
+                db_session=AsyncMock(), # Mock DB
+                user_api_key="token",
+                user_id=user_id
+            ):
+                events.append(event)
+    
+            # Verify Upload
+>           mock_upload.assert_called_once()
+E           AssertionError: Expected 'process_and_stage_asset' to have been called once. Called 0 times.
+
+backend\tests\test_agent_asset_optimization.py:101: AssertionError
+---------------------------- Captured stdout call -----------------------------
+DEBUG: _agent_stream_generator STARTED (thread_id=test-thread-agent, module=general)
+------------------------------ Captured log call ------------------------------
+ERROR    backend.app.agent.api.v1.agent:agent.py:1306 Agent stream error: object MagicMock can't be used in 'await' expression
+Traceback (most recent call last):
+  File "C:\Users\pault\Documents\3. AI and Machine Learning\2. Deep Learning\1c. App\Projects\agents-backend\backend\app\agent\api\v1\agent.py", line 646, in _agent_stream_generator
+    mcp_url = await sandbox.expose_port(settings.SANDBOX_MCP_SERVER_PORT)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: object MagicMock can't be used in 'await' expression
+============================== warnings summary ===============================
+..\..\..\..\..\..\AppData\Roaming\Python\Python313\site-packages\pydantic\_internal\_generate_schema.py:319: 24 warnings
+  C:\Users\pault\AppData\Roaming\Python\Python313\site-packages\pydantic\_internal\_generate_schema.py:319: PydanticDeprecatedSince20: `json_encoders` is deprecated. See https://docs.pydantic.dev/2.12/concepts/serialization/#custom-serializers for alternatives. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    warnings.warn(
+
+..\..\..\..\..\..\AppData\Roaming\Python\Python313\site-packages\langchain_tavily\tavily_research.py:97
+  C:\Users\pault\AppData\Roaming\Python\Python313\site-packages\langchain_tavily\tavily_research.py:97: UserWarning: Field name "output_schema" in "TavilyResearch" shadows an attribute in parent "BaseTool"
+    class TavilyResearch(BaseTool):  # type: ignore[override, override]
+
+..\..\..\..\..\..\AppData\Roaming\Python\Python313\site-packages\langchain_tavily\tavily_research.py:97
+  C:\Users\pault\AppData\Roaming\Python\Python313\site-packages\langchain_tavily\tavily_research.py:97: UserWarning: Field name "stream" in "TavilyResearch" shadows an attribute in parent "BaseTool"
+    class TavilyResearch(BaseTool):  # type: ignore[override, override]
+
+backend\app\agent\model\chat_event.py:63
+  C:\Users\pault\Documents\3. AI and Machine Learning\2. Deep Learning\1c. App\Projects\agents-backend\backend\app\agent\model\chat_event.py:63: SADeprecationWarning: Callable object passed to the ``default`` parameter for attribute 'content' in a ORM-mapped Dataclasses context is ambiguous, and this use will raise an error in a future release.  If this callable is intended to produce Core level INSERT default values for an underlying ``Column``, use the ``mapped_column.insert_default`` parameter instead.  To establish this callable as providing a default value for instances of the dataclass itself, use the ``default_factory`` dataclasses parameter.
+    class ChatEvent(Base):
+
+backend\app\agent\schema\mcp_setting.py:24
+  C:\Users\pault\Documents\3. AI and Machine Learning\2. Deep Learning\1c. App\Projects\agents-backend\backend\app\agent\schema\mcp_setting.py:24: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class CodexConfigureRequest(BaseModel):
+
+backend\app\agent\schema\mcp_setting.py:59
+  C:\Users\pault\Documents\3. AI and Machine Learning\2. Deep Learning\1c. App\Projects\agents-backend\backend\app\agent\schema\mcp_setting.py:59: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class ClaudeCodeConfigureRequest(BaseModel):
+
+backend\app\agent\schema\mcp_setting.py:98
+  C:\Users\pault\Documents\3. AI and Machine Learning\2. Deep Learning\1c. App\Projects\agents-backend\backend\app\agent\schema\mcp_setting.py:98: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class MCPSettingInfo(BaseModel):
+
+backend\src\services\slides\models.py:22
+  C:\Users\pault\Documents\3. AI and Machine Learning\2. Deep Learning\1c. App\Projects\agents-backend\backend\src\services\slides\models.py:22: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class SlideContentInfo(SlideContentBase):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED backend/tests/test_agent_asset_optimization.py::test_agent_stream_generator_uploads_large_tool_image - AssertionError: Expected 'process_and_stage_asset' to have been called once. Called 0 times.
+======================= 1 failed, 31 warnings in 43.61s =======================

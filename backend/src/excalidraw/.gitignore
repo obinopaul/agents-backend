@@ -1,0 +1,31 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# Build artifacts
+dist/
+public/dist/
+
+# Environment files
+.env
+
+# Logs
+*.log
+
+# Editor artifacts
+.cursor/
+.claude/
+
+# Development artifacts
+*.excalidraw
+
+docs/
+*/__pycache__/
+/.benchmarks/
+/.mcp.json
+/.envrc
+/pytest-results.xml
+/coverage.xml
+/.coverage
+/coverage/
+.codespellrc

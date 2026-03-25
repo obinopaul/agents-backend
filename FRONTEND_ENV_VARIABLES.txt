@@ -1,0 +1,66 @@
+# ============================================================
+# FRONTEND ENVIRONMENT VARIABLES TO ADD
+# ============================================================
+# 
+# These are the environment variables needed for the II-Agent 
+# frontend to connect to your agents-backend.
+#
+# INSTRUCTIONS:
+# 1. Create a file: frontend/.env.local
+# 2. Copy the "FRONTEND VARIABLES" section below into it
+# 3. Add the "BACKEND VARIABLES" section to your backend/.env
+# ============================================================
+
+# ============================================================
+# FRONTEND VARIABLES (frontend/.env.local)
+# ============================================================
+
+# Required - Backend API URL
+VITE_API_URL=http://localhost:8000
+
+# Google OAuth Client ID (same as your backend's OAUTH2_GOOGLE_CLIENT_ID)
+VITE_GOOGLE_CLIENT_ID=your-google-client-id-here
+
+# Optional - Stripe (for billing features)
+VITE_STRIPE_PUBLISHABLE_KEY=
+
+# Optional - Sentry (for error tracking)
+VITE_SENTRY_DSN=
+
+# Optional - Feature flag
+VITE_DISABLE_CHAT_MODE=false
+
+
+# ============================================================
+# BACKEND VARIABLES TO VERIFY/ADD (backend/.env)
+# ============================================================
+
+# CORS Configuration - CRITICAL!
+# Add the frontend origin to allowed origins
+# Example: AGENT_ALLOWED_ORIGINS=http://localhost:1420,http://localhost:3000
+
+# Google OAuth2 Configuration
+# OAUTH2_GOOGLE_CLIENT_ID=your-google-client-id
+# OAUTH2_GOOGLE_CLIENT_SECRET=your-google-client-secret
+# OAUTH2_GOOGLE_REDIRECT_URI=http://localhost:8000/api/v1/oauth2/google/callback
+
+# Frontend Redirect URIs (after OAuth login/binding)
+# OAUTH2_FRONTEND_LOGIN_REDIRECT_URI=http://localhost:1420/oauth/callback
+# OAUTH2_FRONTEND_BINDING_REDIRECT_URI=http://localhost:1420/settings/social
+
+
+# ============================================================
+# NOTES
+# ============================================================
+#
+# 1. The frontend runs on port 1420 by default (configured in vite.config.ts)
+#
+# 2. The backend runs on port 8000 by default
+#
+# 3. Make sure CORS is configured to allow requests from localhost:1420
+#
+# 4. The Google Client ID must match between frontend and backend
+#
+# 5. You may not need all OAuth variables if you're only using 
+#    username/password login
+#

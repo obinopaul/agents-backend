@@ -1,0 +1,393 @@
+import logging
+from typing import Any, List, Optional, Sequence
+
+from langchain.agents import create_agent as langchain_create_agent
+from langchain.agents.middleware import (
+    wrap_model_call,
+    ModelRequest,
+    ModelResponse,
+    # Built-in middleware
+    SummarizationMiddleware,
+    ModelRetryMiddleware,
+    ToolRetryMiddleware,
+    ModelCallLimitMiddleware,
+    ToolCallLimitMiddleware,
+    ModelFallbackMiddleware,
+)
+from langchain_core.messages import SystemMessage
+from langgraph.cache.base import BaseCache
+from langgraph.store.base import BaseStore
+from langgraph.types import Checkpointer
+
+from backend.core.conf import settings
+from backend.src.llms.llm import (
+    get_llm,
+    get_fallback_llm,
+    get_fallback_model_identifiers,
+)
+from backend.src.prompts.template import get_prompt_template
+from backend.src.agents.middleware.persistent_task_middleware import (
+    PersistentTaskMiddleware,
+)
+from backend.src.agents.middleware.view_image_middleware import (
+    ViewImageMiddleware,
+)
+from backend.src.agents.middleware.background_middleware import (
+    BackgroundSubagentMiddleware,
+)
+from backend.src.agents.middleware.skills_middleware import SandboxSkillsMiddleware
+
+# Optional: SubAgent support
+try:
+    from deepagents.middleware.subagents import SubAgentMiddleware
+    from deepagents.middleware.patch_tool_calls import PatchToolCallsMiddleware
+    SUBAGENT_AVAILABLE = True
+except ImportError:
+    SubAgentMiddleware = None
+    PatchToolCallsMiddleware = None
+    SUBAGENT_AVAILABLE = False
+
+logger = logging.getLogger(__name__)
+
+
+# =============================================================================
+# Middleware LLM Configuration
+# =============================================================================
+
+def _get_middleware_llm():
+    """Get an LLM instance for middleware operations.
+    
+    Uses the fallback/supplementary LLM if configured, otherwise
+    uses the primary LLM. This keeps middleware operations independent
+    from the main agent LLM.
+    
+    Returns:
+        A configured LLM instance for middleware use
+    """
+    return get_fallback_llm()
+
+
+def build_default_middleware(
+    enable_summarization: bool = None,
+    enable_model_retry: bool = None,
+    enable_tool_retry: bool = None,
+    enable_model_call_limit: bool = None,
+    enable_tool_call_limit: bool = None,
+    enable_model_fallback: bool = None,
+    enable_persistent_tasks: bool = True,  # Enable persistent task middleware
+    enable_view_image: bool = True,  # Enable view image middleware
+    enable_background_tasks: bool = False,  # Enable background subagent execution (opt-in)
+    enable_skills: bool = False,  # Enable skills middleware (sandbox loaded from runtime.context)
+    background_task_timeout: float = 60.0,  # Timeout for background tasks in seconds
+    summarization_trigger_tokens: int = None,
+    summarization_keep_messages: int = None,
+    model_max_retries: int = None,
+    model_backoff_factor: float = None,
+    model_initial_delay: float = None,
+    tool_max_retries: int = None,
+    tool_backoff_factor: float = None,
+    tool_initial_delay: float = None,
+    model_call_thread_limit: int = None,
+    model_call_run_limit: int = None,
+    tool_call_thread_limit: int = None,
+    tool_call_run_limit: int = None,
+    fallback_models: List[str] = None,
+) -> List[Any]:
+    """Build a list of default middleware for production agents.
+    
+    This function creates essential middleware for robust agent operation:
+    - PersistentTaskMiddleware: Task management with sections and persistence
+    - ViewImageMiddleware: Enable vision models to see images from URLs/sandbox
+    - ModelFallbackMiddleware: Try alternative models when primary fails
+    - SummarizationMiddleware: Compress long conversations to fit context windows
+    - ModelRetryMiddleware: Retry failed model calls with exponential backoff
+    - ToolRetryMiddleware: Retry failed tool calls with exponential backoff
+    - ModelCallLimitMiddleware: Prevent excessive model API calls
+    - ToolCallLimitMiddleware: Prevent excessive tool executions
+    
+    All parameters default to values from environment variables via settings.
+    Pass explicit values to override settings for specific use cases.
+    
+    Args:
+        enable_summarization: Enable conversation summarization
+        enable_model_retry: Enable model call retry logic
+        enable_tool_retry: Enable tool call retry logic
+        enable_model_call_limit: Enable model call limits
+        enable_tool_call_limit: Enable tool call limits
+        enable_model_fallback: Enable fallback to alternative models
+        enable_persistent_tasks: Enable persistent task middleware
+        enable_view_image: Enable view image middleware for vision models
+        enable_background_tasks: Enable background/parallel subagent execution (opt-in)
+        enable_skills: Enable skills middleware (sandbox accessed via runtime.context)
+        background_task_timeout: Timeout for background tasks in seconds (default: 60)
+        summarization_trigger_tokens: Token count to trigger summarization
+        summarization_keep_messages: Number of recent messages to preserve
+        model_max_retries: Max retries for model calls
+        model_backoff_factor: Backoff multiplier for model retries
+        model_initial_delay: Initial delay (seconds) for model retries
+        tool_max_retries: Max retries for tool calls
+        tool_backoff_factor: Backoff multiplier for tool retries
+        tool_initial_delay: Initial delay (seconds) for tool retries
+        model_call_thread_limit: Max model calls per thread
+        model_call_run_limit: Max model calls per run
+        tool_call_thread_limit: Max tool calls per thread
+        tool_call_run_limit: Max tool calls per run
+        fallback_models: List of model identifiers for fallback chain
+        
+    Returns:
+        List of configured middleware instances
+    """
+    # Use settings values as defaults (allow None to be overridden)
+    if enable_summarization is None:
+        enable_summarization = settings.MIDDLEWARE_ENABLE_SUMMARIZATION
+    if enable_model_retry is None:
+        enable_model_retry = settings.MIDDLEWARE_ENABLE_MODEL_RETRY
+    if enable_tool_retry is None:
+        enable_tool_retry = settings.MIDDLEWARE_ENABLE_TOOL_RETRY
+    if enable_model_call_limit is None:
+        enable_model_call_limit = settings.MIDDLEWARE_ENABLE_MODEL_CALL_LIMIT
+    if enable_tool_call_limit is None:
+        enable_tool_call_limit = settings.MIDDLEWARE_ENABLE_TOOL_CALL_LIMIT
+    if enable_model_fallback is None:
+        enable_model_fallback = settings.MIDDLEWARE_ENABLE_MODEL_FALLBACK
+        
+    if summarization_trigger_tokens is None:
+        summarization_trigger_tokens = settings.MIDDLEWARE_SUMMARIZATION_TRIGGER_TOKENS
+    if summarization_keep_messages is None:
+        summarization_keep_messages = settings.MIDDLEWARE_SUMMARIZATION_KEEP_MESSAGES
+        
+    if model_max_retries is None:
+        model_max_retries = settings.MIDDLEWARE_MODEL_MAX_RETRIES
+    if model_backoff_factor is None:
+        model_backoff_factor = settings.MIDDLEWARE_MODEL_BACKOFF_FACTOR
+    if model_initial_delay is None:
+        model_initial_delay = settings.MIDDLEWARE_MODEL_INITIAL_DELAY
+        
+    if tool_max_retries is None:
+        tool_max_retries = settings.MIDDLEWARE_TOOL_MAX_RETRIES
+    if tool_backoff_factor is None:
+        tool_backoff_factor = settings.MIDDLEWARE_TOOL_BACKOFF_FACTOR
+    if tool_initial_delay is None:
+        tool_initial_delay = settings.MIDDLEWARE_TOOL_INITIAL_DELAY
+        
+    if model_call_thread_limit is None:
+        model_call_thread_limit = settings.MIDDLEWARE_MODEL_CALL_THREAD_LIMIT
+    if model_call_run_limit is None:
+        model_call_run_limit = settings.MIDDLEWARE_MODEL_CALL_RUN_LIMIT
+        
+    if tool_call_thread_limit is None:
+        tool_call_thread_limit = settings.MIDDLEWARE_TOOL_CALL_THREAD_LIMIT
+    if tool_call_run_limit is None:
+        tool_call_run_limit = settings.MIDDLEWARE_TOOL_CALL_RUN_LIMIT
+        
+    if fallback_models is None:
+        fallback_models = get_fallback_model_identifiers()
+    
+    middleware = []
+    
+    # PersistentTaskMiddleware - persistent task management with sections
+    # Uses LangGraph Store for persistence across sessions
+    if enable_persistent_tasks:
+        middleware.append(PersistentTaskMiddleware())
+        logger.debug("Added PersistentTaskMiddleware for persistent task management")
+    
+    # ViewImageMiddleware - enables vision models to see images
+    # Intercepts view_image tool calls and injects images into message history
+    if enable_view_image:
+        middleware.append(ViewImageMiddleware(validate_urls=True, strict_validation=True))
+        logger.debug("Added ViewImageMiddleware for vision model support")
+    
+    # Background Middleware (opt-in)
+    # Note: agents.py does not support subagents - use deep_agents.py for subagent support
+    if enable_background_tasks:
+        bg_middleware_instance = BackgroundSubagentMiddleware(
+            timeout=background_task_timeout,
+            enabled=True,
+        )
+        
+        # Add Background Middleware
+        middleware.append(bg_middleware_instance)
+        logger.debug(f"Added BackgroundSubagentMiddleware (timeout={background_task_timeout}s)")
+        logger.info("Note: agents.py does not support subagents. Use deep_agents.py for subagent support.")
+    
+    # Model fallback middleware - tries alternative models on failure
+    # Should be first to catch failures and route to fallback models
+    if enable_model_fallback and fallback_models:
+        # ModelFallbackMiddleware takes positional args: (first_model, *additional_models)
+        middleware.append(ModelFallbackMiddleware(*fallback_models))
+        logger.debug(f"Added ModelFallbackMiddleware (fallbacks={fallback_models})")
+    
+    # Model retry middleware - handles transient API failures
+    # Should be early in the stack to catch failures from downstream middleware
+    if enable_model_retry:
+        middleware.append(
+            ModelRetryMiddleware(
+                max_retries=model_max_retries,
+                backoff_factor=model_backoff_factor,
+                initial_delay=model_initial_delay,
+            )
+        )
+        logger.debug(f"Added ModelRetryMiddleware (max_retries={model_max_retries})")
+    
+    # Tool retry middleware - handles transient tool failures
+    if enable_tool_retry:
+        middleware.append(
+            ToolRetryMiddleware(
+                max_retries=tool_max_retries,
+                backoff_factor=tool_backoff_factor,
+                initial_delay=tool_initial_delay,
+            )
+        )
+        logger.debug(f"Added ToolRetryMiddleware (max_retries={tool_max_retries})")
+    
+    # Summarization middleware - compresses long conversations
+    # Uses a separate LLM instance for summarization
+    if enable_summarization:
+        summarization_llm = _get_middleware_llm()
+        middleware.append(
+            SummarizationMiddleware(
+                model=summarization_llm,
+                trigger=("tokens", summarization_trigger_tokens),
+                keep=("messages", summarization_keep_messages),
+            )
+        )
+        logger.debug(
+            f"Added SummarizationMiddleware "
+            f"(trigger={summarization_trigger_tokens} tokens, keep={summarization_keep_messages} messages)"
+        )
+    
+    # Model call limit middleware - prevents runaway costs
+    if enable_model_call_limit:
+        middleware.append(
+            ModelCallLimitMiddleware(
+                thread_limit=model_call_thread_limit,
+                run_limit=model_call_run_limit,
+                exit_behavior="end",
+            )
+        )
+        logger.debug(
+            f"Added ModelCallLimitMiddleware "
+            f"(thread_limit={model_call_thread_limit}, run_limit={model_call_run_limit})"
+        )
+    
+    # Tool call limit middleware - prevents excessive tool usage
+    if enable_tool_call_limit:
+        middleware.append(
+            ToolCallLimitMiddleware(
+                thread_limit=tool_call_thread_limit,
+                run_limit=tool_call_run_limit,
+            )
+        )
+        logger.debug(
+            f"Added ToolCallLimitMiddleware "
+            f"(thread_limit={tool_call_thread_limit}, run_limit={tool_call_run_limit})"
+        )
+    
+    # SandboxSkillsMiddleware - loads skills from sandbox workspace
+    # Sandbox is accessed from runtime.context['sandbox'] at execution time
+    if enable_skills:
+        middleware.append(SandboxSkillsMiddleware())
+        logger.debug("Added SandboxSkillsMiddleware (sandbox accessed via runtime.context)")
+    
+    return middleware
+
+
+
+def create_agent(
+    agent_name: str,
+    agent_type: str,
+    tools: list,
+    prompt_template: str,
+    middleware: Optional[Sequence[Any]] = None,
+    use_default_middleware: bool = True,
+    middleware_config: Optional[dict] = None,
+    *,
+    # LangGraph features (for parity with deep_agents.py)
+    store: BaseStore = None,
+    cache: BaseCache = None,
+    context_schema: type[Any] = None,
+    checkpointer: Checkpointer | None = None,
+    response_format: Any = None,
+    debug: bool = False,
+):
+    """Factory function to create agents with consistent configuration.
+
+    Uses langchain.agents.create_agent (LangChain v1) with the correct signature.
+    Includes production-ready built-in middleware by default.
+
+    Args:
+        agent_name: Name of the agent
+        agent_type: Type of agent (researcher, coder, etc.) - for logging purposes
+        tools: List of tools available to the agent
+        prompt_template: Name of the prompt template to use
+        middleware: Optional list of additional/custom middleware instances
+                    (appended after default middleware)
+        use_default_middleware: Whether to include default production middleware
+                               (SummarizationMiddleware, ModelRetryMiddleware, etc.)
+        middleware_config: Optional dict to configure default middleware.
+                          Keys: enable_summarization, enable_model_retry, enable_tool_retry,
+                                enable_model_call_limit, enable_tool_call_limit, etc.
+        store: Optional BaseStore for persistent storage across runs.
+        cache: Optional BaseCache for response caching.
+        context_schema: Optional schema for typed agent context.
+        response_format: Optional structured output response format.
+        debug: Enable debug mode for verbose logging.
+
+    Returns:
+        A configured agent graph (CompiledStateGraph)
+    """
+    logger.debug(
+        f"Creating agent '{agent_name}' of type '{agent_type}' "
+        f"with {len(tools)} tools and template '{prompt_template}'"
+    )
+    
+    # Get the configured LLM (uses LLM_PROVIDER from settings)
+    llm = get_llm()
+    logger.debug(f"Agent '{agent_name}' using LLM provider from settings")
+    
+    # Get the system prompt string from template
+    # LangChain v1 create_agent expects a string or SystemMessage, not a callable
+    try:
+        system_prompt = get_prompt_template(prompt_template)
+        logger.debug(f"Loaded prompt template '{prompt_template}'")
+    except Exception as e:
+        logger.warning(f"Failed to load prompt template '{prompt_template}': {e}")
+        system_prompt = f"You are a helpful {agent_type} agent named {agent_name}."
+    
+    # Build middleware list
+    middleware_list = []
+    
+    # Add default production middleware if enabled
+    if use_default_middleware:
+        config = middleware_config or {}
+        default_mw = build_default_middleware(**config)
+        middleware_list.extend(default_mw)
+        logger.debug(f"Added {len(default_mw)} default middleware for agent '{agent_name}'")
+    
+    # Add custom/additional middleware
+    if middleware:
+        middleware_list.extend(middleware)
+        logger.debug(f"Added {len(middleware)} custom middleware for agent '{agent_name}'")
+    
+    logger.debug(f"Creating ReAct agent '{agent_name}'")
+    logger.info(f"Agent '{agent_name}' total middleware count: {len(middleware_list)}")
+    
+    # Create agent using LangChain v1 create_agent signature
+    # See: https://docs.langchain.com/oss/python/langchain/agents
+    agent = langchain_create_agent(
+        model=llm,
+        tools=tools,
+        system_prompt=system_prompt,
+        middleware=middleware_list if middleware_list else (),
+        name=agent_name,
+        debug=debug,
+        store=store,
+        cache=cache,
+        context_schema=context_schema,
+        response_format=response_format,
+        checkpointer=checkpointer,
+    )
+    
+    logger.info(f"Agent '{agent_name}' created successfully with LangChain v1 create_agent")
+    
+    return agent

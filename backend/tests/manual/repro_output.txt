@@ -1,0 +1,36 @@
+
+--- Testing Agent Protocol Compliance ---
+
+[1] Tool Call Start (id=cb15ac4d-f24a-4aea-9444-5c699bed0336)
+Generated SSE:
+event: tool_call
+data: {"status": "start", "id": "cb15ac4d-f24a-4aea-9444-5c699bed0336", "name": "web_search", "type": "function"}
+
+[2] Tool Call Delta (Streaming Args)
+Serialized Input: {"query": "agent streaming protocol"}
+Generated SSE:
+event: tool_call
+data: {"status": "delta", "id": "cb15ac4d-f24a-4aea-9444-5c699bed0336", "delta": "{\"query\": \"agent streaming protocol\"}"}
+
+[3] Tool Call Stop (Complete Input)
+Generated SSE:
+event: tool_call
+data: {"status": "stop", "id": "cb15ac4d-f24a-4aea-9444-5c699bed0336", "name": "web_search", "input": "{\"query\": \"agent streaming protocol\"}"}
+
+[4] Tool Result
+Generated SSE:
+event: tool_result
+data: {"status": "info", "tool_call_id": "cb15ac4d-f24a-4aea-9444-5c699bed0336", "name": "web_search", "output": ["Result 1", "Result 2"], "is_error": false}
+
+--- Protocol Verification ---
+✅ Start event matches protocol
+✅ Delta event matches protocol
+✅ Stop event matches protocol
+
+--- Serialization Robustness Test ---
+Attempting to serialize complex object...
+Safe Serialization Result: {"key": {"circular": "<circular ref: ComplexObj>", "name": "MyComplexObject"}, "val": "test"}
+Generated Safe SSE:
+event: tool_call
+data: {"status": "delta", "id": "cb15ac4d-f24a-4aea-9444-5c699bed0336", "delta": "{\"key\": {\"circular\": \"<circular ref: ComplexObj>\", \"name\": \"MyComplexObject\"}, \"val\": \"test\"}"}
+✅ Serialization robustness confirmed
